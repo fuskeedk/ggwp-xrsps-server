@@ -79,8 +79,8 @@ function resolveTierOneRelicRewardItemId(player: PlayerState, services: ScriptSe
     if (!(selectedRelicKey > 0)) return undefined;
 
     const leagueType = player.varps.getVarbitValue?.(VARBIT_LEAGUE_TYPE) ?? 0;
-    const enumLoader = services?.getEnumTypeLoader?.() ?? services?.enumTypeLoader;
-    const structLoader = services?.getStructTypeLoader?.() ?? services?.structTypeLoader;
+    const enumLoader = services.data.getEnumTypeLoader();
+    const structLoader = services.data.getStructTypeLoader();
     if (!enumLoader?.load || !structLoader?.load) return undefined;
 
     const leagueTypeEnum = enumLoader.load(ENUM_LEAGUE_TYPE_STRUCT);

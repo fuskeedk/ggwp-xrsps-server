@@ -246,6 +246,15 @@ const COMP_VIEW_RELICS = 7;
 // Close button for the tasks interface (user confirmed child 3)
 const COMP_TASKS_CLOSE_BUTTON = 3;
 
+function closeLeagueTutorialOverlay(player: PlayerState, services: ScriptServices): void {
+    const targetUid = getViewportTrackerFrontUid(player.displayMode);
+    services.dialog.closeSubInterface(player, targetUid, LEAGUE_TUTORIAL_MAIN_GROUP_ID);
+    services.dialog.queueWidgetEvent(player.id, {
+        action: "close_sub",
+        targetUid,
+    });
+}
+
 // ============================================================================
 // League tutorial UI highlights (screenhighlight / ui_highlights)
 // ============================================================================
@@ -323,8 +332,8 @@ function getLeagueRelicIndexMap(services: ScriptServices, leagueType: number): L
     const cached = leagueRelicIndexCache.get(lt);
     if (cached) return cached;
 
-    const enumLoader = services?.getEnumTypeLoader?.() ?? services?.enumTypeLoader;
-    const structLoader = services?.getStructTypeLoader?.() ?? services?.structTypeLoader;
+    const enumLoader = services.data.getEnumTypeLoader();
+    const structLoader = services.data.getStructTypeLoader();
     if (!enumLoader?.load) {
         console.log(`[league] getLeagueRelicIndexMap: enumLoader missing`);
         return null;
@@ -428,8 +437,8 @@ let leagueAreaUnlockTasksRequiredCache: number[] | null = null;
 function getLeagueAreaUnlockTasksRequired(services: ScriptServices): number[] | null {
     if (leagueAreaUnlockTasksRequiredCache) return leagueAreaUnlockTasksRequiredCache;
 
-    const enumLoader = services?.getEnumTypeLoader?.() ?? services?.enumTypeLoader;
-    const structLoader = services?.getStructTypeLoader?.() ?? services?.structTypeLoader;
+    const enumLoader = services.data.getEnumTypeLoader();
+    const structLoader = services.data.getStructTypeLoader();
     const enumType = enumLoader?.load?.(ENUM_LEAGUE_AREA_UNLOCKS);
     if (!enumType || !enumType.keys || !enumType.intValues) return null;
     if (!structLoader?.load) return null;
@@ -1318,11 +1327,7 @@ export function registerLeagueWidgetHandlers(registry: IScriptRegistry, services
         // Close the tutorial modal while Tasks is open during tutorial step 5
         // It will reopen when Tasks closes (via onInterfaceClose hook)
         if (tutorial === 5) {
-            services.dialog.closeSubInterface(
-                player,
-                getViewportTrackerFrontUid(player.displayMode),
-                LEAGUE_TUTORIAL_MAIN_GROUP_ID,
-            );
+            closeLeagueTutorialOverlay(player, services);
         }
 
         // Open the tasks interface
@@ -1505,11 +1510,7 @@ export function registerLeagueWidgetHandlers(registry: IScriptRegistry, services
         if (tutorial === 9) {
             // Close the tutorial modal while Relics is open
             // It will reopen when Relics closes (via close button handler or onInterfaceClose hook)
-            services.dialog.closeSubInterface(
-                player,
-                getViewportTrackerFrontUid(player.displayMode),
-                LEAGUE_TUTORIAL_MAIN_GROUP_ID,
-            );
+            closeLeagueTutorialOverlay(player, services);
 
             // Clear the relics button highlight when opening
             services.dialog.queueWidgetEvent(player.id, {
@@ -1618,11 +1619,7 @@ export function registerLeagueWidgetHandlers(registry: IScriptRegistry, services
         // Close the tutorial modal while the Areas interface is open during the
         // Karamja selection/close-gate steps. The modal will reopen when Areas closes.
         if (needsKaramjaHighlight || needsAreasCloseHighlight) {
-            services.dialog.closeSubInterface(
-                player,
-                getViewportTrackerFrontUid(player.displayMode),
-                LEAGUE_TUTORIAL_MAIN_GROUP_ID,
-            );
+            closeLeagueTutorialOverlay(player, services);
         }
 
         // Open interface with varbits - CS2 onload handles the rest.
@@ -2328,8 +2325,7 @@ export function registerLeagueWidgetHandlers(registry: IScriptRegistry, services
 
         try {
             // Award any relic reward object (param_2049) before committing the selection.
-            const structLoader =
-                services?.getStructTypeLoader?.() ?? services?.structTypeLoader;
+            const structLoader = services.data.getStructTypeLoader();
             const relicStruct = structLoader?.load?.(pending.relicStructId);
             const rewardObjId = relicStruct?.params?.get?.(PARAM_LEAGUE_RELIC_REWARD_OBJ) as
                 | number
@@ -2865,11 +2861,7 @@ export function registerLeagueWidgetHandlers(registry: IScriptRegistry, services
         // Close the tutorial modal while Tasks is open during tutorial step 5
         // It will reopen when Tasks closes (via onInterfaceClose hook)
         if (tutorial === 5) {
-            services.dialog.closeSubInterface(
-                player,
-                getViewportTrackerFrontUid(player.displayMode),
-                LEAGUE_TUTORIAL_MAIN_GROUP_ID,
-            );
+            closeLeagueTutorialOverlay(player, services);
         }
 
         // Open the tasks interface

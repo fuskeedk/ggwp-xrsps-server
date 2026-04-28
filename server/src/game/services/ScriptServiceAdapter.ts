@@ -353,8 +353,11 @@ export function buildScriptServices(deps: ScriptServiceAdapterDeps): ScriptServi
                 });
             },
             closeSubInterface: (player, targetUid, groupId) => {
-                if (groupId !== undefined) player.widgets.closeByTargetUid(targetUid, { groupId });
-                else player.widgets.closeByTargetUid(targetUid);
+                const closed =
+                    groupId !== undefined
+                        ? player.widgets.closeByTargetUid(targetUid, { groupId })
+                        : player.widgets.closeByTargetUid(targetUid);
+                deps.interfaceService?.triggerCloseHooksForEntries(player, closed);
             },
             closeModal: (player) => deps.interfaceService?.closeModal(player),
             getInterfaceService: () => deps.interfaceService,

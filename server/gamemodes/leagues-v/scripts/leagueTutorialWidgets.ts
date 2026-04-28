@@ -43,6 +43,15 @@ const TOPLEVEL_FIXED_GROUP_ID = 548;
 const RESIZABLE_QUESTS_TAB_COMPONENT = 61;
 const FIXED_QUESTS_TAB_COMPONENT = 66;
 
+function closeLeagueTutorialOverlay(player: PlayerState, services: ScriptServices): void {
+    const targetUid = getViewportTrackerFrontUid(player.displayMode);
+    services.dialog.closeSubInterface(player, targetUid, LEAGUE_TUTORIAL_MAIN_GROUP_ID);
+    services.dialog.queueWidgetEvent(player.id, {
+        action: "close_sub",
+        targetUid,
+    });
+}
+
 export function registerLeagueTutorialWidgetHandlers(registry: IScriptRegistry, services: ScriptServices): void {
     const syncLeagueGeneralVarpAndQueue = (player: PlayerState): void => {
         const res = syncLeagueGeneralVarp(player);
@@ -73,11 +82,7 @@ export function registerLeagueTutorialWidgetHandlers(registry: IScriptRegistry, 
         // End Tutorial - allow at step 9 (after Karamja unlock) or step 11 (finishing)
         if (tutorial >= 9) {
             // Close the modal immediately before any varbit updates
-            services.dialog.closeSubInterface(
-                player,
-                getViewportTrackerFrontUid(player.displayMode),
-                LEAGUE_TUTORIAL_MAIN_GROUP_ID,
-            );
+            closeLeagueTutorialOverlay(player, services);
 
             const completeStep = getTutorialCompleteStep(player);
             player.varps.setVarbitValue(VARBIT_LEAGUE_TUTORIAL_COMPLETED, completeStep);
