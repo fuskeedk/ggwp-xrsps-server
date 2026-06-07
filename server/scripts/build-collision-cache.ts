@@ -1,4 +1,4 @@
-// npx tsx server/scripts/build-collision-cache.ts --include-models
+// tsx server/scripts/build-collision-cache.ts --include-models
 import fs from "fs";
 import { promises as fsp } from "fs";
 import path from "path";

@@ -222,7 +222,7 @@ async function promptYesNo(question: string): Promise<boolean> {
 
 function generateMapImages(): void {
     console.log("[CacheDownloader] Generating map images (this may take a while)...");
-    execSync("npx tsx scripts/cache/export-map-images.ts --force", {
+    execSync("tsx scripts/cache/export-map-images.ts --force", {
         stdio: "inherit",
         cwd: path.resolve("."),
     });

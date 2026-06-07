@@ -89,19 +89,20 @@ export class VarManager {
     /**
      * Register league-related varbits that may not be in the cache.
      * These definitions match OSRS cache varbit layouts.
+     * registerVarbit uses an exclusive endBit, so inclusive bit ranges pass lastBit + 1.
      */
     private registerLeagueVarbits(): void {
         // Varbit 10046: league_total_tasks_completed
         // Stored in varp 2612, bits 0-15 (16-bit value for task counts 0-65535)
-        this.registerVarbit(10046, 2612, 0, 15);
+        this.registerVarbit(10046, 2612, 0, 16);
 
         // Varbit 10037: league_tutorial_completed (already in cache but ensure fallback)
         // Stored in varp 2606, bits 13-17
-        this.registerVarbit(10037, 2606, 13, 17);
+        this.registerVarbit(10037, 2606, 13, 18);
 
         // Varbit 10032: league_type
         // Stored in varp 2606, bits 1-4
-        this.registerVarbit(10032, 2606, 1, 4);
+        this.registerVarbit(10032, 2606, 1, 5);
     }
 
     /**

@@ -416,7 +416,7 @@ function main(): void {
         console.log(
             [
                 "Usage:",
-                "  npx tsx server/scripts/scan-door-visual-candidates.ts --closed=52,53",
+                "  tsx server/scripts/scan-door-visual-candidates.ts --closed=52,53",
                 "Options:",
                 "  --cache=<name>       Cache folder name under ./caches",
                 `  --top=<n>            Max candidates to print (default ${DEFAULT_TOP})`,

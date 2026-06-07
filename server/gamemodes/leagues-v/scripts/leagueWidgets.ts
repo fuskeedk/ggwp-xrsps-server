@@ -444,6 +444,12 @@ function getRelicSelectionVarbitIdForTier(tierIndex: number): number | null {
     return LEAGUE_RELIC_SELECTION_VARBITS[idx];
 }
 
+function hasFirstLeagueRelicSelection(player: {
+    varps: { getVarbitValue?: (id: number) => number };
+}): boolean {
+    return (player.varps.getVarbitValue?.(VARBIT_LEAGUE_RELIC_1) ?? 0) > 0;
+}
+
 // Area selection varbits (6 slots for unlocked areas)
 const AREA_SELECTION_VARBITS = [
     VARBIT_LEAGUE_AREA_SELECTION_0,
@@ -987,15 +993,6 @@ function getLeagueAreaButtonState(
     // 1 = Teleport (already unlocked)
     if (isLeagueAreaUnlocked(player, regionId)) return 1;
 
-    // During the tutorial, Karamja is free - allow unlock regardless of task requirements.
-    // Karamja is the first area players actively choose during the tutorial.
-    const tutorialStep = player.varps.getVarbitValue?.(VARBIT_LEAGUE_TUTORIAL_COMPLETED) ?? 0;
-    const tutorialComplete = getLeagueTutorialCompleteStep(player);
-    const inTutorial = tutorialStep < tutorialComplete;
-    if (inTutorial && regionId === 2) {
-        return 2; // Allow Karamja unlock during tutorial
-    }
-
     const stage = getCurrentLeagueAreaUnlockStage(player, services);
     if (!stage) return 4;
 
@@ -1020,32 +1017,15 @@ function tryUnlockLeagueArea(
     // Already unlocked?
     if (isLeagueAreaUnlocked(player, regionId)) return { ok: false, reason: "already_unlocked" };
 
-    // During the tutorial, Karamja is free - allow unlock regardless of task requirements.
-    const tutorialStep = player.varps.getVarbitValue?.(VARBIT_LEAGUE_TUTORIAL_COMPLETED) ?? 0;
-    const tutorialComplete = getLeagueTutorialCompleteStep(player);
-    const inTutorial = tutorialStep < tutorialComplete;
-    const isTutorialKaramja = inTutorial && regionId === 2;
-
     const stage = getCurrentLeagueAreaUnlockStage(player, services);
-
-    // For tutorial Karamja, use slot 1 if stage lookup fails (cache not loaded)
     if (!stage) {
-        if (isTutorialKaramja) {
-            // Karamja goes into slot 1 (the second area slot after Misthalin)
-            const slotVarbitId = AREA_SELECTION_VARBITS[1];
-            player.varps.setVarbitValue(slotVarbitId, regionId);
-            services.variables.queueVarbit?.(player.id, slotVarbitId, regionId);
-            return { ok: true };
-        }
         return { ok: false, reason: "no_slots" };
     }
 
-    // Karamja is forced as the 2nd area selection (stageIndex=1) outside of tutorial.
-    if (!isTutorialKaramja && stage.stageIndex === 1 && regionId !== 2)
-        return { ok: false, reason: "karamja_second" };
+    // Karamja is forced as the 2nd area selection (stageIndex=1).
+    if (stage.stageIndex === 1 && regionId !== 2) return { ok: false, reason: "karamja_second" };
 
-    // Check task requirements (unless it's Karamja during tutorial)
-    if (!stage.canUnlock && !isTutorialKaramja) {
+    if (!stage.canUnlock) {
         return { ok: false, reason: "not_enough_tasks" };
     }
 
@@ -1264,6 +1244,47 @@ export function advanceLeagueTutorialAfterTasksClose(
         return true;
     }
 
+    ensureLeagueAreaSelectionsInitialized(player, services);
+
+    if (isLeagueAreaUnlocked(player, 2)) {
+        setLeagueTutorialStepAndQueue(player, services, LEAGUE_TUTORIAL_STEP_RELICS);
+        queueLeagueTutorialUiHighlight(
+            player,
+            services,
+            UI_HIGHLIGHT_ID_RELICS_BUTTON,
+            uidForLeagueSidePanelL5(L5_COMP_VIEW_RELICS),
+        );
+        queueLeagueTutorialOverlayForStep(player, services, LEAGUE_TUTORIAL_STEP_RELICS);
+        return true;
+    }
+
+    const stage = getCurrentLeagueAreaUnlockStage(player, services);
+    if (!stage || stage.stageIndex !== 1 || !stage.canUnlock) {
+        if (stage && !stage.canUnlock) {
+            const tasksCompleted =
+                player.varps.getVarbitValue?.(VARBIT_LEAGUE_TOTAL_TASKS_COMPLETED) ?? 0;
+            const remaining = Math.max(1, stage.tasksRequired - tasksCompleted);
+            const taskLabel = remaining === 1 ? "Task" : "Tasks";
+            services.messaging.sendGameMessage(
+                player,
+                `Complete and claim ${remaining} more League ${taskLabel} to unlock your next area.`,
+            );
+        } else {
+            services.messaging.sendGameMessage(
+                player,
+                "Complete and claim enough League Tasks to unlock your next area.",
+            );
+        }
+        queueLeagueTutorialUiHighlight(
+            player,
+            services,
+            UI_HIGHLIGHT_ID_TASKS_BUTTON,
+            uidForLeagueSidePanelL5(L5_COMP_VIEW_TASKS),
+        );
+        queueLeagueTutorialOverlayForStep(player, services, LEAGUE_TUTORIAL_STEP_TASKS);
+        return false;
+    }
+
     setLeagueTutorialStepAndQueue(player, services, LEAGUE_TUTORIAL_STEP_AREAS);
     queueLeagueTutorialUiHighlight(
         player,
@@ -1281,6 +1302,22 @@ export function advanceLeagueTutorialAfterRelicsClose(
 ): boolean {
     const tutorial = player.varps.getVarbitValue?.(VARBIT_LEAGUE_TUTORIAL_COMPLETED) ?? 0;
     if (tutorial !== LEAGUE_TUTORIAL_STEP_RELICS) {
+        return false;
+    }
+
+    if (!hasFirstLeagueRelicSelection(player)) {
+        closeLeagueTutorialHints(player, services);
+        services.messaging.sendGameMessage(
+            player,
+            "Choose and confirm a tier-1 Relic before continuing the tutorial.",
+        );
+        queueLeagueTutorialUiHighlight(
+            player,
+            services,
+            UI_HIGHLIGHT_ID_RELICS_BUTTON,
+            uidForLeagueSidePanelL5(L5_COMP_VIEW_RELICS),
+        );
+        queueLeagueTutorialOverlayForStep(player, services, LEAGUE_TUTORIAL_STEP_RELICS);
         return false;
     }
 
@@ -1744,20 +1781,10 @@ export function registerLeagueWidgetHandlers(registry: IScriptRegistry, services
             services.variables.queueVarbit?.(player.id, VARBIT_LEAGUE_AREA_LAST_VIEWED, area.regionId);
 
             const buttonState = getLeagueAreaButtonState(player, services, area.regionId);
-
-            // During tutorial, Karamja is free - override task count in varbits so CS2
-            // script's internal check also passes (it may recalculate button state).
-            const tutorialComplete = getLeagueTutorialCompleteStep(player);
-            const isTutorialKaramja =
-                tutorial < tutorialComplete && area.regionId === 2 && buttonState === 2;
             const varbits: Record<number, number> = {
                 ...getLeagueVarbits(player),
                 [VARBIT_LEAGUE_AREA_LAST_VIEWED]: area.regionId,
             };
-            if (isTutorialKaramja) {
-                // Set a high task count so CS2 script thinks player has enough tasks
-                varbits[VARBIT_LEAGUE_TOTAL_TASKS_COMPLETED] = 1000;
-            }
 
             // Trigger the detailed view (the click script only shows the loading overlay).
             // This script also calls script7630 which reads %league_area_last_viewed.
@@ -2182,6 +2209,15 @@ export function registerLeagueWidgetHandlers(registry: IScriptRegistry, services
     // Tutorial progression is handled by onInterfaceClose hook above
     registry.onButton(LEAGUE_RELICS_GROUP_ID, L5_RELIC_CLOSE_BUTTON_CHILD, (event) => {
         const player = event.player;
+        const tutorial = player.varps.getVarbitValue?.(VARBIT_LEAGUE_TUTORIAL_COMPLETED) ?? 0;
+        if (tutorial === LEAGUE_TUTORIAL_STEP_RELICS && !hasFirstLeagueRelicSelection(player)) {
+            services.messaging.sendGameMessage(
+                player,
+                "Choose and confirm a tier-1 Relic before continuing the tutorial.",
+            );
+            return;
+        }
+
         clearPendingRelicSelection(player);
         // Close buttons run if_close clientside (leagues_closebutton_click),
         // but if the click is transmitted to the server (non-parity client paths), still close
