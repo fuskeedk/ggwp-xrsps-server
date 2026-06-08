@@ -36,8 +36,8 @@ export const QUEST_TAB_INDEX = 2;
  */
 export interface DesktopInterfaceOptions {
     /**
-     * If true, only include the Quest tab (for gamemode tutorial mode).
-     * When tutorial completes, call openRemainingTabs() to show all tabs.
+     * If true, only include the Quest tab for gamemode tutorial mode.
+     * The persistent HUD interfaces are opened after tutorial completion.
      */
     tutorialMode?: boolean;
 }
@@ -52,7 +52,8 @@ export function getDesktopInterfaces(
     const rootId = getRootInterfaceId(displayMode);
     const interfaces: InterfaceMount[] = [];
 
-    // Desktop dedicated interfaces (chat, minimap, etc.) - always opened
+    // Desktop dedicated interfaces (chat, minimap, etc.).
+    // Gamemode tutorial mode starts with only the Quest tab and tutorial overlays.
     // Note: Using hardcoded values to avoid circular dependency with index.ts.
     // Some overlays use a distinct mount point in resizable-list mode (164).
     // Format: { groupId, fixedChildId, resizeChildId, resizeListChildId? }
@@ -70,20 +71,22 @@ export function getDesktopInterfaces(
         }, // BUFF_BAR
     ];
 
-    for (const dest of dedicatedInterfaces) {
-        let childId = dest.resizeChildId;
-        if (displayMode === DisplayMode.FIXED) {
-            childId = dest.fixedChildId;
-        } else if (displayMode === DisplayMode.RESIZABLE_LIST) {
-            childId = dest.resizeListChildId ?? dest.resizeChildId;
+    if (!options?.tutorialMode) {
+        for (const dest of dedicatedInterfaces) {
+            let childId = dest.resizeChildId;
+            if (displayMode === DisplayMode.FIXED) {
+                childId = dest.fixedChildId;
+            } else if (displayMode === DisplayMode.RESIZABLE_LIST) {
+                childId = dest.resizeListChildId ?? dest.resizeChildId;
+            }
+            const targetUid = (rootId << 16) | childId;
+            interfaces.push({
+                targetUid,
+                groupId: dest.groupId,
+                type: 1, // Overlay type
+                postScripts: dest.postScripts,
+            });
         }
-        const targetUid = (rootId << 16) | childId;
-        interfaces.push({
-            targetUid,
-            groupId: dest.groupId,
-            type: 1, // Overlay type
-            postScripts: dest.postScripts,
-        });
     }
 
     // Tab interfaces - mounted at their container UIDs (children 76-89)

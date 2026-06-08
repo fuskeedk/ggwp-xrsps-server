@@ -93,8 +93,8 @@ export const HotkeyTabIndex = {
 
 export interface MobileInterfaceOptions {
     /**
-     * If true, only include the Quest tab (for gamemode tutorial mode).
-     * When tutorial completes, call openRemainingTabs() to show all tabs.
+     * If true, only include the Quest tab for gamemode tutorial mode.
+     * The persistent HUD interfaces are opened after tutorial completion.
      */
     tutorialMode?: boolean;
 }
@@ -216,6 +216,10 @@ export function getMobileInterfaces(options?: MobileInterfaceOptions): Interface
             groupId: mapping.groupId,
             type: 1, // Overlay type
         });
+    }
+
+    if (options?.tutorialMode) {
+        return interfaces;
     }
 
     // Mobile chatbox (enum_1745 maps 161:96 -> 601:49)

@@ -14,7 +14,9 @@ import {
 import type { ScriptServices, ScriptDialogRequest, ScriptDialogOptionRequest, ProviderRegistrationFacade } from "../scripts/types";
 import { getProviderRegistry } from "../providers/ProviderRegistry";
 import { getMainmodalUid, getSidemodalUid, getPrayerTabUid, getViewportTrackerFrontUid } from "../../widgets/viewport";
-import { getDefaultInterfaces, getRemainingTabInterfaces, type WidgetAction } from "../../widgets/WidgetManager";
+import { getDefaultInterfaces, type WidgetAction } from "../../widgets/WidgetManager";
+import { SIDE_JOURNAL_GROUP_ID } from "../../../../src/shared/ui/sideJournal";
+import { VARBIT_XPDROPS_ENABLED } from "../../../../src/shared/vars";
 import type { DataLoaderService } from "./DataLoaderService";
 import type { VariableService } from "./VariableService";
 import type { MessagingService } from "./MessagingService";
@@ -369,10 +371,14 @@ export function buildScriptServices(deps: ScriptServiceAdapterDeps): ScriptServi
             getInterfaceService: () => deps.interfaceService,
             openRemainingTabs: (player) => {
                 const displayMode = player.displayMode ?? 1;
-                for (const intf of getRemainingTabInterfaces(displayMode)) {
+                const xpDropsEnabled = player.varps.getVarbitValue(VARBIT_XPDROPS_ENABLED) === 1;
+                for (const intf of getDefaultInterfaces(displayMode)) {
+                    if (intf.groupId === SIDE_JOURNAL_GROUP_ID) continue;
+                    const hideXpCounterOnOpen = intf.groupId === 122 && !xpDropsEnabled;
                     player.widgets?.open(intf.groupId, {
                         targetUid: intf.targetUid, type: intf.type,
                         modal: false, postScripts: intf.postScripts,
+                        hiddenUids: hideXpCounterOnOpen ? [intf.targetUid] : undefined,
                     });
                 }
             },

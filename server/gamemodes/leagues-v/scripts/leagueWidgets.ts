@@ -275,6 +275,7 @@ const LEAGUE_TUTORIAL_STEP_FINISHING = 11;
 // - 8484: wrapper for script8483 (clears a highlight)
 const SCRIPT_UI_HIGHLIGHT = 8478;
 const SCRIPT_UI_HIGHLIGHT_CLEAR = 8484;
+const SCRIPT_LEAGUE_ICON_FLASH = 3162; // [clientscript,league_icon_flash]
 // Common default highlight style used by other tutorial flashes (toplevel_flashicon/equipment_icon_check).
 const UI_HIGHLIGHT_STYLE_DEFAULT = 7034;
 // Highlight namespace for our leagues tutorial routing (int0 in script8477).
@@ -822,15 +823,13 @@ export function applyLeagueTutorialStepFourUi(
 
     bridge.queueWidgetEvent(playerId, {
         action: "run_script",
-        scriptId: SCRIPT_UI_HIGHLIGHT,
-        args: [
-            UI_HIGHLIGHT_KIND_LEAGUE_TUTORIAL,
-            UI_HIGHLIGHT_ID_LEAGUES_TAB,
-            SIDE_JOURNAL_LEAGUE_TAB_ICON_UID,
-            -1,
-            UI_HIGHLIGHT_STYLE_DEFAULT,
-            0,
-        ],
+        scriptId: SCRIPT_UI_HIGHLIGHT_CLEAR,
+        args: [UI_HIGHLIGHT_KIND_LEAGUE_TUTORIAL, UI_HIGHLIGHT_ID_LEAGUES_TAB],
+    });
+    bridge.queueWidgetEvent(playerId, {
+        action: "run_script",
+        scriptId: SCRIPT_LEAGUE_ICON_FLASH,
+        args: [SIDE_JOURNAL_LEAGUE_TAB_ICON_UID],
     });
 }
 
