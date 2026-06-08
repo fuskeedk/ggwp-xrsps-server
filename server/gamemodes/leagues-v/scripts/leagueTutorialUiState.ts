@@ -32,6 +32,20 @@ export const LEAGUE_TUTORIAL_STEP_OPEN_LEAGUES_PANEL = 5;
 
 // toplevel_sidebuttons_enable uses %flashside - 1.
 const FLASHSIDE_QUEST_TAB = 3;
+const SCRIPT_JOURNAL_LIST_INIT = 2797; // [clientscript,journal_list_init]
+const JOURNAL_LIST_INIT_CHILD_IDS = [
+    0, 1, 10, 18, 2, 26, 34, 9, 4, 6, 8, 17, 12, 14, 16, 25, 20, 22, 24, 33,
+    28, 30, 32, 42, 37, 39, 41, 43, 3, 5, 7, 11, 13, 15, 19, 21, 23, 27, 29,
+    31, 36, 38, 40, 35,
+] as const;
+
+function sideJournalUid(childId: number): number {
+    return (SIDE_JOURNAL_GROUP_ID << 16) | (childId & 0xffff);
+}
+
+function getJournalListInitArgs(): number[] {
+    return JOURNAL_LIST_INIT_CHILD_IDS.map(sideJournalUid);
+}
 
 type LeagueTutorialUiPlayer = LeagueWsUiPlayer & {
     widgets?: {
@@ -190,6 +204,7 @@ function openQuestJournalRoot(player: LeagueTutorialUiPlayer): void {
         varbits: {
             [VARBIT_SIDE_JOURNAL_TAB]: player.varps.getVarbitValue(VARBIT_SIDE_JOURNAL_TAB),
         },
+        postScripts: [{ scriptId: SCRIPT_JOURNAL_LIST_INIT, args: getJournalListInitArgs() }],
     });
 }
 
