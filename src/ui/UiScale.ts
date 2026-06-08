@@ -1,46 +1,36 @@
-const STORAGE_KEY = "osrs.uiScale";
+const SCALE_STORAGE_KEY = "osrs.runeliteUiScale";
 
-const MAX_SCALE = 5;
+export const RUNELITE_DEFAULT_RESIZABLE_SCALING_PERCENT = 50;
+export const RUNELITE_DEFAULT_UI_SCALE = 1;
+export const RUNELITE_MIN_UI_SCALE = 1;
+export const RUNELITE_MAX_UI_SCALE = 5;
+export const OSRS_INTERFACE_SCALING_DEFAULT_PERCENT = 100;
+export const OSRS_INTERFACE_SCALING_MIN_DESKTOP_PERCENT = 100;
+export const OSRS_INTERFACE_SCALING_MIN_MOBILE_PERCENT = 175;
+export const OSRS_INTERFACE_SCALING_MAX_PERCENT = 400;
 
-/**
- * How far the raw scale ratio must drop below the current integer scale before
- * the scale decreases. 0.7 means scale=2 holds until the raw ratio is < 1.3
- * (window < ~994px wide), preventing jarring jumps near the boundary.
- * Scale always increases freely (no upward hysteresis).
- */
-const SCALE_DOWN_HYSTERESIS = 0.7;
-
-/**
- * Visual boost factor applied when auto-scale is 1. The WebGL buffer is rendered at
- * (1/SCALE_1_BOOST) of the CSS box size; the browser's compositor stretches it back up,
- * giving a ~10% larger appearance without fractional WebGL rendering (which would
- * pixelate pixel-art content).
- *
- * Activates when cssW ≥ 842 (= 765 × 1.1) and cssH ≥ 554 (= 503 × 1.1).
- */
-export const SCALE_1_BOOST = 1.1;
-
-/**
- * Layout trim factor applied at integer scale ≥ 2. The layout divisor becomes
- * (intScale × (1/SCALE_HIGH_TRIM)), so each OSRS pixel maps to slightly fewer
- * CSS pixels — reducing UI size at scale=2+. The WebGL buffer stays full size;
- * only the layout coordinate space is adjusted.
- * At scale=2 on 1899×1437: layoutW ≈ 1117px instead of 950px, renderScaleX ≈ 1.7.
- */
-export const SCALE_HIGH_TRIM = 0.90;
-
-let manualOverride: number | null = null;
+let manualScaleOverride: number | null = null;
 let overrideLoaded = false;
-let _lastAutoScale: number = 0;
+
+function clamp(value: number, min: number, max: number): number {
+    if (!Number.isFinite(value)) return min;
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
+}
+
+function normalizeUiScale(scale: number): number {
+    return clamp(scale, RUNELITE_MIN_UI_SCALE, RUNELITE_MAX_UI_SCALE);
+}
 
 function loadOverride(): number | null {
     if (typeof localStorage === "undefined") return null;
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem(SCALE_STORAGE_KEY);
         if (raw === null) return null;
         const parsed = Number(raw);
-        if (!Number.isFinite(parsed) || parsed < 1 || parsed > MAX_SCALE) return null;
-        return parsed;
+        if (!Number.isFinite(parsed)) return null;
+        return normalizeUiScale(parsed);
     } catch {
         return null;
     }
@@ -49,113 +39,112 @@ function loadOverride(): number | null {
 function ensureOverrideLoaded(): void {
     if (overrideLoaded) return;
     overrideLoaded = true;
-    manualOverride = loadOverride();
+    manualScaleOverride = loadOverride();
 }
 
 /**
- * Compute the automatic UI scale from CSS viewport dimensions.
- * Always returns an integer (1, 2, 3…). The visual "boost" for scale=1
- * viewports is handled at the CSS level via computeDesktopCssZoom, not here,
- * so WebGL rendering always operates at an integer scale (crisp pixel art).
- *
- * Hard constraint: scale is capped so the resulting layout is never
- * smaller than 765×503 (OSRS minimum). This uses Math.floor so that
- * e.g. floor(2560/765)=3 but floor(1437/503)=2 → cap=2 at 2560×1437,
- * giving layout 1280×718 with no widget overlap.
- *
- * Stateful hysteresis prevents scale drops on small window resizes: the
- * scale only decreases when the raw ratio drops SCALE_DOWN_HYSTERESIS (0.7)
- * below the current integer scale — but never beyond what the layout cap allows.
+ * RuneLite's stretched mode "Resizable scaling" reduces the logical game size
+ * before stretching it back to the window. The injected client stores this as
+ * scalingFactor = 1 + percent / 100, so 50% stretches the UI to 1.5x.
  */
-export function computeAutoScale(cssW: number, cssH: number): number {
-    const OSRS_BASE_W = 765;
-    const OSRS_BASE_H = 503;
+export function scaleFromRuneliteResizableScalingPercent(percent: number): number {
+    const maxPercent = (RUNELITE_MAX_UI_SCALE - 1) * 100;
+    return normalizeUiScale(1 + clamp(percent, 0, maxPercent) / 100);
+}
 
-    // Soft cap: allow layout to be up to CAP_TOLERANCE pixels below the OSRS minimum
-    // before forcing a scale drop. This prevents a single-pixel viewport change (e.g.
-    // resizing the browser DevTools panel) from flipping between scale=1 and scale=2
-    // at the exact 1530px boundary. Layout at scale=2 with 1529px viewport is 764px —
-    // visually identical to the 765px minimum, so the tolerance is imperceptible.
-    const CAP_TOLERANCE_W = 15;
-    const CAP_TOLERANCE_H = 10;
-    const maxAllowed = Math.max(
-        1,
-        Math.min(
-            Math.floor(cssW / (OSRS_BASE_W - CAP_TOLERANCE_W)),
-            Math.floor(cssH / (OSRS_BASE_H - CAP_TOLERANCE_H)),
-            MAX_SCALE,
-        ),
+export function runeliteResizableScalingPercentFromScale(scale: number): number {
+    const normalized = normalizeUiScale(scale);
+    return clamp((normalized - 1) * 100, 0, (RUNELITE_MAX_UI_SCALE - 1) * 100);
+}
+
+export function getRuneliteDefaultStretchedUiScale(): number {
+    return scaleFromRuneliteResizableScalingPercent(
+        RUNELITE_DEFAULT_RESIZABLE_SCALING_PERCENT,
     );
+}
 
-    const rawScale = Math.min(cssW / OSRS_BASE_W, cssH / OSRS_BASE_H);
-    // Round toward preferred scale, but never exceed the layout-minimum cap.
-    const natural = Math.max(1, Math.min(maxAllowed, Math.round(rawScale)));
+export function normalizeOsrsInterfaceScalingPercent(
+    percent: number,
+    minPercent: number = OSRS_INTERFACE_SCALING_MIN_DESKTOP_PERCENT,
+): number {
+    return Math.round(
+        clamp(percent, minPercent, OSRS_INTERFACE_SCALING_MAX_PERCENT),
+    );
+}
 
-    if (_lastAutoScale <= 0) {
-        _lastAutoScale = natural;
-        return natural;
-    }
+export function scaleFromOsrsInterfaceScalingPercent(percent: number): number {
+    return normalizeUiScale(
+        normalizeOsrsInterfaceScalingPercent(percent) / OSRS_INTERFACE_SCALING_DEFAULT_PERCENT,
+    );
+}
 
-    if (natural < _lastAutoScale) {
-        // Hysteresis: hold the previous scale as long as the layout cap still allows it
-        // and rawScale hasn't dropped far enough to warrant a change.
-        const held = Math.min(_lastAutoScale, maxAllowed);
-        if (held > natural && rawScale >= held - SCALE_DOWN_HYSTERESIS) {
-            return held;
-        }
-    }
+export function osrsInterfaceScalingPercentFromScale(scale: number): number {
+    const normalized = normalizeUiScale(scale);
+    return normalizeOsrsInterfaceScalingPercent(
+        normalized * OSRS_INTERFACE_SCALING_DEFAULT_PERCENT,
+    );
+}
 
-    _lastAutoScale = natural;
-    return natural;
+export function getOsrsInterfaceScalingPercent(): number {
+    return osrsInterfaceScalingPercentFromScale(getUiScale());
+}
+
+export function getDefaultUiScale(): number {
+    return RUNELITE_DEFAULT_UI_SCALE;
 }
 
 /**
- * Compute the visual boost factor for the desktop game canvas at integer scale=1.
- * Returns SCALE_1_BOOST (1.1) when the viewport is large enough that the boosted
- * layout still meets the OSRS minimum (cssW ≥ 842, cssH ≥ 554). Returns 1 otherwise.
- *
- * The caller applies the boost by passing (1/cssZoom) as the canvas resolution scale,
- * so the WebGL buffer is rendered at the smaller pre-boost size and the browser's
- * compositor stretches it to fill the full CSS box — no CSS property mutations needed.
+ * Compatibility name for older diagnostics. This is no longer viewport-auto:
+ * RuneLite defaults to unstretched 1x unless stretched mode is explicitly enabled.
  */
-export function computeDesktopCssZoom(cssW: number, cssH: number, intScale: number): number {
-    const OSRS_BASE_W = 765;
-    const OSRS_BASE_H = 503;
-    if (
-        intScale === 1 &&
-        cssW / SCALE_1_BOOST >= OSRS_BASE_W &&
-        cssH / SCALE_1_BOOST >= OSRS_BASE_H
-    ) {
-        return SCALE_1_BOOST; // > 1: buffer reduction path (browser upscales)
-    }
-    return 1;
+export function computeAutoScale(_cssW: number, _cssH: number): number {
+    return getDefaultUiScale();
 }
 
 /**
- * Get the effective UI scale. If the user has set a manual override it takes
- * precedence; otherwise the scale is computed automatically from the viewport.
+ * Get the effective RuneLite-style UI scale. Viewport size is accepted for API
+ * compatibility but does not affect desktop scaling.
  */
-export function getUiScale(cssW?: number, cssH?: number): number {
+export function getUiScale(_cssW?: number, _cssH?: number): number {
     ensureOverrideLoaded();
-    if (manualOverride !== null) return manualOverride;
-    if (cssW != null && cssH != null) return computeAutoScale(cssW, cssH);
-    return 1;
+    return manualScaleOverride ?? getDefaultUiScale();
 }
 
-/** Set a manual UI scale override and persist it. Pass `null` to clear and revert to auto. */
+export function isRuneliteInterfaceScalingEnabled(): boolean {
+    return getUiScale() > getDefaultUiScale() + 0.001;
+}
+
+/** Set a manual UI scale override. Pass `null` to revert to RuneLite's default unstretched size. */
 export function setUiScale(scale: number | null): void {
     overrideLoaded = true;
     if (scale === null) {
-        manualOverride = null;
-        _lastAutoScale = 0; // Reset so auto-scale re-seeds from the current viewport.
+        manualScaleOverride = null;
         if (typeof localStorage !== "undefined") {
-            try { localStorage.removeItem(STORAGE_KEY); } catch {}
+            try {
+                localStorage.removeItem(SCALE_STORAGE_KEY);
+            } catch {}
         }
         return;
     }
-    const clamped = Math.max(1, Math.min(MAX_SCALE, scale));
-    manualOverride = clamped;
+
+    const clamped = normalizeUiScale(scale);
+    manualScaleOverride = clamped;
     if (typeof localStorage !== "undefined") {
-        try { localStorage.setItem(STORAGE_KEY, String(clamped)); } catch {}
+        try {
+            localStorage.setItem(SCALE_STORAGE_KEY, String(clamped));
+        } catch {}
+    }
+}
+
+export function setRuneliteInterfaceScalingEnabled(enabled: boolean): void {
+    setUiScale(enabled ? getRuneliteDefaultStretchedUiScale() : null);
+}
+
+export function setOsrsInterfaceScalingPercent(percent: number): void {
+    const normalized = normalizeOsrsInterfaceScalingPercent(percent);
+    if (normalized === OSRS_INTERFACE_SCALING_DEFAULT_PERCENT) {
+        setUiScale(null);
+    } else {
+        setUiScale(scaleFromOsrsInterfaceScalingPercent(normalized));
     }
 }

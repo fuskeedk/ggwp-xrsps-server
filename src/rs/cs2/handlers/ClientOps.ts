@@ -13,6 +13,23 @@ import { chatHistory } from "../ChatHistory";
 import { Opcodes } from "../Opcodes";
 import type { HandlerMap } from "./HandlerTypes";
 
+const DEVICE_OPTION_INTERFACE_SCALING = 27;
+const UIZOOM_DEFAULT_DESKTOP_PERCENT = 100;
+const UIZOOM_DEFAULT_MOBILE_PERCENT = 175;
+const UIZOOM_MAX_PERCENT = 400;
+
+function getUiZoomDefaultPercent(ctx: any): number {
+    const wm = ctx.widgetManager as any;
+    return wm?.rootInterface === 601 || isTouchDevice
+        ? UIZOOM_DEFAULT_MOBILE_PERCENT
+        : UIZOOM_DEFAULT_DESKTOP_PERCENT;
+}
+
+function normalizeUiZoomPercent(percent: number, minPercent: number): number {
+    if (!Number.isFinite(percent)) return minPercent;
+    return Math.round(Math.max(minPercent, Math.min(UIZOOM_MAX_PERCENT, percent)));
+}
+
 export function registerClientOps(handlers: HandlerMap): void {
     // === Clock ===
     // clientclock returns Client.cycleCntr (20ms cycles)
@@ -332,6 +349,26 @@ export function registerClientOps(handlers: HandlerMap): void {
         const fovClampMax = ctx.intStack[--ctx.intStackSize];
         const fovClampMin = ctx.intStack[--ctx.intStackSize];
         ctx.setViewportClampFov?.(fovClampMin, fovClampMax, zoomClampMin, zoomClampMax);
+    });
+
+    handlers.set(Opcodes.UIZOOM_SET, (ctx) => {
+        const minPercent = getUiZoomDefaultPercent(ctx);
+        const percent = normalizeUiZoomPercent(ctx.intStack[--ctx.intStackSize], minPercent);
+        ctx.setDeviceOption?.(DEVICE_OPTION_INTERFACE_SCALING, percent);
+    });
+
+    handlers.set(Opcodes.UIZOOM_GET, (ctx) => {
+        const minPercent = getUiZoomDefaultPercent(ctx);
+        const percent = ctx.getDeviceOption?.(DEVICE_OPTION_INTERFACE_SCALING) ?? minPercent;
+        ctx.pushInt(normalizeUiZoomPercent(percent, minPercent));
+    });
+
+    handlers.set(Opcodes.UIZOOM_RESET, (ctx) => {
+        ctx.setDeviceOption?.(DEVICE_OPTION_INTERFACE_SCALING, getUiZoomDefaultPercent(ctx));
+    });
+
+    handlers.set(Opcodes.UIZOOM_GETDEFAULT, (ctx) => {
+        ctx.pushInt(getUiZoomDefaultPercent(ctx));
     });
 
     // === Canvas/Window ===
@@ -1192,10 +1229,13 @@ export function registerClientOps(handlers: HandlerMap): void {
     // deviceoption_getrange(optionId) -> (min, max)
     handlers.set(Opcodes.DEVICEOPTION_GETRANGE, (ctx) => {
         const optionId = ctx.intStack[--ctx.intStackSize];
-        // Most device options have range 0-100 or 0-127
-        // Return sensible defaults
-        ctx.pushInt(0); // min
-        ctx.pushInt(100); // max
+        if (optionId === DEVICE_OPTION_INTERFACE_SCALING) {
+            ctx.pushInt(getUiZoomDefaultPercent(ctx));
+            ctx.pushInt(UIZOOM_MAX_PERCENT);
+            return;
+        }
+        ctx.pushInt(0);
+        ctx.pushInt(100);
     });
 
     // === RT7 Enhanced Graphics (stubs for future) ===

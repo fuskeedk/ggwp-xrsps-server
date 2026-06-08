@@ -564,6 +564,10 @@ export function loadOpcodeDbOsrs(_baseDir: string): OpcodeDb {
     add(6203, "viewport_geteffectivesize");
     add(6204, "viewport_getzoom");
     add(6205, "viewport_getfov");
+    add(6210, "uizoom_set");
+    add(6211, "uizoom_get");
+    add(6212, "uizoom_reset");
+    add(6214, "uizoom_getdefault");
     add(6500, "worldlist_fetch");
     add(6501, "worldlist_start");
     add(6502, "worldlist_next");

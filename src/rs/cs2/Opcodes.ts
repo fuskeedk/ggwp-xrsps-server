@@ -670,6 +670,10 @@ export enum Opcodes {
     VIEWPORT_GETEFFECTIVESIZE = 6203,
     VIEWPORT_GETZOOM = 6204,
     VIEWPORT_GETFOV = 6205,
+    UIZOOM_SET = 6210,
+    UIZOOM_GET = 6211,
+    UIZOOM_RESET = 6212,
+    UIZOOM_GETDEFAULT = 6214,
     // Safe area opcodes (6220-6223) - returns screen safe area bounds excluding notches/home indicators
     SAFEAREA_GETMINX = 6220, // Left edge of safe area (0 for no notch)
     SAFEAREA_GETMINY = 6221, // Top edge of safe area (0 for no top notch)

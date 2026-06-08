@@ -169,6 +169,10 @@ import {
 } from "../shared/vars";
 import { ClickRegistry } from "../ui/gl/click-registry";
 import { cleanupInterfaceClickTargets } from "../ui/gl/widgets-gl";
+import {
+    getOsrsInterfaceScalingPercent,
+    setOsrsInterfaceScalingPercent,
+} from "../ui/UiScale";
 import { setNpcExamineIdResolver, setSpellSelectionClearHandler } from "../ui/menu/MenuAction";
 import {
     type DefaultChoiceState,
@@ -308,6 +312,7 @@ const CHATBOX_MODAL_TARGET_UID = (162 << 16) | 567;
 const CHATBOX_DIALOG_GROUP_IDS = new Set([231, 217, 193, 11]);
 const SETTINGS_MODAL_GROUP_ID = 134;
 const SETTINGS_MODAL_SEARCH_BAR_CHILD_ID = 32;
+const DEVICE_OPTION_INTERFACE_SCALING = 27;
 
 // OSRS draw distance is constrained in Scene.setDrawDistanceRaw(25..90).
 const MIN_RENDER_DISTANCE = 25;
@@ -1717,19 +1722,26 @@ export class OsrsClient {
             // === Device option get/set - controls brightness, fps limit, master volume, etc. ===
             // Option ID 19 = master_volume (enhanced client)
             getDeviceOption: (optionId: number): number => {
+                if (optionId === DEVICE_OPTION_INTERFACE_SCALING) {
+                    return getOsrsInterfaceScalingPercent();
+                }
                 return self.deviceOptions.get(optionId) ?? 0;
             },
             setDeviceOption: (optionId: number, value: number) => {
-                self.deviceOptions.set(optionId, value);
+                const storedValue = value;
+                self.deviceOptions.set(optionId, storedValue);
                 // Handle specific device options
                 switch (optionId) {
                     case 19: // Master volume (enhanced client, 0-100 from enum_981)
                         // Master volume acts as a multiplier for all audio
                         // When master is 0, all audio should be muted
-                        const masterVol = Math.max(0, Math.min(1, value / 100));
+                        const masterVol = Math.max(0, Math.min(1, storedValue / 100));
                         self.masterVolume = masterVol;
                         // Apply master volume to all audio systems
                         self.applyMasterVolume();
+                        break;
+                    case DEVICE_OPTION_INTERFACE_SCALING:
+                        self.applyInterfaceScalingPercentDeviceOption(storedValue);
                         break;
                 }
             },
@@ -5473,6 +5485,25 @@ export class OsrsClient {
             this.soundEffectSystem.setVolume(this._sfxVolume * master);
             this.soundEffectSystem.setAmbientVolume(this._ambientVolume * master);
         }
+    }
+
+    private refreshUiScalingLayout(): void {
+        try {
+            const renderer = this.renderer;
+            const canvas = renderer?.canvas;
+            if (!renderer || !canvas) return;
+            const width = canvas.width | 0;
+            const height = canvas.height | 0;
+            if (width <= 0 || height <= 0) return;
+            renderer.onResize(width, height);
+        } catch (error) {
+            console.log("[OsrsClient] Failed to refresh UI scaling layout", { error });
+        }
+    }
+
+    private applyInterfaceScalingPercentDeviceOption(value: number): void {
+        setOsrsInterfaceScalingPercent(value | 0);
+        this.refreshUiScalingLayout();
     }
 
     private applyAudioVarpChange(varpId: number, value: number): void {

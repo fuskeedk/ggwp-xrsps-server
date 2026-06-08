@@ -91,7 +91,7 @@ import {
     isTouchDevice,
     isWebGL2Supported,
 } from "../../util/DeviceUtil";
-import { computeDesktopCssZoom, getUiScale } from "../../ui/UiScale";
+import { getUiScale } from "../../ui/UiScale";
 import { clamp } from "../../util/MathUtil";
 import { ClientState } from "../ClientState";
 import { GameRenderer } from "../GameRenderer";
@@ -927,15 +927,10 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         if (!isLoginLikeState) {
             if (!isMobileGameplayRoot) {
                 const desktopUiScale = getUiScale(cssW, cssH);
-                const cssZoom = computeDesktopCssZoom(cssW, cssH, desktopUiScale);
-                // cssZoom > 1 (scale=1 boost): buffer is reduced to 1/cssZoom in getCanvasResolutionScale;
-                //   layout divisor increases by cssZoom so renderScaleX stays at 1.0 (integer, crisp).
-                // cssZoom < 1 (scale≥3 trim): buffer unchanged; layout divisor shrinks so each OSRS
-                //   pixel spans slightly fewer CSS pixels — UI appears slightly smaller, no buffer change.
-                // cssZoom = 1: no adjustment.
-                const effectiveDivisor = desktopUiScale * cssZoom;
-                const layoutW = Math.max(1, Math.round(cssW / effectiveDivisor));
-                const layoutH = Math.max(1, Math.round(cssH / effectiveDivisor));
+                // RuneLite stretched mode reduces the logical resizable game size by the
+                // configured factor, then stretches that real size back to the window.
+                const layoutW = Math.max(1, Math.round(cssW / desktopUiScale));
+                const layoutH = Math.max(1, Math.round(cssH / desktopUiScale));
                 return {
                     layoutW,
                     layoutH,
@@ -985,18 +980,6 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
 
         const dpr = window.devicePixelRatio || 1;
         if (!Number.isFinite(dpr) || dpr <= 1) {
-            // At DPR=1, the scale-1 zoom boost is achieved by rendering the canvas buffer at
-            // 1/cssZoom of the CSS size. The browser's compositor then stretches the buffer to
-            // fill the full CSS box (same quality as CSS zoom, no CSS DOM mutations needed,
-            // no ResizeObserver loop, no layout-coverage gaps).
-            const gameState = this.osrsClient.gameState;
-            const isLoginLikeState =
-                gameState === GameState.DOWNLOADING || this.osrsClient.isOnLoginScreen();
-            if (!isLoginLikeState && !isMobileMode) {
-                const intScale = getUiScale(cssWidth, cssHeight);
-                const cssZoom = computeDesktopCssZoom(cssWidth, cssHeight, intScale);
-                if (cssZoom > 1) return 1 / cssZoom;
-            }
             return 1;
         }
 
