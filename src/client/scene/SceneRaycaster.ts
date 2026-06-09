@@ -20,6 +20,8 @@ import {
 
 const PLAYER_INTERACT_BASE = 0x8000;
 const MODEL_WORLD_SCALE = 1.0 / 128.0;
+// Fog boundary corner rounding in tiles; must match FOG_CORNER_ROUNDING in the shaders.
+const FOG_CORNER_ROUNDING = 0.0;
 
 type LocModelMesh = {
     verticesX: Int32Array;
@@ -246,8 +248,9 @@ export class SceneRaycaster {
                 : undefined;
 
         // interact buffers disable picking when full fog is reached.
-        // Match that by filtering out hits beyond the current fog "end" radius (u_renderDistance).
-        let fogCutoffSq: number | undefined;
+        // Match that by filtering out hits beyond the fog boundary: a rounded
+        // square of half-extent u_renderDistance (see shaders/includes/fog.glsl).
+        let fogCutoff: number | undefined;
         let playerWorldX: number | undefined;
         let playerWorldZ: number | undefined;
         try {
@@ -264,7 +267,7 @@ export class SceneRaycaster {
         if (typeof playerWorldX === "number" && typeof playerWorldZ === "number") {
             const fogEnd = Number(this.osrsClient.renderDistance) || 0;
             if (Number.isFinite(fogEnd) && fogEnd >= 0) {
-                fogCutoffSq = fogEnd * fogEnd;
+                fogCutoff = fogEnd;
             }
         }
 
@@ -319,10 +322,12 @@ export class SceneRaycaster {
         // Sort front-to-back by distance along the ray. Higher-level callers
         // can apply additional OSRS-style priority (e.g. players > NPCs > locs).
         if (
-            typeof fogCutoffSq === "number" &&
+            typeof fogCutoff === "number" &&
             typeof playerWorldX === "number" &&
             typeof playerWorldZ === "number"
         ) {
+            // Same rounded-square SDF as fogFactorOSRS in the shaders.
+            const rounding = Math.min(FOG_CORNER_ROUNDING, fogCutoff);
             let write = 0;
             for (let i = 0; i < hits.length; i++) {
                 const h = hits[i];
@@ -334,9 +339,13 @@ export class SceneRaycaster {
                 }
                 const cx = tx + 0.5;
                 const cz = ty + 0.5;
-                const dx = cx - playerWorldX;
-                const dz = cz - playerWorldZ;
-                if (dx * dx + dz * dz < fogCutoffSq) {
+                const qx = Math.abs(cx - playerWorldX) - fogCutoff + rounding;
+                const qz = Math.abs(cz - playerWorldZ) - fogCutoff + rounding;
+                const sd =
+                    Math.min(Math.max(qx, qz), 0) +
+                    Math.hypot(Math.max(qx, 0), Math.max(qz, 0)) -
+                    rounding;
+                if (sd < 0) {
                     hits[write++] = h;
                 }
             }

@@ -589,7 +589,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
     skyColor: vec4 = vec4.fromValues(0, 0, 0, 1); // Black ( — vanilla has no skybox)
     fogDepth: number = 24; // Fog starts at 24 tiles (OSRS fog is subtle until near max distance)
     autoFogDepth: boolean = true;
-    autoFogDepthFactor: number = 0.7;
+    autoFogDepthFactor: number = 0.85;
 
     // Scene-level HSL override for tinting all rendered geometry.
     // Values: [hue (-1=no override, 0-63), sat (-1=no override, 0-7),

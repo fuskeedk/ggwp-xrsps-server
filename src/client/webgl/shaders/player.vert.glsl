@@ -9,7 +9,7 @@
 // TAU / 2048.0
 #define RS_TO_RADIANS 0.00306796157
 
-#define FOG_CORNER_ROUNDING 8.0
+#define FOG_CORNER_ROUNDING 0.0
 
 #define NPC_INTERACT_TYPE 3.0
 
@@ -126,11 +126,10 @@ void main() {
     float loadAlpha = smoothstep(0.0, 1.0, min((u_currentTime - u_timeLoaded), 1.0));
     float isLoading = when_neq(loadAlpha, 1.0);
 
-    // Calculate radial distance from player for proper OSRS-style fog
+    // OSRS-style fog: rounded-square boundary around the player
     vec2 playerOffset = vec2(localPos.x - u_playerPos.x, localPos.z - u_playerPos.y);
-    float dist = length(playerOffset);
 
-    v_fogAmount = fogFactorOSRS(dist);
+    v_fogAmount = fogFactorOSRS(playerOffset);
     v_fogAmount = isLoading * max(1.0 - loadAlpha, v_fogAmount) +
         (1.0 - isLoading) * v_fogAmount;
 
