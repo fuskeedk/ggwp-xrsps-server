@@ -734,7 +734,7 @@ export function drawWrappedTextGL(
         const by = baseY0 + i * resolvedLineHeight;
         const tx = lineOffsetsRaw[i] | 0;
         const segments = useMarkup
-            ? lineSegments[i] ?? parseOsrsMarkup(line, color)
+            ? (lineSegments[i] ?? parseOsrsMarkup(line, color))
             : [
                   {
                       text: line,

@@ -960,7 +960,7 @@ export class PlayerInteractionSystem {
         }
         const selectedEnd =
             res.steps.length > 0
-                ? res.end ?? res.steps[res.steps.length - 1]!
+                ? (res.end ?? res.steps[res.steps.length - 1]!)
                 : { x: actor.tileX, y: actor.tileY };
         if (!strategy.hasArrived(selectedEnd.x, selectedEnd.y, actor.level)) {
             return undefined;

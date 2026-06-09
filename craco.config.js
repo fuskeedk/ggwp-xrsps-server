@@ -36,8 +36,8 @@ module.exports = {
                     rule.exclude = Array.isArray(existingExclude)
                         ? [...existingExclude, jsXxhashPath]
                         : existingExclude
-                        ? [existingExclude, jsXxhashPath]
-                        : [jsXxhashPath];
+                          ? [existingExclude, jsXxhashPath]
+                          : [jsXxhashPath];
                 }
                 if (rule.oneOf) {
                     rule.oneOf.unshift(glslLoader);

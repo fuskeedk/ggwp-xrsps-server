@@ -846,7 +846,8 @@ export class NpcEcs {
                                 Math.max(0, (this.movementDelayCounter[id] | 0) - 1) & 0xff;
                         }
                     }
-                    if (rawStepSpeed >= 8) speed <<= 1; // run traversal
+                    if (rawStepSpeed >= 8)
+                        speed <<= 1; // run traversal
                     else if (rawStepSpeed <= 2) speed >>= 1; // crawl traversal
                     speed = Math.max(1, speed | 0);
 

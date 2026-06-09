@@ -155,7 +155,7 @@ function showSkillLevelUp(
     const jingleId =
         newLevel === MAX_REAL_LEVEL
             ? LEVELUP_99_JINGLE_ID
-            : LEVELUP_JINGLE_BY_SKILL[skillId] ?? LEVELUP_JINGLE_ID;
+            : (LEVELUP_JINGLE_BY_SKILL[skillId] ?? LEVELUP_JINGLE_ID);
     services.sound.sendJingle(player, jingleId);
     services.sound.sendSound(player, LEVELUP_FIREWORK_SOUND);
     return true;
@@ -188,7 +188,7 @@ function showHunterLevelUp(
     const jingleId =
         newLevel === MAX_REAL_LEVEL
             ? LEVELUP_99_JINGLE_ID
-            : LEVELUP_JINGLE_BY_SKILL[SkillId.Hunter] ?? LEVELUP_JINGLE_ID;
+            : (LEVELUP_JINGLE_BY_SKILL[SkillId.Hunter] ?? LEVELUP_JINGLE_ID);
     services.sound.sendJingle(player, jingleId);
     services.sound.sendSound(player, LEVELUP_FIREWORK_SOUND);
     return true;

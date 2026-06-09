@@ -1276,9 +1276,9 @@ export class CombatEngine {
                 autocastMode === "defensive_autocast"
                     ? MagicStyle.Defensive
                     : autocastEnabled
-                    ? MAGIC_STYLE_BY_SLOT[Math.min(styleSlot, MAGIC_STYLE_BY_SLOT.length - 1)] ??
-                      MagicStyle.Accurate
-                    : MagicStyle.Accurate;
+                      ? (MAGIC_STYLE_BY_SLOT[Math.min(styleSlot, MAGIC_STYLE_BY_SLOT.length - 1)] ??
+                        MagicStyle.Accurate)
+                      : MagicStyle.Accurate;
             return { kind: AttackType.Magic, mode, bonusIndex: AttackBonusIndex.Magic };
         }
         if (mappedAttackType === AttackType.Ranged) {

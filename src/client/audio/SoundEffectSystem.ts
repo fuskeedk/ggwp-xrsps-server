@@ -214,8 +214,8 @@ export class SoundEffectSystem {
             forceResample && ctx
                 ? ctx.sampleRate
                 : typeof targetSampleRate === "number"
-                ? targetSampleRate
-                : 0;
+                  ? targetSampleRate
+                  : 0;
         const cacheKey = this.cacheKey(soundId, effectiveRate);
         const cached = this.decodedCache.get(cacheKey);
         if (cached) return cached;
@@ -484,8 +484,8 @@ export class SoundEffectSystem {
                 radiusOverride !== undefined
                     ? radiusOverride
                     : radiusTiles > 0
-                    ? radiusTiles * 128
-                    : undefined;
+                      ? radiusTiles * 128
+                      : undefined;
 
             this.playSoundEffect(effect.id, {
                 loops,
@@ -859,8 +859,8 @@ export class SoundEffectSystem {
                 ? active.fadeInDurationSec
                 : 0.05
             : active.fadeOutDurationSec > 0
-            ? active.fadeOutDurationSec
-            : 0.05;
+              ? active.fadeOutDurationSec
+              : 0.05;
         const curveId = increasing ? active.instance.fadeInCurve : active.instance.fadeOutCurve;
 
         // Scale fade duration proportionally to the volume delta.

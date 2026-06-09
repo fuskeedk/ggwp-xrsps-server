@@ -730,7 +730,7 @@ export function queueSideJournalLeagueOnlyUi(
     const contentGroup =
         tab === 4
             ? getSideJournalLeaguesContentGroupId(leagueType)
-            : SIDE_JOURNAL_CONTENT_GROUP_BY_TAB[tab] ?? SIDE_JOURNAL_CONTENT_GROUP_BY_TAB[0] ?? 0;
+            : (SIDE_JOURNAL_CONTENT_GROUP_BY_TAB[tab] ?? SIDE_JOURNAL_CONTENT_GROUP_BY_TAB[0] ?? 0);
     const sideJournalOpen = bridge.isWidgetGroupOpenInLedger(playerId, SIDE_JOURNAL_GROUP_ID);
 
     if (contentGroup > 0) {
@@ -2566,10 +2566,10 @@ export function registerLeagueWidgetHandlers(
             pending.masteryType === AttackType.Melee
                 ? VARBIT_LEAGUE_MELEE_MASTERY
                 : pending.masteryType === AttackType.Ranged
-                ? VARBIT_LEAGUE_RANGED_MASTERY
-                : pending.masteryType === AttackType.Magic
-                ? VARBIT_LEAGUE_MAGIC_MASTERY
-                : 0;
+                  ? VARBIT_LEAGUE_RANGED_MASTERY
+                  : pending.masteryType === AttackType.Magic
+                    ? VARBIT_LEAGUE_MAGIC_MASTERY
+                    : 0;
 
         const currentLevel = player.varps.getVarbitValue?.(masteryVarbitId) ?? 0;
         const pointsToSpend =
@@ -2677,10 +2677,10 @@ export function registerLeagueWidgetHandlers(
             pending.masteryType === AttackType.Melee
                 ? VARBIT_LEAGUE_MELEE_MASTERY
                 : pending.masteryType === AttackType.Ranged
-                ? VARBIT_LEAGUE_RANGED_MASTERY
-                : pending.masteryType === AttackType.Magic
-                ? VARBIT_LEAGUE_MAGIC_MASTERY
-                : 0; // shared doesn't have its own varbit
+                  ? VARBIT_LEAGUE_RANGED_MASTERY
+                  : pending.masteryType === AttackType.Magic
+                    ? VARBIT_LEAGUE_MAGIC_MASTERY
+                    : 0; // shared doesn't have its own varbit
 
         // Shared masteries are unlocked passively when selecting combat masteries
         if (pending.masteryType === "shared") {
@@ -2872,7 +2872,7 @@ export function registerLeagueWidgetHandlers(
         // Check tutorial state before opening interface
         const tutorial =
             leagueType !== 3
-                ? player.varps.getVarbitValue?.(VARBIT_LEAGUE_TUTORIAL_COMPLETED) ?? 0
+                ? (player.varps.getVarbitValue?.(VARBIT_LEAGUE_TUTORIAL_COMPLETED) ?? 0)
                 : 0;
 
         if (tutorial === 9) {

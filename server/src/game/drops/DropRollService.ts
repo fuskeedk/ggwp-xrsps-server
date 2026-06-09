@@ -60,7 +60,7 @@ function resolveEntryProbability(
         entry.altProbability !== undefined &&
         matchesCondition(entry.altCondition, context, recipient)
             ? entry.altProbability
-            : entry.probability ?? 0;
+            : (entry.probability ?? 0);
     return applyDropRateMultiplier(
         probability,
         recipient.dropRateMultiplier,

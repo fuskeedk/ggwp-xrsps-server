@@ -37,10 +37,10 @@ export function RenderStatsOverlay({
         typeof (renderer as any).getActiveQualityProfileLabel === "function"
             ? String((renderer as any).getActiveQualityProfileLabel())
             : checkIos() && checkMobile()
-            ? "iPhone Safari"
-            : checkMobile()
-            ? "Mobile Browser"
-            : "Desktop";
+              ? "iPhone Safari"
+              : checkMobile()
+                ? "Mobile Browser"
+                : "Desktop";
 
     const fps = Math.round(s.frameTimeFps);
     const jsMs = s.frameTimeJs.toFixed(1);

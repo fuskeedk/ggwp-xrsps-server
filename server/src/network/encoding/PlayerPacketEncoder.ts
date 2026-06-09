@@ -1355,26 +1355,26 @@ export class PlayerPacketEncoder {
         const targetSubX = useViewForPosition
             ? view!.x
             : finalStep
-            ? finalStep.x
-            : view
-            ? view.x
-            : (baseTileX << 7) + 64;
+              ? finalStep.x
+              : view
+                ? view.x
+                : (baseTileX << 7) + 64;
         const targetSubY = useViewForPosition
             ? view!.y
             : finalStep
-            ? finalStep.y
-            : view
-            ? view.y
-            : (baseTileY << 7) + 64;
+              ? finalStep.y
+              : view
+                ? view.y
+                : (baseTileY << 7) + 64;
         const targetTileX = targetSubX >> 7;
         const targetTileY = targetSubY >> 7;
         const level = useViewForPosition
             ? view!.level
             : finalStep
-            ? finalStep.level
-            : view
-            ? view.level
-            : 0;
+              ? finalStep.level
+              : view
+                ? view.level
+                : 0;
         const localOffsetX = (targetTileX - baseTileX + 128) & 0x7f & 0x7f;
         const localOffsetY = (targetTileY - baseTileY + 128) & 0x7f & 0x7f;
         const deltaX = targetTileX - baseTileX;

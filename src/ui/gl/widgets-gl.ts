@@ -300,7 +300,7 @@ function getWidgetInteractionSnapshot(
         !!w?.__hasOriginalOnRelease;
 
     const widgetItemId = w?.itemId;
-    const widgetGroupId = (w?.groupId ?? w?.uid >>> 16 ?? 0) | 0;
+    const widgetGroupId = (w?.groupId ?? (w?.uid != null ? w!.uid >>> 16 : 0)) | 0;
     const isInventoryItem = widgetGroupId === 149 && widgetItemId != null && widgetItemId >= 0;
 
     let isPauseButtonWidget = false;
@@ -1944,8 +1944,8 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
         const isDragActive = !!(w as any)._isDragActive;
         const isClickedWidget =
             clickedWidgetUid !== null && ((w.uid as number) | 0) === clickedWidgetUid;
-        const rawVisualX = isDragActive ? (w as any)._dragVisualX ?? w.x : w.x;
-        const rawVisualY = isDragActive ? (w as any)._dragVisualY ?? w.y : w.y;
+        const rawVisualX = isDragActive ? ((w as any)._dragVisualX ?? w.x) : w.x;
+        const rawVisualY = isDragActive ? ((w as any)._dragVisualY ?? w.y) : w.y;
         const visualX = (Number(rawVisualX) || 0) | 0;
         const visualY = (Number(rawVisualY) || 0) | 0;
         const logicalX = ox + visualX;
@@ -1961,10 +1961,10 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
         const height = Math.max(1, y1 - y);
         const isContainer = w.type === 0 || w.type === 11;
         const staticChildren = isContainer
-            ? widgetManager?.getStaticChildrenByParentUid(w.uid) ?? EMPTY_WIDGETS
+            ? (widgetManager?.getStaticChildrenByParentUid(w.uid) ?? EMPTY_WIDGETS)
             : EMPTY_WIDGETS;
         const dynamicChildren = isContainer
-            ? widgetManager?.getDynamicChildrenByParent(w) ?? EMPTY_WIDGETS
+            ? (widgetManager?.getDynamicChildrenByParent(w) ?? EMPTY_WIDGETS)
             : EMPTY_WIDGETS;
         const hasStaticChildren = staticChildren.length > 0;
         const hasChildren = dynamicChildren.length > 0;
@@ -2941,12 +2941,12 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                     ? w.spriteId | 0
                     : -1
                 : cs1Result
-                ? typeof w.spriteId2 === "number" && w.spriteId2 >= 0
-                    ? w.spriteId2 | 0
-                    : -1
-                : typeof w.spriteId === "number" && w.spriteId >= 0
-                ? w.spriteId | 0
-                : -1;
+                  ? typeof w.spriteId2 === "number" && w.spriteId2 >= 0
+                      ? w.spriteId2 | 0
+                      : -1
+                  : typeof w.spriteId === "number" && w.spriteId >= 0
+                    ? w.spriteId | 0
+                    : -1;
 
             // Check borderType for sprite outline (set via CS2 CC_SETOUTLINE/IF_SETOUTLINE)
             // borderType >= 2 = white pixel-perfect outline around sprite
@@ -3048,7 +3048,7 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                                   ) - drawY,
                               )
                             : height;
-                        const spriteAngle = nativeSpriteDraw ? 0 : w.spriteAngle ?? 0;
+                        const spriteAngle = nativeSpriteDraw ? 0 : (w.spriteAngle ?? 0);
 
                         if (spriteAngle !== 0) {
                             // Draw rotated sprite - uses 16-bit angle scale (0-65536 = 360 degrees)

@@ -112,7 +112,7 @@ function pathResultSatisfiesStrategy(
 
     const selectedEnd =
         result.steps.length > 0
-            ? result.end ?? result.steps[result.steps.length - 1]!
+            ? (result.end ?? result.steps[result.steps.length - 1]!)
             : { x: from.x, y: from.y };
     return strategy.hasArrived(selectedEnd.x, selectedEnd.y, from.plane);
 }

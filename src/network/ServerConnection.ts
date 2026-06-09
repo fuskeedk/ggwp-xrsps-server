@@ -2067,7 +2067,7 @@ function processServerMessage(msg: any): void {
         const percentRaw = Number(raw?.percent);
         const percent = Number.isFinite(percentRaw)
             ? Math.max(0, Math.min(100, percentRaw | 0))
-            : lastRunEnergyState?.percent ?? 100;
+            : (lastRunEnergyState?.percent ?? 100);
         const unitsRaw = Number(raw?.units);
         const units = Number.isFinite(unitsRaw)
             ? Math.max(0, Math.min(RUN_ENERGY_MAX_UNITS, unitsRaw | 0))
@@ -2075,9 +2075,11 @@ function processServerMessage(msg: any): void {
         const running =
             raw && Object.prototype.hasOwnProperty.call(raw, "running")
                 ? !!raw?.running
-                : lastRunEnergyState?.running ?? true;
+                : (lastRunEnergyState?.running ?? true);
         const weightRaw = Number(raw?.weight);
-        const weight = Number.isFinite(weightRaw) ? weightRaw | 0 : lastRunEnergyState?.weight ?? 0;
+        const weight = Number.isFinite(weightRaw)
+            ? weightRaw | 0
+            : (lastRunEnergyState?.weight ?? 0);
         let stamina: RunEnergyState["stamina"] | undefined;
         const staminaTicksRaw = Number(raw?.staminaTicks);
         const staminaMultiplierRaw = Number(raw?.staminaMultiplier);
@@ -2496,7 +2498,7 @@ function send(msg: ClientToServer) {
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
     // Use binary encoding for all client messages
     const binary = encodeClientMessage(msg as { type: string; payload: any });
-    socket.send(binary);
+    socket.send(binary as Uint8Array<ArrayBuffer>);
 }
 
 export function subscribeTick(cb: (tick: number, time: number) => void): () => void {

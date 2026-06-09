@@ -1908,7 +1908,7 @@ export class OsrsClient {
                     this.cs2Vm.eventContext.componentId =
                         widget?.fileId === -1 && typeof widget?.parentUid === "number"
                             ? widget.parentUid
-                            : widget?.uid ?? -1;
+                            : (widget?.uid ?? -1);
                     this.cs2Vm.eventContext.componentIndex = widget?.childIndex ?? -1;
                     try {
                         const rawIntArgs: number[] = [];
@@ -2078,7 +2078,7 @@ export class OsrsClient {
                 try {
                     const ecsIndex = this.playerEcs.getIndexForServerId(serverId | 0);
                     const fromName =
-                        ecsIndex === undefined ? "" : this.playerEcs.getName(ecsIndex) ?? "";
+                        ecsIndex === undefined ? "" : (this.playerEcs.getName(ecsIndex) ?? "");
                     const icon =
                         typeof modIcon === "number" && modIcon >= 0 ? `<img=${modIcon | 0}>` : "";
                     const sender = `${icon}${fromName}`;
@@ -3946,8 +3946,8 @@ export class OsrsClient {
             w?.fileId != null && w?.fileId >= 0
                 ? w.fileId
                 : typeof w?.childIndex === "number"
-                ? w.childIndex
-                : w?.uid & 0xffff;
+                  ? w.childIndex
+                  : w?.uid & 0xffff;
         const isItemSpawnerSearchClick =
             (groupId | 0) === ITEM_SPAWNER_MODAL_GROUP_ID &&
             this.isItemSpawnerSearchComponent(childId | 0);
@@ -4384,14 +4384,14 @@ export class OsrsClient {
                     const widgetUid =
                         (typeof (event.widget as any).id === "number"
                             ? (event.widget as any).id
-                            : event.widget.uid ?? 0) | 0;
+                            : (event.widget.uid ?? 0)) | 0;
                     const childIndex =
                         (typeof event.widget.childIndex === "number" &&
                         (event.widget.childIndex | 0) >= 0
                             ? event.widget.childIndex | 0
                             : typeof event.widget.fileId === "number" && event.widget.fileId >= 0
-                            ? event.widget.fileId | 0
-                            : widgetUid & 0xffff) | 0;
+                              ? event.widget.fileId | 0
+                              : widgetUid & 0xffff) | 0;
                     const pkt = createPacket(ClientPacketId.RESUME_PAUSEBUTTON);
                     pkt.packetBuffer.writeShortAddLE(childIndex);
                     pkt.packetBuffer.writeInt(widgetUid);
@@ -4637,7 +4637,7 @@ export class OsrsClient {
         this.cs2Vm.eventContext.componentId =
             widget?.fileId === -1 && typeof widget?.parentUid === "number"
                 ? widget.parentUid
-                : widget?.uid ?? -1;
+                : (widget?.uid ?? -1);
         this.cs2Vm.eventContext.componentIndex = widget?.childIndex ?? -1;
         try {
             console.log(`[${phase}_script] Running script ${scriptId} on widget ${widgetUid}`);
@@ -4963,7 +4963,7 @@ export class OsrsClient {
 
         const query = this.escapeItemSpawnerSearchText(this.itemSpawnerSearchQuery);
         const nextResults =
-            query.length > 0 ? this.getItemSpawnerSearchIndex()?.search(query) ?? [] : [];
+            query.length > 0 ? (this.getItemSpawnerSearchIndex()?.search(query) ?? []) : [];
         this.itemSpawnerSearchResults = nextResults;
         this.itemSpawnerSearchResultsVersion++;
 
@@ -4989,8 +4989,8 @@ export class OsrsClient {
             query.length === 0
                 ? "<col=c5b79b>Start typing to filter cache item names.</col>"
                 : nextResults.length > 0
-                ? `Matches: <col=40ff40>${nextResults.length}</col>`
-                : "<col=ff981f>No matches found in cache.</col>",
+                  ? `Matches: <col=40ff40>${nextResults.length}</col>`
+                  : "<col=ff981f>No matches found in cache.</col>",
         );
 
         this.itemSpawnerVisibleStartRow = -1;
@@ -6508,13 +6508,13 @@ export class OsrsClient {
                                 const widgetUid =
                                     (typeof (w as any).id === "number"
                                         ? (w as any).id
-                                        : w.uid ?? 0) | 0;
+                                        : (w.uid ?? 0)) | 0;
                                 const childIndex =
                                     (typeof w.childIndex === "number" && (w.childIndex | 0) >= 0
                                         ? w.childIndex | 0
                                         : typeof w.fileId === "number" && w.fileId >= 0
-                                        ? w.fileId | 0
-                                        : widgetUid & 0xffff) | 0;
+                                          ? w.fileId | 0
+                                          : widgetUid & 0xffff) | 0;
                                 // Send RESUME_PAUSEBUTTON packet to server
                                 const pkt = createPacket(ClientPacketId.RESUME_PAUSEBUTTON);
                                 pkt.packetBuffer.writeShortAddLE(childIndex);
@@ -6828,10 +6828,10 @@ export class OsrsClient {
                 const scriptParentAbsY = hasExplicitDragParent ? parentAbsY : actualParentAbsY;
                 const scriptParentScrollX = hasExplicitDragParent
                     ? parentScrollX
-                    : actualParent?.scrollX ?? 0;
+                    : (actualParent?.scrollX ?? 0);
                 const scriptParentScrollY = hasExplicitDragParent
                     ? parentScrollY
-                    : actualParent?.scrollY ?? 0;
+                    : (actualParent?.scrollY ?? 0);
                 const scriptX =
                     ((targetAbsX - scriptParentAbsX) / renderScaleX + scriptParentScrollX) | 0;
                 const scriptY =
@@ -7096,9 +7096,11 @@ export class OsrsClient {
                     const sourceIsDynamic = (w as any).fileId === -1;
                     const targetIsDynamic = (dragTarget as any).fileId === -1;
 
-                    const sourceWidgetId = sourceIsDynamic ? (w as any).parentUid ?? w.uid : w.uid;
+                    const sourceWidgetId = sourceIsDynamic
+                        ? ((w as any).parentUid ?? w.uid)
+                        : w.uid;
                     const targetWidgetId = targetIsDynamic
-                        ? (dragTarget as any).parentUid ?? dragTarget.uid
+                        ? ((dragTarget as any).parentUid ?? dragTarget.uid)
                         : dragTarget.uid;
 
                     const targetSlot = (dragTarget as any).childIndex ?? -1;
@@ -7514,8 +7516,8 @@ export class OsrsClient {
             explicitSlot !== undefined && explicitSlot >= 0
                 ? explicitSlot
                 : dynamicSlot !== undefined && dynamicSlot >= 0
-                ? dynamicSlot
-                : undefined;
+                  ? dynamicSlot
+                  : undefined;
         const recoverSlotByOptionTarget = (parent: any): number | undefined => {
             if (!parent || !Array.isArray(parent.children) || option.length === 0) return undefined;
             const optionLower = option.toLowerCase();
@@ -7668,8 +7670,8 @@ export class OsrsClient {
                 typeof widget.parentUid === "number"
                     ? widget.parentUid | 0
                     : typeof widget.id === "number"
-                    ? widget.id | 0
-                    : undefined;
+                      ? widget.id | 0
+                      : undefined;
             if (parentId === undefined) {
                 // Fall through to UID-derived identifiers (best-effort)
             } else {
@@ -7684,16 +7686,16 @@ export class OsrsClient {
             typeof widget.groupId === "number"
                 ? widget.groupId | 0
                 : hasUid
-                ? (widget.uid >>> 16) | 0
-                : undefined;
+                  ? (widget.uid >>> 16) | 0
+                  : undefined;
         if (groupId === undefined) return undefined;
         // fileId of -1 means "not set", so only use it if it's >= 0
         const childId =
             typeof widget.fileId === "number" && widget.fileId >= 0
                 ? widget.fileId | 0
                 : hasUid
-                ? widget.uid & 0xffff
-                : 0;
+                  ? widget.uid & 0xffff
+                  : 0;
         const widgetId = ((groupId & 0xffff) << 16) | (childId & 0xffff);
         return { widgetId, groupId, childId };
     }

@@ -250,8 +250,8 @@ export class WidgetDialogHandler {
         const chatDialogGroupForScript55 = isNpcDialog
             ? DIALOG_GROUP_NPC
             : isPlayerDialog
-            ? DIALOG_GROUP_PLAYER
-            : -1;
+              ? DIALOG_GROUP_PLAYER
+              : -1;
         const dialogPreScripts = isSpriteDialog
             ? undefined
             : [{ scriptId: 2379, args: [] as (number | string)[] }];
@@ -316,12 +316,12 @@ export class WidgetDialogHandler {
                 payload.clickToContinue === false
                     ? undefined
                     : request.onContinue
-                    ? request.onContinue
-                    : payload.closeOnContinue !== false
-                    ? () => {
-                          this.closeDialog(player, dialogId);
-                      }
-                    : undefined,
+                      ? request.onContinue
+                      : payload.closeOnContinue !== false
+                        ? () => {
+                              this.closeDialog(player, dialogId);
+                          }
+                        : undefined,
             onClose: request.onClose,
         });
 

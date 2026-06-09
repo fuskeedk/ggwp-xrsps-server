@@ -574,7 +574,7 @@ export class NpcSyncManager {
             level: delta.level,
             rot: delta.rot,
             orientation:
-                (delta.orientation ?? (npc ? npc.getOrientation() : delta.rot ?? 0)) & 2047,
+                (delta.orientation ?? (npc ? npc.getOrientation() : (delta.rot ?? 0))) & 2047,
             moved: !!delta.moved,
             turned: !!delta.turned,
             seq: delta.seq,

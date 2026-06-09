@@ -79,7 +79,7 @@ export class GfxRenderer {
         const nowMs = (performance?.now?.() as number) || Date.now();
         const prog = transparent
             ? (this.renderer as any).npcProgram
-            : (this.renderer as any).npcProgramOpaque ?? (this.renderer as any).npcProgram;
+            : ((this.renderer as any).npcProgramOpaque ?? (this.renderer as any).npcProgram);
         if (!prog) return;
         const programKey = transparent ? "npc-alpha" : "npc-opaque";
 

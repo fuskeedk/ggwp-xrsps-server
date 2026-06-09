@@ -205,7 +205,7 @@ export class NpcHitHandler {
                 Number.isFinite(explicitSpellIdRaw) &&
                 explicitSpellIdRaw > 0
                     ? explicitSpellIdRaw
-                    : player.combat.spellId ?? -1;
+                    : (player.combat.spellId ?? -1);
             this.handleMagicNpcEffects(
                 player,
                 npc,
@@ -499,14 +499,14 @@ export class NpcHitHandler {
         }
 
         // Spot animation
-        const spotId = landed ? impactSpotAnim : splashSpotAnim ?? impactSpotAnim;
+        const spotId = landed ? impactSpotAnim : (splashSpotAnim ?? impactSpotAnim);
         if (spotId !== undefined && spotId >= 0) {
             this.services.enqueueSpotAnimation({
                 tick: hitsplatTick,
                 npcId: npc.id,
                 spotId: spotId,
                 delay: 0,
-                height: landed ? spell?.impactSpotAnimHeight ?? 100 : 100,
+                height: landed ? (spell?.impactSpotAnimHeight ?? 100) : 100,
             });
         }
 

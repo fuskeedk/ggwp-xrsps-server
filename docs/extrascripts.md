@@ -32,13 +32,13 @@ That's it. Drop a folder in `server/extrascripts/` with an `index.ts` exporting 
 
 Extrascripts have access to the same `IScriptRegistry` and `ScriptServices` as gamemodes. They can register:
 
--   **Commands** — `::mycommand` chat commands
--   **NPC interactions** — talk-to, attack, pickpocket, etc.
--   **Loc interactions** — object click handlers
--   **Item actions** — inventory item options, item-on-item, item-on-loc
--   **Widget buttons** — UI button click handlers
--   **Region events** — enter/leave region triggers
--   **Tick handlers** — per-tick logic
+- **Commands** — `::mycommand` chat commands
+- **NPC interactions** — talk-to, attack, pickpocket, etc.
+- **Loc interactions** — object click handlers
+- **Item actions** — inventory item options, item-on-item, item-on-loc
+- **Widget buttons** — UI button click handlers
+- **Region events** — enter/leave region triggers
+- **Tick handlers** — per-tick logic
 
 ## Load Order
 

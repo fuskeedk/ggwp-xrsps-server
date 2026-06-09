@@ -203,7 +203,7 @@ export class ItemProtectionCalculator {
         // In OSRS, GE price is used if available, falling back to high alch
         // For simplicity, we use high alch which is always server-side
         const highAlchValue = definition.highAlch;
-        const value = highAlchValue > 0 ? highAlchValue : definition.value ?? 0;
+        const value = highAlchValue > 0 ? highAlchValue : (definition.value ?? 0);
 
         return {
             itemId,

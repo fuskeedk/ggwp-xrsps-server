@@ -104,13 +104,13 @@ export function GameContainer({ osrsClient }: OsrsContainerProps): JSX.Element {
         null,
     );
 
-    const fishingStatusTimer = useRef<number | undefined>();
+    const fishingStatusTimer = useRef<number | undefined>(undefined);
 
     const allowWorldMapTeleport = true;
 
     // Legacy CSS menu props removed
 
-    const requestRef = useRef<number | undefined>();
+    const requestRef = useRef<number | undefined>(undefined);
 
     const widgetManagerReady = osrsClient.widgetManager != null;
 

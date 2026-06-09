@@ -224,8 +224,8 @@ export class AppearanceService {
         const gender = appearance?.gender === 1 ? 1 : 0;
         const genderFallback =
             gender === 1
-                ? this.defaultPlayerAnimFemale ?? this.defaultPlayerAnim
-                : this.defaultPlayerAnimMale ?? this.defaultPlayerAnim;
+                ? (this.defaultPlayerAnimFemale ?? this.defaultPlayerAnim)
+                : (this.defaultPlayerAnimMale ?? this.defaultPlayerAnim);
 
         const basId = this.guessBasIdForAppearance(appearance);
         if (basId !== undefined) {
@@ -255,7 +255,7 @@ export class AppearanceService {
 
     applyWeaponAnimOverrides(p: PlayerState, animTarget: Record<string, number | undefined>): void {
         const equip = Array.isArray(p.appearance?.equip) ? p.appearance.equip : undefined;
-        const itemId = Array.isArray(equip) ? equip[EquipmentSlot.WEAPON] ?? -1 : -1;
+        const itemId = Array.isArray(equip) ? (equip[EquipmentSlot.WEAPON] ?? -1) : -1;
         const overrides = this.weaponAnimOverrides.get(itemId);
         if (!overrides) return;
         for (const [key, value] of Object.entries(overrides)) {

@@ -266,15 +266,15 @@ export class CombatEffectService {
             }
             const spotId =
                 result.amount > 0
-                    ? opts.spell.impactSpotAnim ?? opts.spell.splashSpotAnim
-                    : opts.spell.splashSpotAnim ?? opts.spell.impactSpotAnim;
+                    ? (opts.spell.impactSpotAnim ?? opts.spell.splashSpotAnim)
+                    : (opts.spell.splashSpotAnim ?? opts.spell.impactSpotAnim);
             if (spotId !== undefined && spotId >= 0) {
                 this.svc.broadcastService.enqueueSpotAnimation({
                     tick: opts.hitsplatTick,
                     npcId: extra.id,
                     spotId: spotId,
                     delay: 0,
-                    height: result.amount > 0 ? opts.spell.impactSpotAnimHeight ?? 100 : 100,
+                    height: result.amount > 0 ? (opts.spell.impactSpotAnimHeight ?? 100) : 100,
                 });
             }
         }

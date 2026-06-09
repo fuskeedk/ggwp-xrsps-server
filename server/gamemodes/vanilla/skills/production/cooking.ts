@@ -170,8 +170,8 @@ export function registerCookingInteractions(registry: IScriptRegistry, services:
             const label = craftable
                 ? `${recipe.name} (${readyCount}x ready)`
                 : !levelMet
-                ? `${recipe.name} (Lvl ${recipe.level})`
-                : `${recipe.name} (${totalRaw} raw)`;
+                  ? `${recipe.name} (Lvl ${recipe.level})`
+                  : `${recipe.name} (${totalRaw} raw)`;
             return { recipe, label, craftable, batch: readyCount };
         });
         if (!cookingCandidates.length) {

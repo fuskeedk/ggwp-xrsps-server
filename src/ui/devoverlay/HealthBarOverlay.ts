@@ -288,14 +288,14 @@ export class HealthBarOverlay implements Overlay {
                 hasBothSprites
                     ? frontW
                     : (definition?.width ?? 0) > 0
-                    ? definition!.width | 0
-                    : fallbackWidth,
+                      ? definition!.width | 0
+                      : fallbackWidth,
             );
             const heightPx = Math.max(front?.h ?? 0, back?.h ?? 0, 6) | 0;
             const backSprite = (back ?? fallback) as any;
             const barHeight = (hasBackSprite ? backSprite.h : heightPx) | 0;
             const groupKey = typeof entry.groupKey === "number" ? entry.groupKey | 0 : undefined;
-            const stackOffset = groupKey !== undefined ? stackOffsets.get(groupKey) ?? 0 : 0;
+            const stackOffset = groupKey !== undefined ? (stackOffsets.get(groupKey) ?? 0) : 0;
             const y = -(((barHeight + 2) | 0) + (stackOffset | 0));
             const x = -Math.floor(totalWidth / 2);
 

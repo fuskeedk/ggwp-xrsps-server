@@ -248,8 +248,8 @@ export function registerSmeltingInteractions(registry: IScriptRegistry, services
             const label = craftable
                 ? `${recipe.name} (${ready}x ready)`
                 : !levelMet
-                ? `${recipe.name} (Lvl ${recipe.level})`
-                : `${recipe.name} (${recipe.ingredientsLabel ?? "Need ores"})`;
+                  ? `${recipe.name} (Lvl ${recipe.level})`
+                  : `${recipe.name} (${recipe.ingredientsLabel ?? "Need ores"})`;
             return { recipe, label, craftable, batch: Math.max(1, ready) };
         });
         const craftableChoices = smeltChoices.filter((c) => c.craftable);

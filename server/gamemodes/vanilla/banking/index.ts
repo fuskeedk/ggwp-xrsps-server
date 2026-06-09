@@ -69,8 +69,8 @@ export function registerBankingHandlers(registry: IScriptRegistry, services: Scr
             modeRaw === "insert"
                 ? true
                 : modeRaw === "swap"
-                ? false
-                : event.player.bank.getBankInsertMode();
+                  ? false
+                  : event.player.bank.getBankInsertMode();
         const entry = event.services.banking?.getBankEntryAtClientSlot?.(event.player, from);
         if (!entry) return;
         const banking = event.services.gamemodeServices?.banking as BankingProvider | undefined;

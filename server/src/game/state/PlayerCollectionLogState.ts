@@ -17,9 +17,9 @@ export interface CollectionLogSnapshot {
     }>;
 }
 
-export class PlayerCollectionLogState
-    implements PersistentSubState<CollectionLogSnapshot | undefined>
-{
+export class PlayerCollectionLogState implements PersistentSubState<
+    CollectionLogSnapshot | undefined
+> {
     private obtained: Map<number, number> = new Map();
     private categoryStats: Map<number, { count1: number; count2?: number; count3?: number }> =
         new Map();

@@ -6,15 +6,15 @@ Gamemodes live in `server/gamemodes/{id}/` and export a `createGamemode()` funct
 
 ## What a gamemode controls
 
--   XP multipliers and drop rates
--   Spawn location and tutorial flow
--   Player initialization and state serialization
--   Login handshake (varps, varbits, feature flags)
--   Per-tick hooks and interaction restrictions
--   Handler registration (banking, shops, equipment, UI widgets, content interactions)
--   Display name formatting and chat player types
--   Custom content data packets
--   Service providers exposed to script handlers
+- XP multipliers and drop rates
+- Spawn location and tutorial flow
+- Player initialization and state serialization
+- Login handshake (varps, varbits, feature flags)
+- Per-tick hooks and interaction restrictions
+- Handler registration (banking, shops, equipment, UI widgets, content interactions)
+- Display name formatting and chat player types
+- Custom content data packets
+- Service providers exposed to script handlers
 
 ## Inheritance Chain
 
@@ -125,8 +125,8 @@ This gives you a working gamemode with 5x XP and all other OSRS defaults (Lumbri
 
 Set the gamemode ID in your server configuration:
 
--   **config.json:** `{ "gamemode": "my-gamemode" }`
--   **Environment variable:** `GAMEMODE=my-gamemode`
+- **config.json:** `{ "gamemode": "my-gamemode" }`
+- **Environment variable:** `GAMEMODE=my-gamemode`
 
 The default gamemode is `vanilla`.
 

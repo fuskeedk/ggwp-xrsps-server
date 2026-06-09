@@ -1096,11 +1096,8 @@ export class WebGLMapSquare {
     }
 
     delete() {
-        runMapSquareAction(
-            this.mapX,
-            this.mapY,
-            "npcEcs.destroyNpcsForMap",
-            () => this._npcEcs?.destroyNpcsForMap(this.mapX, this.mapY),
+        runMapSquareAction(this.mapX, this.mapY, "npcEcs.destroyNpcsForMap", () =>
+            this._npcEcs?.destroyNpcsForMap(this.mapX, this.mapY),
         );
         releaseDrawCallRange(this.drawCall);
         releaseDrawCallRange(this.drawCallAlpha);

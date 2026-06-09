@@ -49,13 +49,13 @@ export function getMousePos(container: HTMLElement, event: MouseEvent | Touch): 
     const baseW = isIosRotated
         ? container.clientWidth || container.offsetWidth || rect.width
         : rect.width > 0
-        ? rect.width
-        : container.clientWidth || container.offsetWidth;
+          ? rect.width
+          : container.clientWidth || container.offsetWidth;
     const baseH = isIosRotated
         ? container.clientHeight || container.offsetHeight || rect.height
         : rect.height > 0
-        ? rect.height
-        : container.clientHeight || container.offsetHeight;
+          ? rect.height
+          : container.clientHeight || container.offsetHeight;
 
     let cssX = event.clientX - rect.left;
     let cssY = event.clientY - rect.top;

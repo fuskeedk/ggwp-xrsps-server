@@ -490,8 +490,8 @@ export abstract class Actor {
                 this.singleStepRoutePending > 0
                     ? TraversalType.WALK
                     : run
-                    ? TraversalType.RUN
-                    : TraversalType.WALK;
+                      ? TraversalType.RUN
+                      : TraversalType.WALK;
             this.addStepToPath(step.x, step.y, tr);
         }
     }
@@ -632,8 +632,8 @@ export abstract class Actor {
                 queuedTraversal === TraversalType.SLOW
                     ? TraversalType.SLOW
                     : willRun
-                    ? TraversalType.RUN
-                    : TraversalType.WALK;
+                      ? TraversalType.RUN
+                      : TraversalType.WALK;
 
             this.stepPositions.push({
                 x: this.x,

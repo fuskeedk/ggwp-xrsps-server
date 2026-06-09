@@ -8,7 +8,7 @@ import {
     useRef,
     useState,
 } from "react";
-import { useElementSize } from "usehooks-ts";
+import { useResizeObserver } from "usehooks-ts";
 
 import { getMapSquareId } from "../../../rs/map/MapFileIndex";
 import { clamp } from "../../../util/MathUtil";
@@ -63,7 +63,10 @@ export interface WorldMapProps {
 export const WorldMap = memo(function WorldMap(props: WorldMapProps) {
     const { getPosition, loadMapImageUrl } = props;
 
-    const [ref, { width = 0, height = 0 }] = useElementSize();
+    const ref = useRef<HTMLDivElement>(null);
+    const { width = 0, height = 0 } = useResizeObserver<HTMLDivElement>({
+        ref: ref as React.RefObject<HTMLDivElement>,
+    });
     const dragRef = useRef<HTMLDivElement>(null);
 
     const [isDragging, setIsDragging] = useState(false);
@@ -77,7 +80,7 @@ export const WorldMap = memo(function WorldMap(props: WorldMapProps) {
 
     const [images, setImages] = useState<JSX.Element[]>([]);
 
-    const requestRef = useRef<number | undefined>();
+    const requestRef = useRef<number | undefined>(undefined);
 
     const tileSize = TILE_SIZES[tileSizeIndex];
 

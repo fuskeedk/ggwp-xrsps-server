@@ -109,14 +109,14 @@ export class PlayerMovementSync {
             typeof update.x === "number"
                 ? update.x | 0
                 : typeof update.subX === "number"
-                ? update.subX | 0
-                : undefined;
+                  ? update.subX | 0
+                  : undefined;
         let subY =
             typeof update.y === "number"
                 ? update.y | 0
                 : typeof update.subY === "number"
-                ? update.subY | 0
-                : undefined;
+                  ? update.subY | 0
+                  : undefined;
 
         const existingState = this.states.get(update.serverId);
         const isFirstAppearance = !existingState;
@@ -125,8 +125,8 @@ export class PlayerMovementSync {
             subX !== undefined && subY !== undefined
                 ? { x: toTileCoord(subX), y: toTileCoord(subY) }
                 : existingState
-                ? { x: existingState.tileX, y: existingState.tileY }
-                : { x: 0, y: 0 };
+                  ? { x: existingState.tileX, y: existingState.tileY }
+                  : { x: 0, y: 0 };
 
         const effectiveLevel = this.resolveTilePlane
             ? this.resolveTilePlane(initialTile.x, initialTile.y, update.level | 0)
@@ -399,10 +399,10 @@ export class PlayerMovementSync {
                 interactionOrientation !== undefined
                     ? interactionOrientation
                     : typeof opts.orientation === "number"
-                    ? opts.orientation & 2047
-                    : typeof opts.rotation === "number"
-                    ? opts.rotation & 2047
-                    : undefined;
+                      ? opts.orientation & 2047
+                      : typeof opts.rotation === "number"
+                        ? opts.rotation & 2047
+                        : undefined;
             if (orientation !== undefined) {
                 this.playerEcs.setTargetRot(ecsIndex, orientation);
                 state.lastOrientation = orientation;
@@ -527,8 +527,8 @@ export class PlayerMovementSync {
             traversalHintRaw === 0 || traversalHintRaw === 1 || traversalHintRaw === 2
                 ? traversalHintRaw
                 : running
-                ? 2
-                : 1;
+                  ? 2
+                  : 1;
 
         const direction = deltaToDirection(Math.sign(dx), Math.sign(dy));
         if (direction === undefined) {

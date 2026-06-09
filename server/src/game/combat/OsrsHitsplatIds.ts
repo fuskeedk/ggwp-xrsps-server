@@ -53,7 +53,7 @@ function isMinePerspective(
     sourceType: HitsplatSourceType | undefined,
 ): boolean {
     const viewerId = viewerPlayerId ?? 0;
-    const targetPlayerId = targetType === EntityType.Player ? targetId ?? 0 : 0;
+    const targetPlayerId = targetType === EntityType.Player ? (targetId ?? 0) : 0;
     const sourceId = sourcePlayerId ?? 0;
     const isViewerTarget =
         viewerId > 0 && targetPlayerId > 0 && (viewerId | 0) === (targetPlayerId | 0);

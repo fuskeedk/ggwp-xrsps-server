@@ -72,7 +72,7 @@ export class PvpCombatHandler {
         }
 
         const spellIdRaw = data.spellId ?? -1;
-        const spellId = spellIdRaw > 0 ? spellIdRaw : player.combat.spellId ?? -1;
+        const spellId = spellIdRaw > 0 ? spellIdRaw : (player.combat.spellId ?? -1);
         if (!(spellId > 0)) {
             this.services.log(
                 "info",
@@ -226,7 +226,7 @@ export class PvpCombatHandler {
                 Number.isFinite(explicitSpellIdRaw) &&
                 explicitSpellIdRaw > 0
                     ? explicitSpellIdRaw
-                    : player.combat.spellId ?? -1;
+                    : (player.combat.spellId ?? -1);
             this.handleMagicPvpEffects(
                 player,
                 target,
@@ -318,8 +318,8 @@ export class PvpCombatHandler {
                 spell.statDebuff.stat === "attack"
                     ? 0
                     : spell.statDebuff.stat === "strength"
-                    ? 2
-                    : 1;
+                      ? 2
+                      : 1;
             const cur = target.skillSystem.getSkill(skillId);
             const currentLevel = Math.max(1, cur.baseLevel + cur.boost);
             const drop = Math.max(
@@ -334,14 +334,14 @@ export class PvpCombatHandler {
         // Spot animation
         const impactSpotAnim = spell?.impactSpotAnim ?? poweredStaffData?.impactSpotAnim;
         const splashSpotAnim = spell?.splashSpotAnim ?? poweredStaffData?.splashSpotAnim;
-        const spotId = landed ? impactSpotAnim : splashSpotAnim ?? impactSpotAnim;
+        const spotId = landed ? impactSpotAnim : (splashSpotAnim ?? impactSpotAnim);
         if (spotId !== undefined && spotId >= 0) {
             this.services.enqueueSpotAnimation({
                 tick: hitsplatTick,
                 playerId: targetId,
                 spotId: spotId,
                 delay: 0,
-                height: landed ? spell?.impactSpotAnimHeight ?? 100 : 100,
+                height: landed ? (spell?.impactSpotAnimHeight ?? 100) : 100,
             });
         }
 

@@ -828,7 +828,7 @@ function handleBoltEnchantQuantityWidgetAction(
     const requestedSets =
         session.hasExplicitSelection && session.selectedSets !== undefined
             ? session.selectedSets
-            : requestedFromSlot ?? 1;
+            : (requestedFromSlot ?? 1);
     const clampedRequestedSets = Math.max(1, Math.min(entry.maxSets, requestedSets));
 
     clearBoltEnchantUiSession(event.player, services, { closeInterface: true });

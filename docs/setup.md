@@ -113,9 +113,9 @@ Log in with any username. You should spawn into the game world.
 
 The cache is downloaded from the [OpenRS2 Archive](https://archive.openrs2.org/). If it stalls:
 
--   Check your internet connection
--   Delete the `caches/` folder and try again
--   The target cache version is defined in `target.txt` at the repo root
+- Check your internet connection
+- Delete the `caches/` folder and try again
+- The target cache version is defined in `target.txt` at the repo root
 
 ### `yarn server:build-collision` is slow
 
@@ -127,9 +127,9 @@ Another instance of the server is likely running. Kill it or change the port in 
 
 ### Client shows a blank screen
 
--   Make sure the server is running first
--   Check the browser console for WebSocket connection errors
--   Ensure the cache download completed (check `caches/` folder)
+- Make sure the server is running first
+- Check the browser console for WebSocket connection errors
+- Ensure the cache download completed (check `caches/` folder)
 
 ### Node version errors
 

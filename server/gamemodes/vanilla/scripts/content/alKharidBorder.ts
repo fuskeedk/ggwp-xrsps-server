@@ -784,8 +784,8 @@ export function registerAlKharidBorderHandlers(
             event.npc.typeId === WEST_GUARD_NPC_ID || event.npc.typeId === EAST_GUARD_NPC_ID
                 ? event.npc.typeId
                 : event.player.tileX >= EAST_TILE_X
-                ? EAST_GUARD_NPC_ID
-                : WEST_GUARD_NPC_ID;
+                  ? EAST_GUARD_NPC_ID
+                  : WEST_GUARD_NPC_ID;
 
         if (gateState.requiresToll) {
             showTollPrompt(gateEvent, part, guardNpcId);

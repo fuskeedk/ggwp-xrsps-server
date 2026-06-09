@@ -333,20 +333,20 @@ export class NpcCombatInteractionHandler {
                       Math.max(1, npc.size),
                   )
                 : attackType !== AttackType.Melee
-                ? new RectWithinRangeLineOfSightRouteStrategy(
-                      npc.tileX,
-                      npc.tileY,
-                      Math.max(1, npc.size),
-                      Math.max(1, npc.size),
-                      normalizedReach,
-                  )
-                : new RectWithinRangeRouteStrategy(
-                      npc.tileX,
-                      npc.tileY,
-                      Math.max(1, npc.size),
-                      Math.max(1, npc.size),
-                      normalizedReach,
-                  );
+                  ? new RectWithinRangeLineOfSightRouteStrategy(
+                        npc.tileX,
+                        npc.tileY,
+                        Math.max(1, npc.size),
+                        Math.max(1, npc.size),
+                        normalizedReach,
+                    )
+                  : new RectWithinRangeRouteStrategy(
+                        npc.tileX,
+                        npc.tileY,
+                        Math.max(1, npc.size),
+                        Math.max(1, npc.size),
+                        normalizedReach,
+                    );
         // Melee arrival checks must be wall-aware. Without this, routing can stop on
         // geometrically-adjacent tiles that are edge-blocked by walls, causing stuck combat pathing.
         if (strategy instanceof CardinalAdjacentRouteStrategy) {

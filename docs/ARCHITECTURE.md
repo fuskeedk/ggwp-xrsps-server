@@ -51,9 +51,9 @@ The client receives `PLAYER_SYNC` and `NPC_INFO` packets each tick, decodes them
 
 Communication is over **WebSocket** with a **binary protocol**. No JSON at runtime.
 
--   Client packets: `src/shared/network/ClientPacketId.ts`
--   Server packets: `src/shared/packets/ServerPacketId.ts`
--   Message routing: `server/src/network/MessageRouter.ts`
+- Client packets: `src/shared/network/ClientPacketId.ts`
+- Server packets: `src/shared/packets/ServerPacketId.ts`
+- Message routing: `server/src/network/MessageRouter.ts`
 
 Packets cover movement, interactions, widget clicks, combat, inventory, chat, and sync updates.
 
@@ -61,9 +61,9 @@ Packets cover movement, interactions, widget clicks, combat, inventory, chat, an
 
 Both client and server load the OSRS cache — the same binary format Jagex uses. It contains models, animations, maps, widgets, item definitions, NPC definitions, and more.
 
--   **Server:** loads from disk via `initCacheEnv("caches")`
--   **Client:** loads from IndexedDB (downloaded from CDN on first visit)
--   **Loaders:** `CacheLoaderFactory` provides typed loaders (NPC types, obj types, loc types, animations, textures, etc.)
+- **Server:** loads from disk via `initCacheEnv("caches")`
+- **Client:** loads from IndexedDB (downloaded from CDN on first visit)
+- **Loaders:** `CacheLoaderFactory` provides typed loaders (NPC types, obj types, loc types, animations, textures, etc.)
 
 Cache files are stored in `caches/` (gitignored) and managed by `scripts/ensure-cache.ts`.
 
@@ -92,19 +92,19 @@ The default implementation is `PlayerPersistence` — a JSON flat file provider 
 
 ### Save triggers
 
--   **Login/logout** — saved immediately via `saveSnapshot()`
--   **Autosave** — bulk save every 120 seconds via `savePlayers()`
--   **Orphan expiration** — saved when a disconnected-in-combat player is removed
+- **Login/logout** — saved immediately via `saveSnapshot()`
+- **Autosave** — bulk save every 120 seconds via `savePlayers()`
+- **Orphan expiration** — saved when a disconnected-in-combat player is removed
 
 ### What gets persisted
 
 The `PlayerStateSerializer` (`server/src/game/state/PlayerStateSerializer.ts`) handles export/import of:
 
--   Skills, hitpoints, location, orientation
--   Inventory, equipment, bank (capacity, tabs, modes)
--   Varps/varbits, combat settings, prayer, autocast state
--   Equipment charges, degradation charges, collection log
--   Gamemode-specific state (via `gamemode.serializePlayerState()`)
+- Skills, hitpoints, location, orientation
+- Inventory, equipment, bank (capacity, tabs, modes)
+- Varps/varbits, combat settings, prayer, autocast state
+- Equipment charges, degradation charges, collection log
+- Gamemode-specific state (via `gamemode.serializePlayerState()`)
 
 ### Custom backends
 
@@ -141,8 +141,8 @@ Gamemodes and extrascripts can define content that doesn't exist in the OSRS cac
 
 `CustomItemRegistry` (`src/custom/items/`) stores item definitions keyed by ID (50000+). Items can clone properties from existing cache items via `basedOn` and override specific fields.
 
--   **Server:** `ServerCustomItemRegistry` merges custom definitions with base cache lookups
--   **Client:** `CustomObjTypeLoader` wraps the base `ObjTypeLoader` and injects custom items transparently
+- **Server:** `ServerCustomItemRegistry` merges custom definitions with base cache lookups
+- **Client:** `CustomObjTypeLoader` wraps the base `ObjTypeLoader` and injects custom items transparently
 
 ### Custom Widgets
 

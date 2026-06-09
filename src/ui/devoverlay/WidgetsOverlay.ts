@@ -195,7 +195,7 @@ export class WidgetsOverlay implements Overlay {
         for (let i = 0; i < rootSources.length; i++) {
             const root = rootSources[i];
             if (i > 0) signature += ",";
-            signature += root && typeof root.uid === "number" ? root.uid : root?.groupId ?? "";
+            signature += root && typeof root.uid === "number" ? root.uid : (root?.groupId ?? "");
         }
         if (signature !== this.lastRootSignature) {
             this.lastRootSignature = signature;

@@ -918,16 +918,16 @@ export class ServerBinaryEncoder {
                 launch.source.actor?.kind === "player"
                     ? 1
                     : launch.source.actor?.kind === "npc"
-                    ? 2
-                    : 0,
+                      ? 2
+                      : 0,
             );
             this.buffer.writeShort(launch.source.actor?.serverId ?? 0);
             this.buffer.writeByte(
                 launch.target.actor?.kind === "player"
                     ? 1
                     : launch.target.actor?.kind === "npc"
-                    ? 2
-                    : 0,
+                      ? 2
+                      : 0,
             );
             this.buffer.writeShort(launch.target.actor?.serverId ?? 0);
         }

@@ -936,8 +936,8 @@ export class WidgetManager {
             typeof parent === "number"
                 ? parent | 0
                 : parent && typeof parent.uid === "number"
-                ? parent.uid | 0
-                : -1;
+                  ? parent.uid | 0
+                  : -1;
         if (parentUid < 0) {
             return [];
         }
@@ -948,7 +948,7 @@ export class WidgetManager {
         }
 
         const node: WidgetNode | null | undefined =
-            typeof parent === "number" ? this.widgetByUid.get(parentUid) : parent ?? undefined;
+            typeof parent === "number" ? this.widgetByUid.get(parentUid) : (parent ?? undefined);
         const sparseChildren = node && Array.isArray(node.children) ? node.children : null;
         const denseChildren: WidgetNode[] = [];
         if (sparseChildren) {
@@ -1696,8 +1696,8 @@ export class WidgetManager {
             typeof (widget as any).id === "number"
                 ? ((widget as any).id as number) | 0
                 : typeof widget.parentUid === "number"
-                ? widget.parentUid | 0
-                : -1;
+                  ? widget.parentUid | 0
+                  : -1;
         if (parentUid < 0) {
             return false;
         }

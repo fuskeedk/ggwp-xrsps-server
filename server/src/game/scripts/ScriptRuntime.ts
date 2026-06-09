@@ -162,7 +162,7 @@ export class ScriptRuntime {
                             scriptEvent.action || "default"
                         } threw (async)`,
                         {
-                            error: err instanceof Error ? err.stack ?? err.message : err,
+                            error: err instanceof Error ? (err.stack ?? err.message) : err,
                         },
                     );
                 });
@@ -173,7 +173,7 @@ export class ScriptRuntime {
                     scriptEvent.action || "default"
                 } threw`,
                 {
-                    error: err instanceof Error ? err.stack ?? err.message : err,
+                    error: err instanceof Error ? (err.stack ?? err.message) : err,
                 },
             );
         }
@@ -431,13 +431,13 @@ export class ScriptRuntime {
                 if (result instanceof Promise) {
                     result.catch((err) => {
                         this.logger.warn(`${describe()} threw (async)`, {
-                            error: err instanceof Error ? err.stack ?? err.message : err,
+                            error: err instanceof Error ? (err.stack ?? err.message) : err,
                         });
                     });
                 }
             } catch (err) {
                 this.logger.warn(`${describe()} threw`, {
-                    error: err instanceof Error ? err.stack ?? err.message : err,
+                    error: err instanceof Error ? (err.stack ?? err.message) : err,
                 });
             }
         });

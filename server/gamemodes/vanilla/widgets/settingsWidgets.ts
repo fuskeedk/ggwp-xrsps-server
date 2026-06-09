@@ -138,8 +138,8 @@ export function registerSettingsWidgetHandlers(
             setting === SETTINGS_DROPDOWN_PLAYER_ATTACK_OPTIONS
                 ? VARP_OPTION_ATTACK_PRIORITY_PLAYER
                 : setting === SETTINGS_DROPDOWN_NPC_ATTACK_OPTIONS
-                ? VARP_OPTION_ATTACK_PRIORITY_NPC
-                : undefined;
+                  ? VARP_OPTION_ATTACK_PRIORITY_NPC
+                  : undefined;
         if (varpId === undefined) return;
         const maxValue =
             setting === SETTINGS_DROPDOWN_PLAYER_ATTACK_OPTIONS

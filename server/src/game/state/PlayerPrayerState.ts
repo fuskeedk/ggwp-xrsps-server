@@ -127,7 +127,7 @@ export class PlayerPrayerState {
     private setHeadIcon(icon: PrayerHeadIcon | null): void {
         if (this.headIcon === icon) return;
         this.headIcon = icon;
-        const index = icon != null ? PRAYER_HEAD_ICON_IDS[icon] ?? -1 : -1;
+        const index = icon != null ? (PRAYER_HEAD_ICON_IDS[icon] ?? -1) : -1;
         this.deps?.setHeadIconIndex(index);
     }
 }

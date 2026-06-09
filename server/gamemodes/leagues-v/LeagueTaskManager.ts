@@ -399,10 +399,10 @@ export class LeagueTaskManager {
             trigger.type === TriggerType.NpcKillCombatLevel && trigger.count > 1
                 ? trigger.count
                 : trigger.type === TriggerType.NpcKill &&
-                  trigger.count !== undefined &&
-                  trigger.count > 1
-                ? trigger.count
-                : 1;
+                    trigger.count !== undefined &&
+                    trigger.count > 1
+                  ? trigger.count
+                  : 1;
 
         if (requiredCount > 1) {
             // Counter-based challenge: track progress separately, only set varbit on completion.

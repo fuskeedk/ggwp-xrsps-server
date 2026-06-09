@@ -145,8 +145,8 @@ export function registerTanningInteractions(registry: IScriptRegistry, services:
             const label = craftable
                 ? `${recipe.name} (${readyCount}x ready)`
                 : !levelMet
-                ? `${recipe.name} (Lvl ${recipe.level})`
-                : `${recipe.name} (${totalHides} hides)`;
+                  ? `${recipe.name} (Lvl ${recipe.level})`
+                  : `${recipe.name} (${totalHides} hides)`;
             return { recipe, label, craftable, batch: readyCount };
         });
         if (!tanningCandidates.length) {

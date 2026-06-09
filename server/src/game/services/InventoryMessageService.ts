@@ -200,8 +200,8 @@ export class InventoryMessageService {
                 payload.itemId === COINS_ITEM_ID
                     ? 1
                     : itemDef
-                    ? itemDef.dropValue || itemDef.value
-                    : 0;
+                      ? itemDef.dropValue || itemDef.value
+                      : 0;
             const totalValue = perItemValue * slotEntry.quantity;
             if (totalValue >= 30000) {
                 // Show sprite dialog with item first, then options dialog

@@ -524,7 +524,7 @@ export class PlayerRenderer {
 
         const rAny: any = this.renderer as any;
         const app = rAny.app;
-        const program = transparent ? rAny.npcProgram : rAny.npcProgramOpaque ?? rAny.npcProgram;
+        const program = transparent ? rAny.npcProgram : (rAny.npcProgramOpaque ?? rAny.npcProgram);
         const vb = app.createInterleavedBuffer(12, vertices);
         const ib = app.createIndexBuffer(PicoGL.UNSIGNED_INT as number, indices);
         const vao = app
@@ -1755,14 +1755,14 @@ export class PlayerRenderer {
                 forcedSeq !== undefined
                     ? forcedSeq.seqId | 0
                     : useActionSequence
-                    ? actionSeqId | 0
-                    : movementSeqId | 0;
+                      ? actionSeqId | 0
+                      : movementSeqId | 0;
             let frameIdx =
                 forcedSeq !== undefined
                     ? forcedSeq.frameIdx | 0
                     : useActionSequence
-                    ? actionFrameIdx | 0
-                    : movementFrameIdx | 0;
+                      ? actionFrameIdx | 0
+                      : movementFrameIdx | 0;
             let overlaySeqId: number | undefined;
             let overlayFrameIdx: number | undefined;
             if (useActionSequence) {
@@ -2015,14 +2015,14 @@ export class PlayerRenderer {
                     forcedSeq !== undefined
                         ? forcedSeq.seqId | 0
                         : useActionSequence
-                        ? actionSeqId | 0
-                        : movementSeqId | 0;
+                          ? actionSeqId | 0
+                          : movementSeqId | 0;
                 let frameIdx =
                     forcedSeq !== undefined
                         ? forcedSeq.frameIdx | 0
                         : useActionSequence
-                        ? actionFrameIdx | 0
-                        : movementFrameIdx | 0;
+                          ? actionFrameIdx | 0
+                          : movementFrameIdx | 0;
                 let overlaySeqId: number | undefined;
                 let overlayFrameIdx: number | undefined;
                 if (useActionSequence) {

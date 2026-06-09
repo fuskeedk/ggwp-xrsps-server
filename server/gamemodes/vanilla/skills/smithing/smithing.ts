@@ -246,8 +246,8 @@ export function registerSmithingInteractions(registry: IScriptRegistry, services
             const label = craftable
                 ? `${recipe.name} (${available}x ready)`
                 : !levelMet
-                ? `${recipe.name} (Lvl ${recipe.level})`
-                : `${recipe.name} (${recipe.barCount}x bars needed)`;
+                  ? `${recipe.name} (Lvl ${recipe.level})`
+                  : `${recipe.name} (${recipe.barCount}x bars needed)`;
             return { recipe, label, craftable, batch: Math.max(1, available) };
         });
         const craftableChoices = smithChoices.filter((c) => c.craftable);

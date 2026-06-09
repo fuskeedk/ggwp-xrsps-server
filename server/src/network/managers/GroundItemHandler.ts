@@ -133,8 +133,8 @@ export class GroundItemHandler {
                 stack.ownerId === undefined
                     ? TILE_ITEM_OWNERSHIP_NONE
                     : stack.ownerId === playerId
-                    ? TILE_ITEM_OWNERSHIP_SELF
-                    : TILE_ITEM_OWNERSHIP_OTHER,
+                      ? TILE_ITEM_OWNERSHIP_SELF
+                      : TILE_ITEM_OWNERSHIP_OTHER,
         };
     }
 

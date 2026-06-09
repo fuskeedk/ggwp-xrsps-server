@@ -124,8 +124,8 @@ export class ProjectileRenderer {
 
             const prog = transparent
                 ? (this.renderer as any).projectileProgram
-                : (this.renderer as any).projectileProgramOpaque ??
-                  (this.renderer as any).projectileProgram;
+                : ((this.renderer as any).projectileProgramOpaque ??
+                  (this.renderer as any).projectileProgram);
 
             if (!prog) {
                 if ((globalThis as any).DEBUG_PROJECTILES_TRAJ) {

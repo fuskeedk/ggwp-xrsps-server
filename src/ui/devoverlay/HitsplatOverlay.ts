@@ -239,13 +239,13 @@ export class HitsplatOverlay implements Overlay {
                 ? this.getDefinitionBackgroundParts(useType)
                 : this.bgParts;
             const primarySprite = useType
-                ? this.getDefinitionSingleSprite(useType) ?? this.getSpriteTextureForEntry(entry)
+                ? (this.getDefinitionSingleSprite(useType) ?? this.getSpriteTextureForEntry(entry))
                 : this.getSpriteTextureForEntry(entry);
             const primaryBaseWidth = primaryBgParts
                 ? primaryBgParts.left.w + primaryBgParts.mid.w + primaryBgParts.right.w
                 : primarySprite
-                ? primarySprite.w
-                : this.width;
+                  ? primarySprite.w
+                  : this.width;
 
             for (let i = 0; i < count; i++) {
                 const pIdx = order[(variant + i) % order.length];
@@ -414,8 +414,8 @@ export class HitsplatOverlay implements Overlay {
                               resolvedScale) |
                           0
                         : primarySprite
-                        ? (primarySprite.w * resolvedScale) | 0
-                        : this.width * resolvedScale;
+                          ? (primarySprite.w * resolvedScale) | 0
+                          : this.width * resolvedScale;
                     const secondaryXOffset = ((primaryWidth >> 1) + 2) | 0;
                     const scx = cx + secondaryXOffset;
 
@@ -727,8 +727,8 @@ export class HitsplatOverlay implements Overlay {
                             t.varbitId !== -1
                                 ? this.ctx.getVarValue(t.varbitId, -1)
                                 : t.varpId !== -1
-                                ? this.ctx.getVarValue(-1, t.varpId)
-                                : -1;
+                                  ? this.ctx.getVarValue(-1, t.varpId)
+                                  : -1;
                         const arr = t.multihitsplats;
                         let nextId = -1;
                         if (idx >= 0 && idx < arr.length - 1) nextId = arr[idx] | 0;
@@ -805,7 +805,8 @@ export class HitsplatOverlay implements Overlay {
 
         // Digits atlas
         try {
-            const fid = (this.type?.fontId ?? -1) >= 0 ? this.type!.fontId | 0 : this.fontId ?? -1;
+            const fid =
+                (this.type?.fontId ?? -1) >= 0 ? this.type!.fontId | 0 : (this.fontId ?? -1);
             const bmp = BitmapFont.tryLoad(this.ctx.getCacheSystem(), fid);
             this.fontBmp = bmp ?? undefined;
             this.digits = bmp ? this.createDigitsAtlas(bmp) : undefined;
@@ -1003,8 +1004,8 @@ export class HitsplatOverlay implements Overlay {
                 t.varbitId !== -1
                     ? this.ctx.getVarValue(t.varbitId, -1)
                     : t.varpId !== -1
-                    ? this.ctx.getVarValue(-1, t.varpId)
-                    : -1;
+                      ? this.ctx.getVarValue(-1, t.varpId)
+                      : -1;
             const arr = t.multihitsplats;
             let nextId = -1;
             if (idx >= 0 && idx < arr.length - 1) nextId = arr[idx] | 0;

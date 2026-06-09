@@ -1423,7 +1423,7 @@ export class PlayerCombatManager {
             : undefined;
         const modifierFlags =
             interaction?.kind === "npcCombat" && interaction.npcId === npcId
-                ? interaction.modifierFlags ?? 0
+                ? (interaction.modifierFlags ?? 0)
                 : 0;
         let run = player.energy.wantsToRun();
         if ((modifierFlags & 1) !== 0) {
@@ -1532,7 +1532,7 @@ export class PlayerCombatManager {
         }
         const selectedEnd =
             res.steps.length > 0
-                ? res.end ?? res.steps[res.steps.length - 1]!
+                ? (res.end ?? res.steps[res.steps.length - 1]!)
                 : { x: player.tileX, y: player.tileY };
         if (!strategy.hasArrived(selectedEnd.x, selectedEnd.y, player.level)) {
             return undefined;
@@ -1655,20 +1655,20 @@ export class PlayerCombatManager {
                       Math.max(1, npc.size),
                   )
                 : attackType !== AttackType.Melee
-                ? new RectWithinRangeLineOfSightRouteStrategy(
-                      npc.tileX,
-                      npc.tileY,
-                      Math.max(1, npc.size),
-                      Math.max(1, npc.size),
-                      normalizedReach,
-                  )
-                : new RectWithinRangeRouteStrategy(
-                      npc.tileX,
-                      npc.tileY,
-                      Math.max(1, npc.size),
-                      Math.max(1, npc.size),
-                      normalizedReach,
-                  );
+                  ? new RectWithinRangeLineOfSightRouteStrategy(
+                        npc.tileX,
+                        npc.tileY,
+                        Math.max(1, npc.size),
+                        Math.max(1, npc.size),
+                        normalizedReach,
+                    )
+                  : new RectWithinRangeRouteStrategy(
+                        npc.tileX,
+                        npc.tileY,
+                        Math.max(1, npc.size),
+                        Math.max(1, npc.size),
+                        normalizedReach,
+                    );
         if (strategy instanceof CardinalAdjacentRouteStrategy) {
             strategy.setCollisionGetter(
                 (x, y, p) => pathService.getCollisionFlagAt(x, y, p),

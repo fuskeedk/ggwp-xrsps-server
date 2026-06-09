@@ -387,8 +387,8 @@ export function findDropTarget(
 
         // Use visual position for dragged widgets
         const isDragActive = !!(w as any)._isDragActive;
-        const visualX = isDragActive ? (w as any)._dragVisualX ?? w.x : w.x;
-        const visualY = isDragActive ? (w as any)._dragVisualY ?? w.y : w.y;
+        const visualX = isDragActive ? ((w as any)._dragVisualX ?? w.x) : w.x;
+        const visualY = isDragActive ? ((w as any)._dragVisualY ?? w.y) : w.y;
         const x = ox + ((visualX as number) | 0);
         const y = oy + ((visualY as number) | 0);
         const width = Math.max(1, (w.width as number) | 0 || 0);
@@ -533,8 +533,8 @@ export function collectWidgetsAtPoint(
         if (!selfVisible) return;
         // Match rendering: widgets being dragged use their visual position for hit testing.
         const isDragActive = !!(w as any)._isDragActive;
-        const visualX = isDragActive ? (w as any)._dragVisualX ?? w.x : w.x;
-        const visualY = isDragActive ? (w as any)._dragVisualY ?? w.y : w.y;
+        const visualX = isDragActive ? ((w as any)._dragVisualX ?? w.x) : w.x;
+        const visualY = isDragActive ? ((w as any)._dragVisualY ?? w.y) : w.y;
         const x = ox + ((visualX as number) | 0);
         const y = oy + ((visualY as number) | 0);
         const width = Math.max(1, (w.width as number) | 0 || 0);

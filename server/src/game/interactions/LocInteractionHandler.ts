@@ -252,8 +252,8 @@ export class LocInteractionHandler {
             action: info.action,
         };
         const scriptHandled = immediate
-            ? this.scriptRuntime?.runLocInteractionNow(event) ?? false
-            : this.scriptRuntime?.queueLocInteraction(event) ?? false;
+            ? (this.scriptRuntime?.runLocInteractionNow(event) ?? false)
+            : (this.scriptRuntime?.queueLocInteraction(event) ?? false);
         if (scriptHandled) {
             return true;
         }

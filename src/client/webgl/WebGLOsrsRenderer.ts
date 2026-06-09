@@ -2325,8 +2325,8 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             typeof ecsHeight === "number" && Number.isFinite(ecsHeight) && ecsHeight > 0
                 ? ecsHeight
                 : typeof fallback === "number" && Number.isFinite(fallback) && fallback > 0
-                ? fallback
-                : this.playerDefaultHeightTiles;
+                  ? fallback
+                  : this.playerDefaultHeightTiles;
         return Math.max(0.5, base + this.resolvePlayerAnimationHeightOffsetTiles(index));
     }
 
@@ -4749,8 +4749,8 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             queuedGeneration > currentGeneration
                 ? queuedGeneration
                 : queuedGeneration > 0 && queuedGeneration < currentGeneration
-                ? currentGeneration
-                : Math.max(currentGeneration, queuedGeneration);
+                  ? currentGeneration
+                  : Math.max(currentGeneration, queuedGeneration);
 
         let batch = this.pendingStreamMapsByGeneration.get(targetGeneration);
         if (!batch) {
@@ -5821,8 +5821,8 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             existing instanceof WebGLMapSquare
                 ? existing.timeLoaded
                 : this.skipMapFadeIn
-                ? -1.0
-                : time;
+                  ? -1.0
+                  : time;
         const reuseFrame = existing instanceof WebGLMapSquare ? existing.frameLoaded : frameCount;
 
         const loadedMap = WebGLMapSquare.load(
@@ -8307,18 +8307,18 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             typeof viewport?._absLogicalX === "number"
                 ? viewport._absLogicalX
                 : typeof viewport?._absX === "number"
-                ? Math.round(viewport._absX / scaleX)
-                : typeof viewport?.x === "number"
-                ? viewport.x
-                : 0;
+                  ? Math.round(viewport._absX / scaleX)
+                  : typeof viewport?.x === "number"
+                    ? viewport.x
+                    : 0;
         const rawY =
             typeof viewport?._absLogicalY === "number"
                 ? viewport._absLogicalY
                 : typeof viewport?._absY === "number"
-                ? Math.round(viewport._absY / scaleY)
-                : typeof viewport?.y === "number"
-                ? viewport.y
-                : 0;
+                  ? Math.round(viewport._absY / scaleY)
+                  : typeof viewport?.y === "number"
+                    ? viewport.y
+                    : 0;
         const rawWidth = typeof viewport?.width === "number" ? viewport.width | 0 : fallbackWidth;
         const rawHeight =
             typeof viewport?.height === "number" ? viewport.height | 0 : fallbackHeight;
@@ -8699,14 +8699,14 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             this.osrsClient.menuOpen && this.osrsClient.menuX >= 0
                 ? this.osrsClient.menuX
                 : this.osrsClient.inputManager.leftClickX !== -1
-                ? this.osrsClient.inputManager.leftClickX
-                : this.osrsClient.inputManager.mouseX;
+                  ? this.osrsClient.inputManager.leftClickX
+                  : this.osrsClient.inputManager.mouseX;
         const py =
             this.osrsClient.menuOpen && this.osrsClient.menuY >= 0
                 ? this.osrsClient.menuY
                 : this.osrsClient.inputManager.leftClickY !== -1
-                ? this.osrsClient.inputManager.leftClickY
-                : this.osrsClient.inputManager.mouseY;
+                  ? this.osrsClient.inputManager.leftClickY
+                  : this.osrsClient.inputManager.mouseY;
         return { sx: px | 0, sy: py | 0 };
     }
 
@@ -9391,8 +9391,8 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             typeof entry.mapX === "number" && typeof entry.mapY === "number"
                 ? { x: (baseX + (entry.mapX | 0)) | 0, y: (baseY + (entry.mapY | 0)) | 0 }
                 : fallback
-                ? { x: fallback.tileX | 0, y: fallback.tileY | 0 }
-                : undefined;
+                  ? { x: fallback.tileX | 0, y: fallback.tileY | 0 }
+                  : undefined;
 
         let bestEcsId: number | undefined;
         let bestScore = Number.POSITIVE_INFINITY;
@@ -9630,14 +9630,14 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                     typeof spellMeta.mapX === "number"
                         ? spellMeta.mapX
                         : typeof e.mapX === "number"
-                        ? e.mapX
-                        : undefined;
+                          ? e.mapX
+                          : undefined;
                 const metaMapY =
                     typeof spellMeta.mapY === "number"
                         ? spellMeta.mapY
                         : typeof e.mapY === "number"
-                        ? e.mapY
-                        : undefined;
+                          ? e.mapY
+                          : undefined;
                 if (typeof metaMapX === "number") ctx.mapX = metaMapX;
                 if (typeof metaMapY === "number") ctx.mapY = metaMapY;
                 if (typeof spellMeta.npcServerId === "number")
@@ -10719,16 +10719,16 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                     (movementSeqId | 0) === (idleSeqId | 0)
                         ? (map.npcIdleFrames[j] as AnimationFrames | undefined)
                         : (movementSeqId | 0) === (walkSeqId | 0)
-                        ? ((map.npcWalkFrames[j] ?? map.npcIdleFrames[j]) as AnimationFrames) ??
-                          undefined
-                        : undefined;
+                          ? (((map.npcWalkFrames[j] ?? map.npcIdleFrames[j]) as AnimationFrames) ??
+                            undefined)
+                          : undefined;
                 let movementLengths =
                     (movementSeqId | 0) === (idleSeqId | 0)
                         ? (map.npcIdleFrameLengths[j] as number[] | undefined)
                         : (movementSeqId | 0) === (walkSeqId | 0)
-                        ? ((map.npcWalkFrameLengths[j] ??
-                              map.npcIdleFrameLengths[j]) as number[]) ?? undefined
-                        : undefined;
+                          ? (((map.npcWalkFrameLengths[j] ??
+                                map.npcIdleFrameLengths[j]) as number[]) ?? undefined)
+                          : undefined;
                 const currentMovementSeqId = ecs.getMovementSeqId?.(id) | 0;
 
                 if ((movementSeqId | 0) !== (currentMovementSeqId | 0)) {
@@ -11494,14 +11494,14 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             tileX < mapMinTileX
                 ? mapMinTileX - tileX
                 : tileX > mapMaxTileX
-                ? tileX - mapMaxTileX
-                : 0;
+                  ? tileX - mapMaxTileX
+                  : 0;
         const dy =
             tileY < mapMinTileY
                 ? mapMinTileY - tileY
                 : tileY > mapMaxTileY
-                ? tileY - mapMaxTileY
-                : 0;
+                  ? tileY - mapMaxTileY
+                  : 0;
         return Math.max(dx, dy);
     }
 
@@ -11519,14 +11519,14 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             zoneX < mapMinZoneX
                 ? mapMinZoneX - zoneX
                 : zoneX > mapMaxZoneX
-                ? zoneX - mapMaxZoneX
-                : 0;
+                  ? zoneX - mapMaxZoneX
+                  : 0;
         const dy =
             zoneY < mapMinZoneY
                 ? mapMinZoneY - zoneY
                 : zoneY > mapMaxZoneY
-                ? zoneY - mapMaxZoneY
-                : 0;
+                  ? zoneY - mapMaxZoneY
+                  : 0;
         return Math.max(dx, dy);
     }
 
@@ -14116,7 +14116,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                     const spawnType =
                         typeof opts?.newShape === "number"
                             ? (opts.newShape as LocModelType)
-                            : existingSpawn?.type ?? LocModelType.NORMAL;
+                            : (existingSpawn?.type ?? LocModelType.NORMAL);
                     this.locSpawns.set(spawnKey, {
                         id: newId | 0,
                         type: spawnType,

@@ -261,8 +261,8 @@ export class PlayerAppearanceManager {
         const gender = appearance?.gender === 1 ? 1 : 0;
         const genderFallback =
             gender === 1
-                ? this.svc.defaultPlayerAnimFemale ?? this.svc.defaultPlayerAnim
-                : this.svc.defaultPlayerAnimMale ?? this.svc.defaultPlayerAnim;
+                ? (this.svc.defaultPlayerAnimFemale ?? this.svc.defaultPlayerAnim)
+                : (this.svc.defaultPlayerAnimMale ?? this.svc.defaultPlayerAnim);
 
         const basId = this.guessBasIdForAppearance(appearance);
         if (basId !== undefined) {

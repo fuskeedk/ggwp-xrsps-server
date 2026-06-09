@@ -816,7 +816,7 @@ export class LoginHandshakeService {
                                     objTypeLoader: this.svc.objTypeLoader,
                                     getNpcType: (npc: { typeId?: number } | number) =>
                                         this.svc.npcTypeLoader?.load(
-                                            typeof npc === "number" ? npc : npc?.typeId ?? 0,
+                                            typeof npc === "number" ? npc : (npc?.typeId ?? 0),
                                         ),
                                     getObjType: (itemId: number) =>
                                         this.svc.objTypeLoader?.load(itemId),

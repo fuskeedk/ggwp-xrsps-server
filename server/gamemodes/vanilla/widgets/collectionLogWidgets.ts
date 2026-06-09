@@ -44,7 +44,7 @@ export function registerCollectionLogWidgetHandlers(
         handler: (event: WidgetActionEvent) => {
             if (event.groupId !== ACCOUNT_SUMMARY_GROUP_ID) return;
             const slotVal = event.slot ?? -1;
-            const entryIndex = slotVal >= 0 && slotVal !== 65535 ? slotVal : event.childId ?? -1;
+            const entryIndex = slotVal >= 0 && slotVal !== 65535 ? slotVal : (event.childId ?? -1);
             if (entryIndex !== ACCOUNT_SUMMARY_COLLECTION_LOG_CHILD_INDEX) return;
 
             // Account summary entry has:
@@ -175,7 +175,7 @@ export function registerCollectionLogWidgetHandlers(
             if (tabIndex === undefined) return;
             const slotVal = event.slot ?? -1;
             const categoryIndexRaw =
-                slotVal >= 0 && slotVal !== 65535 ? slotVal : event.childId ?? -1;
+                slotVal >= 0 && slotVal !== 65535 ? slotVal : (event.childId ?? -1);
 
             // Dynamic category rows are keyed by childIndex (slot). If slot is missing and
             // childId equals the static click-layer component, ignore to prevent bad selection redraws.
