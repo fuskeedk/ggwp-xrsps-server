@@ -71,6 +71,13 @@ export type SdMapData = {
 
     heightMapTextureData: Int16Array;
 
+    // CPU-side terrain triangles used for click/hover tile picking.
+    // Vertices are local tile-space xyz triples, grouped by terrainPickTileOffsets.
+    // Planes are render cull planes, matching terrain draw range visibility.
+    terrainPickTileOffsets: Uint32Array;
+    terrainPickVertices: Float32Array;
+    terrainPickPlanes: Uint8Array;
+
     drawRanges: DrawRange[];
     drawRangesAlpha: DrawRange[];
     drawRangesPlanes: Uint8Array;

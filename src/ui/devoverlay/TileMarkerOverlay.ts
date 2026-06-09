@@ -158,12 +158,30 @@ export class TileMarkerOverlay implements Overlay {
         this.cachedEffectivePlaneFn = args.helpers.getEffectivePlaneForTile;
         this.actorServerTiles = args.state.actorServerTiles;
         this.tileHighlights = args.state.tileHighlights;
+        const getHeightSamplePlaneForTile = (
+            args.helpers as OverlayUpdateArgs["helpers"] & {
+                getHeightSamplePlaneForTile?: (
+                    tileX: number,
+                    tileY: number,
+                    basePlane: number,
+                ) => number;
+            }
+        ).getHeightSamplePlaneForTile;
+        const resolvePlane = (tile: { x: number; y: number; plane?: number }): number => {
+            if (typeof tile.plane === "number" && Number.isFinite(tile.plane)) {
+                return tile.plane | 0;
+            }
+            const basePlane = (args.state.playerRawLevel ?? args.state.playerLevel) | 0;
+            if (getHeightSamplePlaneForTile) {
+                return getHeightSamplePlaneForTile(tile.x | 0, tile.y | 0, basePlane);
+            }
+            return args.helpers.getEffectivePlaneForTile(tile.x | 0, tile.y | 0, basePlane);
+        };
 
         // Hover - update data in-place to avoid allocation
         if (args.state.hoverTile) {
             const { x, y } = args.state.hoverTile;
-            const basePlane = (args.state.playerRawLevel ?? args.state.playerLevel) | 0;
-            const eff = args.helpers.getEffectivePlaneForTile(x, y, basePlane);
+            const eff = resolvePlane(args.state.hoverTile);
             if (!this.hoverTileData) {
                 this.hoverTileData = { x, y, effPlane: eff };
             } else {
@@ -178,8 +196,7 @@ export class TileMarkerOverlay implements Overlay {
         // Destination - update data in-place to avoid allocation
         if (args.state.destTile) {
             const { x, y } = args.state.destTile;
-            const basePlane = (args.state.playerRawLevel ?? args.state.playerLevel) | 0;
-            const eff = args.helpers.getEffectivePlaneForTile(x, y, basePlane);
+            const eff = resolvePlane(args.state.destTile);
             if (!this.destTileData) {
                 this.destTileData = { x, y, effPlane: eff };
             } else {
@@ -194,11 +211,7 @@ export class TileMarkerOverlay implements Overlay {
         // Current true tile - update data in-place to avoid allocation
         if (args.state.currentTile) {
             const { x, y } = args.state.currentTile;
-            const basePlane =
-                (args.state.currentTile.plane ??
-                    args.state.playerRawLevel ??
-                    args.state.playerLevel) | 0;
-            const eff = args.helpers.getEffectivePlaneForTile(x, y, basePlane);
+            const eff = resolvePlane(args.state.currentTile);
             if (!this.currentTileData) {
                 this.currentTileData = { x, y, effPlane: eff };
             } else {

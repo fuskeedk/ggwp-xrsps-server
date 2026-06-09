@@ -814,6 +814,9 @@ export class WebGLMapSquare {
             npcWalkFrameLengths,
 
             mapData.heightMapTextureData,
+            mapData.terrainPickTileOffsets,
+            mapData.terrainPickVertices,
+            mapData.terrainPickPlanes,
             heightMapSize,
             npcEcs,
             planes,
@@ -895,6 +898,9 @@ export class WebGLMapSquare {
         npcWalkFrameLengths: (number[] | undefined)[],
         // CPU-side height map copy
         readonly heightMapData: Int16Array,
+        readonly terrainPickTileOffsets: Uint32Array,
+        readonly terrainPickVertices: Float32Array,
+        readonly terrainPickPlanes: Uint8Array,
         readonly heightMapSize: number,
         private readonly _npcEcs?: NpcEcs,
         public drawRangePlanes?: {

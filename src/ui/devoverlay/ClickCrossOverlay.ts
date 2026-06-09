@@ -126,12 +126,23 @@ export class ClickCrossOverlay implements Overlay {
             const f = this.frames[index];
             if (!f) continue;
 
-            // Resolve world anchor (tile center at effective surface plane)
-            const effPlane = args.helpers.getEffectivePlaneForTile(
-                anim.x | 0,
-                anim.y | 0,
-                anim.basePlane | 0,
-            );
+            // Resolve world anchor on the visible terrain surface, not just interaction plane.
+            const getHeightSamplePlaneForTile = (
+                args.helpers as OverlayUpdateArgs["helpers"] & {
+                    getHeightSamplePlaneForTile?: (
+                        tileX: number,
+                        tileY: number,
+                        basePlane: number,
+                    ) => number;
+                }
+            ).getHeightSamplePlaneForTile;
+            const effPlane = getHeightSamplePlaneForTile
+                ? getHeightSamplePlaneForTile(anim.x | 0, anim.y | 0, anim.basePlane | 0)
+                : args.helpers.getEffectivePlaneForTile(
+                      anim.x | 0,
+                      anim.y | 0,
+                      anim.basePlane | 0,
+                  );
             const h = args.helpers.getTileHeightAtPlane(anim.x + 0.5, anim.y + 0.5, effPlane);
             this.centerWorld[0] = anim.x + 0.5;
             this.centerWorld[1] = h - 0.05; // slightly above ground

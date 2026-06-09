@@ -15,11 +15,12 @@ import { getMapIndexFromTile, getMapSquareId } from "../../../rs/map/MapFileInde
 import { Model } from "../../../rs/model/Model";
 import { Scene } from "../../../rs/scene/Scene";
 import { LocLoadType } from "../../../rs/scene/SceneBuilder";
+import { SceneTile } from "../../../rs/scene/SceneTile";
 import { getIdFromTag } from "../../../rs/scene/entity/EntityTag";
 import { LocEntity } from "../../../rs/scene/entity/LocEntity";
 import { TextureLoader } from "../../../rs/texture/TextureLoader";
 import { ObjSpawn, getMapObjSpawns } from "../../data/obj/ObjSpawn";
-import { isBridgeSurfaceTile } from "../../roof/RoofVisibility";
+import { getBridgeLinkedBelow, isBridgeSurfaceTile } from "../../roof/RoofVisibility";
 import { loadMinimapBlob } from "../../worker/MinimapData";
 import { RenderDataLoader, RenderDataResult } from "../../worker/RenderDataLoader";
 import { WorkerState } from "../../worker/RenderDataWorker";
@@ -66,6 +67,113 @@ function loadHeightMapTextureData(scene: Scene): Int16Array {
     }
 
     return heightMapTextureData;
+}
+
+function buildTerrainPickData(
+    scene: Scene,
+    borderSize: number,
+    maxLevel: number,
+    coreSize: number = Scene.MAP_SQUARE_SIZE,
+    worldTileOffset: number = borderSize,
+): {
+    tileOffsets: Uint32Array;
+    vertices: Float32Array;
+    planes: Uint8Array;
+} {
+    const tileCount = coreSize * coreSize;
+    const perTileVertices: number[][] = new Array(tileCount);
+    const perTilePlanes: number[][] = new Array(tileCount);
+    const vertexOffset = worldTileOffset * -128;
+
+    const addTile = (tile: SceneTile | undefined, renderLevel: number): void => {
+        const tileModel = tile?.tileModel;
+        if (!tileModel) return;
+
+        const localX = ((tile.x | 0) - (worldTileOffset | 0)) | 0;
+        const localY = ((tile.y | 0) - (worldTileOffset | 0)) | 0;
+        if (localX < 0 || localY < 0 || localX >= coreSize || localY >= coreSize) return;
+
+        const idx = localY * coreSize + localX;
+        const verts = perTileVertices[idx] ?? (perTileVertices[idx] = []);
+        const planes = perTilePlanes[idx] ?? (perTilePlanes[idx] = []);
+        const cullPlane = Math.max(0, Math.min(scene.levels - 1, renderLevel | 0));
+
+        for (const face of tileModel.faces) {
+            const fv = face.vertices;
+            for (let i = 0; i < 3; i++) {
+                const v = fv[i];
+                verts.push(
+                    (v.x + vertexOffset) / 128.0,
+                    v.y / 128.0,
+                    (v.z + vertexOffset) / 128.0,
+                );
+            }
+            planes.push(cullPlane & 0xff);
+        }
+    };
+
+    const startX = borderSize;
+    const startY = borderSize;
+    const endX = borderSize + coreSize;
+    const endY = borderSize + coreSize;
+
+    for (let level = 0; level < scene.levels; level++) {
+        for (let x = startX; x < endX; x++) {
+            for (let y = startY; y < endY; y++) {
+                if (level === 0 && (scene.tileRenderFlags[1][x][y] & 0x8) !== 0) {
+                    addTile(scene.tiles[1][x]?.[y], level);
+                }
+
+                const tile = scene.tiles[level][x]?.[y];
+                if (!tile || tile.skipRender || !scene.isPlayerLevel(level, x, y, maxLevel)) {
+                    continue;
+                }
+
+                if (level === 0 && isBridgeSurfaceTile(tile)) {
+                    addTile(tile, level);
+                    const linked = getBridgeLinkedBelow(tile);
+                    if (linked) addTile(linked, level);
+                    continue;
+                }
+                if (level === 1 && (scene.tileRenderFlags[1][x][y] & 0x8) !== 0) {
+                    continue;
+                }
+
+                addTile(tile, level);
+                if (level === 0) {
+                    const linked = getBridgeLinkedBelow(tile);
+                    if (linked) addTile(linked, level);
+                }
+            }
+        }
+    }
+
+    const tileOffsets = new Uint32Array(tileCount + 1);
+    let totalTriangles = 0;
+    for (let i = 0; i < tileCount; i++) {
+        tileOffsets[i] = totalTriangles;
+        totalTriangles += (perTilePlanes[i]?.length ?? 0) | 0;
+    }
+    tileOffsets[tileCount] = totalTriangles;
+
+    const vertices = new Float32Array(totalTriangles * 9);
+    const planes = new Uint8Array(totalTriangles);
+    let vertexWrite = 0;
+    let planeWrite = 0;
+    for (let i = 0; i < tileCount; i++) {
+        const verts = perTileVertices[i];
+        if (verts && verts.length > 0) {
+            vertices.set(verts, vertexWrite);
+            vertexWrite += verts.length;
+        }
+        const tilePlanes = perTilePlanes[i];
+        if (tilePlanes && tilePlanes.length > 0) {
+            planes.set(tilePlanes, planeWrite);
+            planeWrite += tilePlanes.length;
+        }
+    }
+
+    return { tileOffsets, vertices, planes };
 }
 
 function transparentPng1x1(): Blob {
@@ -1430,6 +1538,13 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
         );
 
         const heightMapTextureData = loadHeightMapTextureData(scene);
+        const terrainPickData = buildTerrainPickData(
+            scene,
+            usedBorderSize,
+            maxLevel,
+            coreSize,
+            usedBorderSize,
+        );
 
         const vertices = sceneBuf.vertexBuf.byteArray();
         const indices = new Int32Array(sceneBuf.indices);
@@ -1541,6 +1656,9 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
             npcVertices.buffer,
             npcIndices.buffer,
             heightMapTextureData.buffer,
+            terrainPickData.tileOffsets.buffer,
+            terrainPickData.vertices.buffer,
+            terrainPickData.planes.buffer,
 
             modelTextureData.buffer,
             modelTextureDataAlpha.buffer,
@@ -1650,6 +1768,9 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
                 doorModelTextureDataInteractLodAlpha,
 
                 heightMapTextureData,
+                terrainPickTileOffsets: terrainPickData.tileOffsets,
+                terrainPickVertices: terrainPickData.vertices,
+                terrainPickPlanes: terrainPickData.planes,
 
                 drawRanges,
                 drawRangesAlpha,

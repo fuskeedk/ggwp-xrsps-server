@@ -113,7 +113,7 @@ import type { ClientGroundItemStack, GroundItemOverlayEntry } from "../data/grou
 import { NpcEcs } from "../ecs/NpcEcs";
 import type { PlayerAnimKey } from "../ecs/PlayerEcs";
 import { GameState, LoginIndex } from "../login";
-import { Ray } from "../math/Raycast";
+import { Ray, rayIntersectsBox } from "../math/Raycast";
 import { isMouseInUIRegion as checkMouseInUIRegion } from "../menu/WorldMenuBuilder";
 import {
     advanceAnimation,
@@ -530,6 +530,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             radiusFine: number,
         ) => number;
         sampleHeightAtExactPlane: (x: number, y: number, plane: number) => number;
+        getHeightSamplePlaneForTile: (x: number, y: number, basePlane: number) => number;
         getEffectivePlaneForTile: (x: number, y: number, basePlane: number) => number;
         getOccupancyPlaneForTile: (x: number, y: number, basePlane: number) => number;
         getTileRenderFlagAt: (level: number, tileX: number, tileY: number) => number;
@@ -813,6 +814,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
     tmpNear: vec4 = vec4.create();
     tmpFar: vec4 = vec4.create();
     tmpRayDir: vec3 = vec3.create();
+    private tmpTerrainEntryPoint: vec3 = vec3.create();
 
     // Per-frame accumulators for stats
     private _frameIndices: number = 0;
@@ -7712,6 +7714,10 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         return 0;
     }
 
+    private getPlayerTilePickPlane(): number {
+        return clamp(Math.max(this.getPlayerRawPlane() | 0, this.getPlayerBasePlane() | 0), 0, 3);
+    }
+
     // Player current tile (integer), prefer controlled player ECS position.
     private getPlayerTileXY(): { x: number; y: number } {
         const controlledIndex = this.getControlledPlayerEcsIndex();
@@ -7931,7 +7937,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         }
         state.currentTile.x = movementState.tileX | 0;
         state.currentTile.y = movementState.tileY | 0;
-        state.currentTile.plane = movementState.level | 0;
+        state.currentTile.plane = this.getPlayerTilePickPlane() | 0;
     }
 
     private drawSceneTileOverlays(time: number, deltaTime: number): void {
@@ -7969,12 +7975,13 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
     }
 
     // PERF: Lazily create and cache bound helper functions for overlay updates
-    private getOverlayHelpers() {
+    private getOverlayHelpers(): NonNullable<WebGLOsrsRenderer["cachedOverlayHelpers"]> {
         if (!this.cachedOverlayHelpers) {
             this.cachedOverlayHelpers = {
                 getTileHeightAtPlane: this.getTileHeightAtPlane.bind(this),
                 getMinTileHeightInRadius: this.getMinTileHeightInRadius.bind(this),
                 sampleHeightAtExactPlane: this.sampleHeightAtExactPlane.bind(this),
+                getHeightSamplePlaneForTile: this.getHeightSamplePlaneForTile.bind(this),
                 getEffectivePlaneForTile: this.getEffectivePlaneForTile.bind(this),
                 getOccupancyPlaneForTile: this.getOccupancyPlaneForTile.bind(this),
                 getTileRenderFlagAt: this.getTileRenderFlagAt.bind(this),
@@ -8455,98 +8462,14 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             return;
         }
 
-        // Build world ray from mouse (mouseX/mouseY already in canvas coordinates)
-        const camera = this.osrsClient.camera;
-        const width = camera.screenWidth || this.app.width;
-        const height = camera.screenHeight || this.app.height;
-        const nx = (2 * mouseX) / width - 1;
-        const ny = 1 - (2 * mouseY) / height;
-
-        // unproject from NDC to world using inverse view-projection
-        mat4.invert(this.tmpInvViewProj, camera.viewProjMatrix);
-        this.tmpNear[0] = nx;
-        this.tmpNear[1] = ny;
-        this.tmpNear[2] = -1;
-        this.tmpNear[3] = 1;
-        this.tmpFar[0] = nx;
-        this.tmpFar[1] = ny;
-        this.tmpFar[2] = 1;
-        this.tmpFar[3] = 1;
-        vec4.transformMat4(this.tmpNear, this.tmpNear, this.tmpInvViewProj);
-        vec4.transformMat4(this.tmpFar, this.tmpFar, this.tmpInvViewProj);
-        // perspective divide
-        const nearW = this.tmpNear[3] || 1.0;
-        const farW = this.tmpFar[3] || 1.0;
-        this.tmpNear[0] /= nearW;
-        this.tmpNear[1] /= nearW;
-        this.tmpNear[2] /= nearW;
-        this.tmpFar[0] /= farW;
-        this.tmpFar[1] /= farW;
-        this.tmpFar[2] /= farW;
-
-        // Ray
-        const origin = vec3.fromValues(this.tmpNear[0], this.tmpNear[1], this.tmpNear[2]);
-        const farPos = vec3.fromValues(this.tmpFar[0], this.tmpFar[1], this.tmpFar[2]);
-        vec3.subtract(this.tmpRayDir, farPos, origin);
-        vec3.normalize(this.tmpRayDir, this.tmpRayDir);
-
-        // Intersect the ray with the terrain heightfield instead of a flat plane.
-        // March along the ray, bracket the crossing against y = height(x, z), then refine with binary search.
-        const maxT = Math.max(1.0, vec3.distance(origin, farPos));
-        // Fixed small step to robustly bracket intersections even at shallow angles
-        const stepT = 0.25; // quarter-tile steps
-
-        let lastT = 0.0;
-        const basePlane = this.getPlayerBasePlane() | 0;
-        // Use consistent height sampling that matches the effective plane we'll resolve to
-        let lastYMinusH =
-            origin[1] - this.getHeightForTileSelection(origin[0], origin[2], basePlane);
-        let bestT = 0.0;
-        let bestAbs = Math.abs(lastYMinusH);
-        let hitX = Number.NaN;
-        let hitZ = Number.NaN;
-
-        for (let t = stepT, it = 0; t <= maxT && it < 32768; t += stepT, it++) {
-            const x = origin[0] + this.tmpRayDir[0] * t;
-            const y = origin[1] + this.tmpRayDir[1] * t;
-            const z = origin[2] + this.tmpRayDir[2] * t;
-            const yMinusH = y - this.getHeightForTileSelection(x, z, basePlane);
-
-            // Detect a sign change crossing (either above->below or below->above)
-            if ((lastYMinusH > 0 && yMinusH <= 0) || (lastYMinusH < 0 && yMinusH >= 0)) {
-                // Bracketed: [lastT, t]. Binary search for better precision.
-                let lo = lastT;
-                let hi = t;
-                for (let i = 0; i < 12; i++) {
-                    const mid = (lo + hi) * 0.5;
-                    const mx = origin[0] + this.tmpRayDir[0] * mid;
-                    const my = origin[1] + this.tmpRayDir[1] * mid;
-                    const mz = origin[2] + this.tmpRayDir[2] * mid;
-                    const f = my - this.getHeightForTileSelection(mx, mz, basePlane);
-                    if (f > 0) {
-                        lo = mid;
-                    } else {
-                        hi = mid;
-                    }
-                }
-                const finalT = hi;
-                hitX = origin[0] + this.tmpRayDir[0] * finalT;
-                hitZ = origin[2] + this.tmpRayDir[2] * finalT;
-                break;
-            }
-
-            lastT = t;
-            lastYMinusH = yMinusH;
+        const resolved = this.computeTileAt(mouseX, mouseY);
+        if (!resolved) {
+            this.hoverTileX = -1;
+            this.hoverTileY = -1;
+            this.osrsClient.hoveredTile = undefined;
+            this.osrsClient.hoveredTileScreen = undefined;
+            return;
         }
-
-        if (Number.isNaN(hitX) || Number.isNaN(hitZ)) {
-            // Fallback to nearest approach instead of flat y=0 plane
-            const t = bestT;
-            hitX = origin[0] + this.tmpRayDir[0] * t;
-            hitZ = origin[2] + this.tmpRayDir[2] * t;
-        }
-
-        const resolved = this.resolveTileAndPlane(hitX, hitZ, basePlane);
         const tileX = resolved.tileX;
         const tileY = resolved.tileY;
         const effPlane = resolved.plane;
@@ -8627,64 +8550,249 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         return -(hWorld / 128.0);
     }
 
+    private getWorldEntityAdjustedTerrainRay(ray: Ray, map: WebGLMapSquare): Ray {
+        const weTransform = this.getWorldEntityTransformForMap(map);
+        if (weTransform === WebGLMapSquare.IDENTITY_MAT4) return ray;
+
+        const viewMatrix = this.osrsClient.camera?.viewMatrix;
+        if (!viewMatrix) return ray;
+
+        const weInv = mat4.invert(mat4.create(), weTransform);
+        if (!weInv) return ray;
+        const viewInv = mat4.invert(mat4.create(), viewMatrix);
+        if (!viewInv) return ray;
+
+        const transformInv = mat4.create();
+        mat4.multiply(transformInv, weInv, viewMatrix);
+        mat4.multiply(transformInv, viewInv, transformInv);
+
+        const newOrigin = vec3.transformMat4(vec3.create(), ray.origin, transformInv);
+        const farPoint = vec3.scaleAndAdd(vec3.create(), ray.origin, ray.direction, 1.0);
+        const newFar = vec3.transformMat4(vec3.create(), farPoint, transformInv);
+        const newDir = vec3.subtract(vec3.create(), newFar, newOrigin);
+        vec3.normalize(newDir, newDir);
+        return new Ray(newOrigin, newDir);
+    }
+
+    private intersectTerrainPickTriangle(
+        ray: Ray,
+        vertices: Float32Array,
+        vertexOffset: number,
+        baseX: number,
+        baseZ: number,
+    ): number | undefined {
+        const ax = baseX + vertices[vertexOffset];
+        const ay = vertices[vertexOffset + 1];
+        const az = baseZ + vertices[vertexOffset + 2];
+        const bx = baseX + vertices[vertexOffset + 3];
+        const by = vertices[vertexOffset + 4];
+        const bz = baseZ + vertices[vertexOffset + 5];
+        const cx = baseX + vertices[vertexOffset + 6];
+        const cy = vertices[vertexOffset + 7];
+        const cz = baseZ + vertices[vertexOffset + 8];
+
+        const edge1x = bx - ax;
+        const edge1y = by - ay;
+        const edge1z = bz - az;
+        const edge2x = cx - ax;
+        const edge2y = cy - ay;
+        const edge2z = cz - az;
+
+        const dirx = ray.direction[0];
+        const diry = ray.direction[1];
+        const dirz = ray.direction[2];
+        const px = diry * edge2z - dirz * edge2y;
+        const py = dirz * edge2x - dirx * edge2z;
+        const pz = dirx * edge2y - diry * edge2x;
+        const det = edge1x * px + edge1y * py + edge1z * pz;
+        if (det > -1e-6 && det < 1e-6) return undefined;
+
+        const invDet = 1 / det;
+        const tx = ray.origin[0] - ax;
+        const ty = ray.origin[1] - ay;
+        const tz = ray.origin[2] - az;
+        const u = (tx * px + ty * py + tz * pz) * invDet;
+        if (u < 0 || u > 1) return undefined;
+
+        const qx = ty * edge1z - tz * edge1y;
+        const qy = tz * edge1x - tx * edge1z;
+        const qz = tx * edge1y - ty * edge1x;
+        const v = (dirx * qx + diry * qy + dirz * qz) * invDet;
+        if (v < 0 || u + v > 1) return undefined;
+
+        const t = (edge2x * qx + edge2y * qy + edge2z * qz) * invDet;
+        return t > 1e-6 ? t : undefined;
+    }
+
+    private computeTerrainTileAt(
+        mouseX: number,
+        mouseY: number,
+    ): { tileX: number; tileY: number; plane: number } | undefined {
+        const ray = this.screenToRay(mouseX, mouseY);
+        if (!ray) return undefined;
+
+        let bestT = Number.POSITIVE_INFINITY;
+        let bestTileX = -1;
+        let bestTileY = -1;
+        let bestPlane = this.getPlayerTilePickPlane() | 0;
+        const playerPickPlane = bestPlane;
+        const roofPlaneLimit = Math.floor(this.getRoofState().roofPlaneLimit + 0.5);
+
+        const visibleCount = this.mapManager.visibleMapCount | 0;
+        const visibleMaps = this.mapManager.visibleMaps;
+        for (let i = 0; i < visibleCount; i++) {
+            const map = visibleMaps[i] as WebGLMapSquare | undefined;
+            if (!map) continue;
+
+            const offsets = map.terrainPickTileOffsets;
+            const vertices = map.terrainPickVertices;
+            if (!offsets || !vertices || offsets.length <= 1 || vertices.length === 0) continue;
+
+            const effectiveRay = this.getWorldEntityAdjustedTerrainRay(ray, map);
+            const baseX = map.getRenderBaseWorldX();
+            const baseZ = map.getRenderBaseWorldY();
+            const mapTileSpan = map.getLocalTileSpan();
+            if (offsets.length < mapTileSpan * mapTileSpan + 1) continue;
+            const mapBasePlane =
+                map.interactionPlane >= 0 ? map.interactionPlane | 0 : playerPickPlane;
+
+            const hitBox = rayIntersectsBox(
+                effectiveRay,
+                [baseX, -1000, baseZ],
+                [baseX + mapTileSpan, 1000, baseZ + mapTileSpan],
+            );
+            if (!hitBox) continue;
+
+            const tEnter = Math.max(hitBox.tMin, 0);
+            const tExit = Math.min(hitBox.tMax, bestT);
+            if (tEnter > tExit || tExit <= 0) continue;
+
+            const entry = this.tmpTerrainEntryPoint;
+            effectiveRay.at(Math.min(tEnter + 1e-6, tExit), entry);
+
+            let localX = Math.max(0, Math.min(mapTileSpan - 1, Math.floor(entry[0] - baseX)));
+            let localY = Math.max(0, Math.min(mapTileSpan - 1, Math.floor(entry[2] - baseZ)));
+
+            const dirX = effectiveRay.direction[0];
+            const dirZ = effectiveRay.direction[2];
+            const stepX = dirX > 1e-8 ? 1 : dirX < -1e-8 ? -1 : 0;
+            const stepY = dirZ > 1e-8 ? 1 : dirZ < -1e-8 ? -1 : 0;
+            const tDeltaX = stepX !== 0 ? Math.abs(1 / dirX) : Number.POSITIVE_INFINITY;
+            const tDeltaY = stepY !== 0 ? Math.abs(1 / dirZ) : Number.POSITIVE_INFINITY;
+            const nextBoundaryX = baseX + (stepX > 0 ? localX + 1 : localX);
+            const nextBoundaryY = baseZ + (stepY > 0 ? localY + 1 : localY);
+            let tMaxX =
+                stepX !== 0
+                    ? (nextBoundaryX - effectiveRay.origin[0]) / dirX
+                    : Number.POSITIVE_INFINITY;
+            let tMaxY =
+                stepY !== 0
+                    ? (nextBoundaryY - effectiveRay.origin[2]) / dirZ
+                    : Number.POSITIVE_INFINITY;
+            if (tMaxX < tEnter) tMaxX = tEnter;
+            if (tMaxY < tEnter) tMaxY = tEnter;
+
+            const maxSteps = mapTileSpan * 2 + 4;
+            for (let steps = 0; steps < maxSteps; steps++) {
+                if (localX < 0 || localY < 0 || localX >= mapTileSpan || localY >= mapTileSpan) {
+                    break;
+                }
+
+                const tileIndex = localY * mapTileSpan + localX;
+                const triStart = offsets[tileIndex] | 0;
+                const triEnd = offsets[tileIndex + 1] | 0;
+                for (let tri = triStart; tri < triEnd; tri++) {
+                    if ((map.terrainPickPlanes[tri] | 0) > roofPlaneLimit) {
+                        continue;
+                    }
+                    const t = this.intersectTerrainPickTriangle(
+                        effectiveRay,
+                        vertices,
+                        tri * 9,
+                        baseX,
+                        baseZ,
+                    );
+                    if (t === undefined || t < tEnter - 1e-4 || t > tExit + 1e-4) {
+                        continue;
+                    }
+                    if (t < bestT) {
+                        bestT = t;
+                        bestTileX = (map.getRenderBaseTileX() + localX) | 0;
+                        bestTileY = (map.getRenderBaseTileY() + localY) | 0;
+                        // XY comes from the nearest visible terrain triangle; the plane remains
+                        // the interaction plane used by walk packets.
+                        bestPlane = mapBasePlane | 0;
+                    }
+                }
+
+                if (tMaxX === Number.POSITIVE_INFINITY && tMaxY === Number.POSITIVE_INFINITY) {
+                    break;
+                }
+                const nextT = Math.min(tMaxX, tMaxY);
+                if (nextT > tExit || nextT > bestT) {
+                    break;
+                }
+                if (tMaxX < tMaxY) {
+                    localX += stepX;
+                    tMaxX += tDeltaX;
+                } else if (tMaxY < tMaxX) {
+                    localY += stepY;
+                    tMaxY += tDeltaY;
+                } else {
+                    localX += stepX;
+                    localY += stepY;
+                    tMaxX += tDeltaX;
+                    tMaxY += tDeltaY;
+                }
+            }
+        }
+
+        if (!Number.isFinite(bestT) || bestTileX < 0 || bestTileY < 0) {
+            return undefined;
+        }
+        return { tileX: bestTileX, tileY: bestTileY, plane: bestPlane };
+    }
+
     // Compute tile from a given screen-space position (in canvas coordinates)
     private computeTileAt(
         mouseX: number,
         mouseY: number,
     ): { tileX: number; tileY: number; plane: number } | undefined {
-        if (mouseX === -1 || mouseY === -1) return undefined;
-        const camera = this.osrsClient.camera;
-        if (!camera.containsScreenPoint(mouseX, mouseY)) return undefined;
-        const width = camera.screenWidth || this.app.width;
-        const height = camera.screenHeight || this.app.height;
-        // mouseX/mouseY are in canvas coordinates, same as width/height
-        const nx = (2 * mouseX) / width - 1;
-        const ny = 1 - (2 * mouseY) / height;
+        return (
+            this.computeTerrainTileAt(mouseX, mouseY) ??
+            this.computeHeightfieldTileAt(mouseX, mouseY, this.getPlayerTilePickPlane() | 0)
+        );
+    }
 
-        // unproject from NDC to world using inverse view-projection
-        mat4.invert(this.tmpInvViewProj, camera.viewProjMatrix);
-        this.tmpNear[0] = nx;
-        this.tmpNear[1] = ny;
-        this.tmpNear[2] = -1;
-        this.tmpNear[3] = 1;
-        this.tmpFar[0] = nx;
-        this.tmpFar[1] = ny;
-        this.tmpFar[2] = 1;
-        this.tmpFar[3] = 1;
-        vec4.transformMat4(this.tmpNear, this.tmpNear, this.tmpInvViewProj);
-        vec4.transformMat4(this.tmpFar, this.tmpFar, this.tmpInvViewProj);
-        // perspective divide
-        const nearW = this.tmpNear[3] || 1.0;
-        const farW = this.tmpFar[3] || 1.0;
-        this.tmpNear[0] /= nearW;
-        this.tmpNear[1] /= nearW;
-        this.tmpNear[2] /= nearW;
-        this.tmpFar[0] /= farW;
-        this.tmpFar[1] /= farW;
-        this.tmpFar[2] /= farW;
-
-        const origin = vec3.fromValues(this.tmpNear[0], this.tmpNear[1], this.tmpNear[2]);
-        const farPos = vec3.fromValues(this.tmpFar[0], this.tmpFar[1], this.tmpFar[2]);
-        vec3.subtract(this.tmpRayDir, farPos, origin);
-        vec3.normalize(this.tmpRayDir, this.tmpRayDir);
+    private computeHeightfieldTileAt(
+        mouseX: number,
+        mouseY: number,
+        fixedPlane?: number,
+    ): { tileX: number; tileY: number; plane: number } | undefined {
+        const ray = this.screenToRay(mouseX, mouseY);
+        if (!ray) return undefined;
+        const origin = ray.origin;
 
         // Heightfield intersection
-        const maxT = Math.max(1.0, vec3.distance(origin, farPos));
+        const maxT = Math.max(32, (this.osrsClient.renderDistance | 0) + 32);
         const stepT = 0.25;
         let lastT = 0.0;
         const basePlane2 = this.getPlayerBasePlane() | 0;
-        // Use consistent height sampling that matches the effective plane we'll resolve to
-        let lastYMinusH =
-            origin[1] - this.getHeightForTileSelection(origin[0], origin[2], basePlane2);
+        const samplePickHeight = (worldX: number, worldZ: number): number =>
+            fixedPlane === undefined
+                ? this.getHeightForTileSelection(worldX, worldZ, basePlane2)
+                : this.sampleHeightAtExactPlane(worldX, worldZ, fixedPlane | 0);
+        // Keep fallback sampling on the same plane that the tile result will report.
+        let lastYMinusH = origin[1] - samplePickHeight(origin[0], origin[2]);
         let bestT = 0.0;
         let bestAbs = Math.abs(lastYMinusH);
         let hitX = Number.NaN;
         let hitZ = Number.NaN;
         for (let t = stepT, it = 0; t <= maxT && it < 32768; t += stepT, it++) {
-            const x = origin[0] + this.tmpRayDir[0] * t;
-            const y = origin[1] + this.tmpRayDir[1] * t;
-            const z = origin[2] + this.tmpRayDir[2] * t;
-            const yMinusH = y - this.getHeightForTileSelection(x, z, basePlane2);
+            const x = origin[0] + ray.direction[0] * t;
+            const y = origin[1] + ray.direction[1] * t;
+            const z = origin[2] + ray.direction[2] * t;
+            const yMinusH = y - samplePickHeight(x, z);
             // Track nearest approach as robust fallback
             const absVal = Math.abs(yMinusH);
             if (absVal < bestAbs) {
@@ -8696,16 +8804,16 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                 let hi = t;
                 for (let i = 0; i < 12; i++) {
                     const mid = (lo + hi) * 0.5;
-                    const mx = origin[0] + this.tmpRayDir[0] * mid;
-                    const my = origin[1] + this.tmpRayDir[1] * mid;
-                    const mz = origin[2] + this.tmpRayDir[2] * mid;
-                    const f = my - this.getHeightForTileSelection(mx, mz, basePlane2);
+                    const mx = origin[0] + ray.direction[0] * mid;
+                    const my = origin[1] + ray.direction[1] * mid;
+                    const mz = origin[2] + ray.direction[2] * mid;
+                    const f = my - samplePickHeight(mx, mz);
                     if (f > 0) lo = mid;
                     else hi = mid;
                 }
                 const finalT = hi;
-                hitX = origin[0] + this.tmpRayDir[0] * finalT;
-                hitZ = origin[2] + this.tmpRayDir[2] * finalT;
+                hitX = origin[0] + ray.direction[0] * finalT;
+                hitZ = origin[2] + ray.direction[2] * finalT;
                 break;
             }
             lastT = t;
@@ -8714,10 +8822,17 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         if (Number.isNaN(hitX) || Number.isNaN(hitZ)) {
             // Fallback: take nearest approach to height surface along the ray
             const t = bestT;
-            hitX = origin[0] + this.tmpRayDir[0] * t;
-            hitZ = origin[2] + this.tmpRayDir[2] * t;
+            hitX = origin[0] + ray.direction[0] * t;
+            hitZ = origin[2] + ray.direction[2] * t;
         }
-        const tileCoords = this.resolveTileAndPlane(hitX, hitZ, basePlane2);
+        const tileCoords =
+            fixedPlane === undefined
+                ? this.resolveTileAndPlane(hitX, hitZ, basePlane2)
+                : {
+                      tileX: Math.floor(hitX),
+                      tileY: Math.floor(hitZ),
+                      plane: fixedPlane | 0,
+                  };
         return { tileX: tileCoords.tileX, tileY: tileCoords.tileY, plane: tileCoords.plane };
     }
 
@@ -9896,6 +10011,16 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             return resolveInteractionPlaneForWorldTile(this.mapManager, basePlane, tileX, tileY);
         }
         return resolveInteractionPlaneForLocal(map, basePlane, local.x, local.y);
+    }
+
+    private getHeightSamplePlaneForTile(tileX: number, tileY: number, basePlane: number): number {
+        const map = this.getPreferredMapForWorldTile(tileX, tileY);
+        if (map && map.interactionPlane >= 0) return map.interactionPlane;
+        const local = map ? this.getMapLocalTile(map, tileX, tileY) : undefined;
+        if (!map || !local) {
+            return basePlane | 0;
+        }
+        return resolveHeightSamplePlaneForLocal(map, basePlane, local.x, local.y);
     }
 
     // Derive occupancy plane matching collision map demotion rules.
@@ -12841,7 +12966,11 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                                 xy.sy,
                             );
                             try {
-                                this.spawnClickCross({ tileX: wx, tileY: wy }, xy, "yellow");
+                                this.spawnClickCross(
+                                    { tileX: wx, tileY: wy, plane: (walkTile as any)?.plane },
+                                    xy,
+                                    "yellow",
+                                );
                             } catch {}
                         }
                         this.osrsClient.closeMenu();
@@ -13727,6 +13856,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                     this.osrsClient.hoveredTile = {
                         tileX: clickedFromLeft.tileX,
                         tileY: clickedFromLeft.tileY,
+                        plane: clickedFromLeft.plane,
                     };
                     this.osrsClient.hoveredTileScreen = {
                         x: scr[0],
@@ -13891,7 +14021,11 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                 const h = this.sampleHeightAtExactPlane(cx, cy, clickedPlane);
                 const scr = this.worldToScreen(cx, h - 0.1, cy);
                 if (scr) {
-                    this.osrsClient.hoveredTile = { tileX: clicked.tileX, tileY: clicked.tileY };
+                    this.osrsClient.hoveredTile = {
+                        tileX: clicked.tileX,
+                        tileY: clicked.tileY,
+                        plane: clicked.plane,
+                    };
                     this.osrsClient.hoveredTileScreen = {
                         x: scr[0],
                         y: scr[1],
