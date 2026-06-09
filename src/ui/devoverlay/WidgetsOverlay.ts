@@ -411,6 +411,9 @@ export class WidgetsOverlay implements Overlay {
         const mainScaleX = Math.max(1, (this.app.width || 1) / safeCssWidth);
         const mainScaleY = Math.max(1, (this.app.height || 1) / safeCssHeight);
         const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+        // Desktop overlay matches the main buffer (device pixels) exactly; the
+        // widget render scale is already integer-snapped in computeUiRenderMetrics,
+        // so any extra overlay scaling here would re-introduce resampling blur.
         const targetUiScale = isTouchDevice ? Math.max(1, Math.min(dpr, 2)) : mainScaleX;
         this.overlayScaleX = Math.max(1, targetUiScale / mainScaleX);
         this.overlayScaleY = Math.max(1, targetUiScale / mainScaleY);

@@ -309,7 +309,9 @@ const MOBILE_TOUCH_QUALITY_PROFILE: BrowserQualityProfile = {
 const IOS_SAFARI_QUALITY_PROFILE: BrowserQualityProfile = {
     key: "ios-safari",
     label: "iPhone Safari",
-    defaultSceneScale: 1,
+    // The canvas backing store runs at 2x DPR for crisp UI/text; 0.5 keeps the
+    // 3D scene framebuffer at CSS resolution, the same GPU cost as a 1x buffer.
+    defaultSceneScale: 0.5,
     fxaaEnabled: false,
     renderDistanceCap: 18,
     lodThresholdCap: 12,
@@ -929,13 +931,22 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                 const desktopUiScale = getUiScale(cssW, cssH);
                 // RuneLite stretched mode reduces the logical resizable game size by the
                 // configured factor, then stretches that real size back to the window.
-                const layoutW = Math.max(1, Math.round(cssW / desktopUiScale));
-                const layoutH = Math.max(1, Math.round(cssH / desktopUiScale));
+                // The DPR component of the render scale is snapped to an integer so
+                // bitmap sprites and fonts map 1:N onto device pixels at any OS or
+                // browser scaling (110% -> 1, Retina -> 2, zoomed Retina 2.2 -> 2);
+                // the manual interface-scaling factor stays unsnapped for OSRS parity.
+                // Layout uses ceil so renderScale stays exact — up to one device pixel
+                // at the right/bottom edge is clipped instead of letting the ratio
+                // drift fractional (which made glyph widths uneven by 1px).
+                const dprComponent = Math.max(1, Math.round(safeBufW / Math.max(1, cssW)));
+                const renderScale = dprComponent * desktopUiScale;
+                const layoutW = Math.max(1, Math.ceil(safeBufW / renderScale));
+                const layoutH = Math.max(1, Math.ceil(safeBufH / renderScale));
                 return {
                     layoutW,
                     layoutH,
-                    renderScaleX: safeBufW / layoutW,
-                    renderScaleY: safeBufH / layoutH,
+                    renderScaleX: renderScale,
+                    renderScaleY: renderScale,
                     renderOffsetX: 0,
                     renderOffsetY: 0,
                 };
@@ -986,22 +997,15 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         const gameState = this.osrsClient.gameState;
         const isLoginLikeState =
             gameState === GameState.DOWNLOADING || this.osrsClient.isOnLoginScreen();
-        if (isLoginLikeState && !isMobileMode) {
-            return 1;
-        }
 
-        // Only scale for clean integer DPR values (e.g. 2x Retina).
-        // Fractional DPR (e.g. 1.25 from 125% Windows scaling) would cause
-        // widgets to appear physically smaller since the layout system uses
-        // buffer dimensions and sub-pixel interpolation blurs bitmap sprites.
-        if (!isMobileMode) {
-            const roundedDpr = Math.round(dpr);
-            if (Math.abs(dpr - roundedDpr) >= 0.01 || roundedDpr < 2) {
-                return 1;
-            }
-        }
-
-        const maxScale = isLoginLikeState ? 3 : isIos ? 1 : 2;
+        // Render the backing store at the device's real pixel ratio, including
+        // fractional values (125%/150% Windows scaling, browser zoom on Retina),
+        // so the 3D scene is always native-resolution. computeUiRenderMetrics
+        // snaps the widget render scale to an integer device-pixel ratio so
+        // NEAREST-sampled sprites and bitmap fonts stay pixel-perfect.
+        // Handhelds cap at 2 for fill-rate/memory; the iOS scene framebuffer is
+        // compensated via its quality profile so 3D cost stays flat.
+        const maxScale = isLoginLikeState ? 3 : isMobileMode ? 2 : 3;
         const targetScale = Math.min(dpr, maxScale);
 
         const safeCssWidth = Number.isFinite(cssWidth) ? Math.max(1, cssWidth) : 1;

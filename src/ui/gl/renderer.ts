@@ -15,6 +15,7 @@ export class GLRenderer {
     aUV_tex = -1;
     uProj_tex!: WebGLUniformLocation;
     uSampler_tex!: WebGLUniformLocation;
+    uTexSize_tex!: WebGLUniformLocation;
     uTintColor_tex!: WebGLUniformLocation;
     uTintStrength_tex!: WebGLUniformLocation;
     uAlpha_tex!: WebGLUniformLocation;
@@ -75,8 +76,37 @@ export class GLRenderer {
     init() {
         const gl = this.gl;
         // Programs
-        const vsTex = `#version 300 es\nprecision mediump float;\nlayout(location=0) in vec2 aPos; layout(location=1) in vec2 aUV; uniform mat4 uProj; out vec2 vUV; void main(){ vUV=aUV; gl_Position=uProj*vec4(aPos,0.0,1.0);} `;
-        const fsTex = `#version 300 es\nprecision mediump float; in vec2 vUV; uniform sampler2D uSampler; uniform vec3 uTintColor; uniform float uTintStrength; uniform float uAlpha; out vec4 o; void main(){ vec4 c = texture(uSampler, vUV); c.rgb = mix(c.rgb, uTintColor, clamp(uTintStrength, 0.0, 1.0)); c.a *= uAlpha; o = c; }`;
+        const vsTex = `#version 300 es\nprecision highp float;\nlayout(location=0) in vec2 aPos; layout(location=1) in vec2 aUV; uniform mat4 uProj; out vec2 vUV; void main(){ vUV=aUV; gl_Position=uProj*vec4(aPos,0.0,1.0);} `;
+        // Textures are LINEAR-filtered but sampled through texelAaUv: identical to
+        // NEAREST at integer render scales, while fractional scales (e.g. 125%
+        // interface scaling, fractional DPR) smooth each texel transition over
+        // exactly one destination pixel instead of duplicating columns unevenly.
+        // Uploads are premultiplied so filtering across transparent texels cannot
+        // produce dark fringes; the shader returns to straight alpha for blending.
+        const fsTex = `#version 300 es
+precision highp float;
+in vec2 vUV;
+uniform sampler2D uSampler;
+uniform vec2 uTexSize;
+uniform vec3 uTintColor;
+uniform float uTintStrength;
+uniform float uAlpha;
+out vec4 o;
+vec2 texelAaUv(vec2 uv) {
+    if (uTexSize.x < 0.5 || uTexSize.y < 0.5) return uv;
+    vec2 pix = uv * uTexSize;
+    vec2 seam = floor(pix + 0.5);
+    vec2 dudv = max(fwidth(pix), vec2(1e-5));
+    pix = seam + clamp((pix - seam) / dudv, -0.5, 0.5);
+    return pix / uTexSize;
+}
+void main(){
+    vec4 c = texture(uSampler, texelAaUv(vUV));
+    c.rgb /= max(c.a, 1e-4);
+    c.rgb = mix(c.rgb, uTintColor, clamp(uTintStrength, 0.0, 1.0));
+    c.a *= uAlpha;
+    o = c;
+}`;
         const vsCol = `#version 300 es
 precision mediump float;
 layout(location=0) in vec2 aPos;
@@ -122,6 +152,8 @@ uniform vec4 uMaskBounds; // x, y, width, height
 out vec4 o;
 void main(){
     vec4 content = texture(uContent, vContentUV);
+    // Textures upload premultiplied; return to straight alpha for blending.
+    content.rgb /= max(content.a, 1e-4);
     // Compute mask UV from screen position (axis-aligned to widget bounds)
     vec2 maskUV = (vScreenPos - uMaskBounds.xy) / uMaskBounds.zw;
     // Clamp to valid UV range and discard if outside
@@ -142,6 +174,7 @@ void main(){
         this.progMasked = createProgram(gl, vsMasked, fsMasked);
         this.uProj_tex = gl.getUniformLocation(this.progTex, "uProj")!;
         this.uSampler_tex = gl.getUniformLocation(this.progTex, "uSampler")!;
+        this.uTexSize_tex = gl.getUniformLocation(this.progTex, "uTexSize")!;
         this.uTintColor_tex = gl.getUniformLocation(this.progTex, "uTintColor")!;
         this.uTintStrength_tex = gl.getUniformLocation(this.progTex, "uTintStrength")!;
         this.uAlpha_tex = gl.getUniformLocation(this.progTex, "uAlpha")!;
@@ -403,6 +436,7 @@ void main(){
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, tex.tex);
         gl.uniform1i(this.uSampler_tex, 0);
+        gl.uniform2f(this.uTexSize_tex, tex.w, tex.h);
         gl.uniform3f(this.uTintColor_tex, tintColor[0], tintColor[1], tintColor[2]);
         gl.uniform1f(this.uTintStrength_tex, tintStrength);
         gl.uniform1f(this.uAlpha_tex, alpha);
@@ -769,6 +803,7 @@ void main(){
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.textureBatchTex.tex);
         gl.uniform1i(this.uSampler_tex, 0);
+        gl.uniform2f(this.uTexSize_tex, this.textureBatchTex.w, this.textureBatchTex.h);
         gl.uniform3f(
             this.uTintColor_tex,
             this.textureBatchTintColor[0],
@@ -839,14 +874,19 @@ void main(){
             return { tex: null as any, w: canvas.width, h: canvas.height };
         }
         gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        // LINEAR + the texelAaUv shader path gives NEAREST-identical output at
+        // integer render scales with antialiased texels at fractional scales.
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         // Cached widget/text/sprite canvases should never wrap; UI tiling is handled explicitly
         // by draw loops, and repeat sampling causes edge bleed when UVs land fractionally outside 0..1.
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
+        // Premultiplied upload so LINEAR filtering across transparent texels does
+        // not pull RGB toward black; the shaders un-premultiply after sampling.
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
         const t: Texture = { tex, w: canvas.width, h: canvas.height };
         this.textures.set(key, t);
         return t;
@@ -869,7 +909,9 @@ void main(){
             // Update existing texture
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, existing.tex);
+            gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+            gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
             existing.w = canvas.width;
             existing.h = canvas.height;
             return existing;
@@ -884,12 +926,13 @@ void main(){
             return { tex: null as any, w: canvas.width, h: canvas.height };
         }
         gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
         const t: Texture = { tex, w: canvas.width, h: canvas.height };
         this.textures.set(key, t);
         return t;

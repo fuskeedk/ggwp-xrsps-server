@@ -24,6 +24,36 @@ function getCanvas(): HTMLCanvasElement | undefined {
 export class UiScaleDiagnostic {
     private gridOverlayCanvas: HTMLCanvasElement | null = null;
 
+    /**
+     * Actual UI layout space and render scale, read from the renderer
+     * (canvas.__uiRenderScale + widgetManager dims) with a fallback to the
+     * manual-scale derivation for early boot states.
+     */
+    private getActualMetrics(canvas: HTMLCanvasElement): {
+        layoutW: number;
+        layoutH: number;
+        renderScale: number;
+    } {
+        const actualScale = (canvas as any).__uiRenderScale;
+        const wm = getOsrsClient()?.widgetManager;
+        const wmW = (wm as any)?.canvasWidth;
+        const wmH = (wm as any)?.canvasHeight;
+        if (typeof actualScale === "number" && actualScale > 0 && wmW > 0 && wmH > 0) {
+            return { layoutW: wmW, layoutH: wmH, renderScale: actualScale };
+        }
+        const cssSize = getCanvasCssSize(canvas);
+        const effectiveScale = getUiScale(cssSize.width, cssSize.height);
+        const bufW = canvas.width;
+        const bufH = canvas.height;
+        const layoutW = effectiveScale > 1 ? Math.round(bufW / effectiveScale) : bufW;
+        const layoutH = effectiveScale > 1 ? Math.round(bufH / effectiveScale) : bufH;
+        return {
+            layoutW: Math.max(1, layoutW),
+            layoutH: Math.max(1, layoutH),
+            renderScale: layoutW > 0 ? bufW / layoutW : 1,
+        };
+    }
+
     dump(): void {
         const client = getOsrsClient();
         const renderer = getRenderer();
@@ -65,7 +95,16 @@ export class UiScaleDiagnostic {
             const effectiveScale = getUiScale(cssW, cssH);
             ln(`[UI Scale] auto: ${autoScale} (floor(min(${(cssW / baseW).toFixed(2)}, ${(cssH / baseH).toFixed(2)}))) | effective: ${effectiveScale} | override: ${effectiveScale !== autoScale}`);
 
-            if (effectiveScale > 1) {
+            const actualRenderScale = (canvas as any).__uiRenderScale;
+            const wmLayoutW = (client?.widgetManager as any)?.canvasWidth;
+            const wmLayoutH = (client?.widgetManager as any)?.canvasHeight;
+            if (typeof actualRenderScale === "number" && wmLayoutW > 0) {
+                const isIntegerScale = Math.abs(actualRenderScale - Math.round(actualRenderScale)) < 0.001;
+                ln(
+                    `[Layout] ${wmLayoutW}x${wmLayoutH} (actual) | renderScale: ${actualRenderScale.toFixed(4)} ` +
+                    `(${isIntegerScale ? "integer — pixel-perfect sprites/fonts" : "fractional — sprites resample"})`,
+                );
+            } else if (effectiveScale > 1) {
                 const layoutW = Math.round(bufW / effectiveScale);
                 const layoutH = Math.round(bufH / effectiveScale);
                 const rsX = bufW / layoutW;
@@ -85,12 +124,26 @@ export class UiScaleDiagnostic {
                 const layoutH = Math.round(bufH / effectiveScale);
                 const rsX = bufW / layoutW;
                 const rsY = bufH / layoutH;
-                if (Math.abs(rsX - Math.round(rsX)) > 0.01) issues.push(`renderScaleX ${rsX.toFixed(4)} non-integer — blurry sprites`);
-                if (Math.abs(rsY - Math.round(rsY)) > 0.01) issues.push(`renderScaleY ${rsY.toFixed(4)} non-integer — blurry sprites`);
-                if (rsX !== rsY) issues.push(`anisotropic: X=${rsX.toFixed(4)} Y=${rsY.toFixed(4)} — stretched widgets`);
+                if (Math.abs(rsX - rsY) > 0.01) issues.push(`anisotropic: X=${rsX.toFixed(4)} Y=${rsY.toFixed(4)} — stretched widgets`);
             }
-            if (autoScale >= 2 && cssW < 1600) issues.push(`auto-scale ${autoScale} on ${cssW}px viewport — layout only ${Math.round(bufW / autoScale)}px wide`);
-            if (dpr > 1 && effectiveScale === 1) issues.push(`dpr ${dpr} with scale 1: buffer ${bufW}x${bufH} > CSS ${cssW.toFixed(0)}x${cssH.toFixed(0)}`);
+            if (
+                typeof actualRenderScale === "number" &&
+                effectiveScale === 1 &&
+                Math.abs(actualRenderScale - Math.round(actualRenderScale)) > 0.001
+            ) {
+                issues.push(
+                    `renderScale ${actualRenderScale.toFixed(4)} fractional at interface-scaling 100% — integer snap failed, text/sprites will resample`,
+                );
+            }
+            // Backing store should track native DPR (capped at 3); a lower ratio
+            // means the pixel-budget cap kicked in or resize hasn't run yet.
+            const bufPerCssX = cssW > 0 ? bufW / cssW : 1;
+            const expectedBufScale = Math.min(dpr, 3);
+            if (dpr > 1 && bufPerCssX < expectedBufScale - 0.05) {
+                issues.push(
+                    `buffer is ${bufPerCssX.toFixed(2)}x CSS but DPR is ${dpr} — rendering below native resolution (pixel-budget cap?)`,
+                );
+            }
             if (dpr > 1 && effectiveScale > 1 && Math.round(bufW / effectiveScale) < 765) issues.push(`layout width ${Math.round(bufW / effectiveScale)} < OSRS fixed 765px`);
 
             if (issues.length > 0) {
