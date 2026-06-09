@@ -10,8 +10,10 @@ const DEFAULT_DISTANCE = 99999999;
 const ALTERNATIVE_ROUTE_MAX_DISTANCE = 100;
 const ALTERNATIVE_ROUTE_RANGE = 10;
 
-// OSRS client route output buffers are 50 entries (Client.routePathX/Y).
-const MAX_PATH_CHECKPOINTS = 50;
+// OSRS server-side routes are capped at 25 waypoints (rsmod RouteFinding:
+// maxWaypoints = 25). The client's preview buffer is larger (50 — deob
+// client.java routePathX), but this class plays the server-engine role.
+const MAX_PATH_CHECKPOINTS = 25;
 
 function nextPow2(i: number): number {
     i = i;
@@ -260,10 +262,17 @@ export class Pathfinder {
         this.bufferY[steps++] = traceY;
         while (traceX !== srcX || traceY !== srcY) {
             if (lastDirection !== direction) {
-                // OSRS: Route output buffers are capped at 50 points.
+                // OSRS caps routes at 25 waypoints. On overflow the waypoint nearest
+                // the DESTINATION is dropped (rsmod: removeLast on a source-first
+                // deque), so the route keeps the turns nearest the source and ends
+                // short of the destination. Buffer order stays: [0] = route end,
+                // ascending = closer to source, and the path stays connected to src.
                 if (steps >= MAX_PATH_CHECKPOINTS) {
-                    // Truncate path at checkpoint limit
-                    break;
+                    for (let i = 0; i < MAX_PATH_CHECKPOINTS - 1; i++) {
+                        this.bufferX[i] = this.bufferX[i + 1];
+                        this.bufferY[i] = this.bufferY[i + 1];
+                    }
+                    steps = MAX_PATH_CHECKPOINTS - 1;
                 }
                 // we changed our direction, write it
                 this.bufferX[steps] = traceX;
@@ -331,7 +340,7 @@ export class Pathfinder {
             currentGraphX = currentX - graphBaseX;
             currentGraphY = currentY - graphBaseY;
 
-            if (routeStrategy.hasArrived(currentX, currentY, plane)) {
+            if (routeStrategy.hasArrived(currentX, currentY, plane, 1)) {
                 // we found a path!
                 this.exitX = currentX;
                 this.exitY = currentY;
@@ -570,7 +579,7 @@ export class Pathfinder {
             currentGraphX = currentX - graphBaseX;
             currentGraphY = currentY - graphBaseY;
 
-            if (routeStrategy.hasArrived(currentX, currentY, plane)) {
+            if (routeStrategy.hasArrived(currentX, currentY, plane, size)) {
                 // we found a path!
                 this.exitX = currentX;
                 this.exitY = currentY;

@@ -187,7 +187,6 @@ const MAX_ESTIMATED_HEALTH = 4000;
 const OVERHEAD_CHAT_COLOR_TABLE = [0xffff00, 0xff0000, 0x00ff00, 0x00ffff, 0xff00ff, 0xffffff];
 const DEFAULT_OVERHEAD_CHAT_COLOR_ID = 0;
 const DEFAULT_OVERHEAD_CHAT_COLOR = OVERHEAD_CHAT_COLOR_TABLE[DEFAULT_OVERHEAD_CHAT_COLOR_ID];
-const OVERHEAD_CHAT_FADE_TICKS = 25;
 
 // Limit how many 20ms client ticks we process per frame when catching up.
 const MAX_CLIENT_TICKS_PER_FRAME = 25;
@@ -309,7 +308,9 @@ const MOBILE_TOUCH_QUALITY_PROFILE: BrowserQualityProfile = {
 const IOS_SAFARI_QUALITY_PROFILE: BrowserQualityProfile = {
     key: "ios-safari",
     label: "iPhone Safari",
-    defaultSceneScale: 1,
+    // The canvas backing store runs at 2x DPR for crisp UI/text; 0.5 keeps the
+    // 3D scene framebuffer at CSS resolution, the same GPU cost as a 1x buffer.
+    defaultSceneScale: 0.5,
     fxaaEnabled: false,
     renderDistanceCap: 18,
     lodThresholdCap: 12,
@@ -512,9 +513,22 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
     private minimapIcons: Map<number, Array<{ localX: number; localY: number; spriteId: number }>> =
         new Map();
 
+    // Player footprint size in fine units; NPC-transformed players inherit the NPC size.
+    private static readonly PLAYER_FOOTPRINT_RADIUS = (0.4 * 128) | 0;
+
+    // Per-actor running 2D element offset shared by overhead text, health bars and
+    // head icons within a frame; cleared each frame before entry collection.
+    private actor2dStacks: Map<number, number> = new Map();
+
     // PERF: Cached bound helper functions for overlay updates (avoid .bind() allocation each frame)
     private cachedOverlayHelpers: {
         getTileHeightAtPlane: (x: number, y: number, plane: number) => number;
+        getMinTileHeightInRadius: (
+            x: number,
+            z: number,
+            plane: number,
+            radiusFine: number,
+        ) => number;
         sampleHeightAtExactPlane: (x: number, y: number, plane: number) => number;
         getEffectivePlaneForTile: (x: number, y: number, basePlane: number) => number;
         getOccupancyPlaneForTile: (x: number, y: number, basePlane: number) => number;
@@ -599,7 +613,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
     skyColor: vec4 = vec4.fromValues(0, 0, 0, 1); // Black ( — vanilla has no skybox)
     fogDepth: number = 24; // Fog starts at 24 tiles (OSRS fog is subtle until near max distance)
     autoFogDepth: boolean = true;
-    autoFogDepthFactor: number = 0.7;
+    autoFogDepthFactor: number = 0.85;
 
     // Scene-level HSL override for tinting all rendered geometry.
     // Values: [hue (-1=no override, 0-63), sat (-1=no override, 0-7),
@@ -939,13 +953,22 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                 const desktopUiScale = getUiScale(cssW, cssH);
                 // RuneLite stretched mode reduces the logical resizable game size by the
                 // configured factor, then stretches that real size back to the window.
-                const layoutW = Math.max(1, Math.round(cssW / desktopUiScale));
-                const layoutH = Math.max(1, Math.round(cssH / desktopUiScale));
+                // The DPR component of the render scale is snapped to an integer so
+                // bitmap sprites and fonts map 1:N onto device pixels at any OS or
+                // browser scaling (110% -> 1, Retina -> 2, zoomed Retina 2.2 -> 2);
+                // the manual interface-scaling factor stays unsnapped for OSRS parity.
+                // Layout uses ceil so renderScale stays exact — up to one device pixel
+                // at the right/bottom edge is clipped instead of letting the ratio
+                // drift fractional (which made glyph widths uneven by 1px).
+                const dprComponent = Math.max(1, Math.round(safeBufW / Math.max(1, cssW)));
+                const renderScale = dprComponent * desktopUiScale;
+                const layoutW = Math.max(1, Math.ceil(safeBufW / renderScale));
+                const layoutH = Math.max(1, Math.ceil(safeBufH / renderScale));
                 return {
                     layoutW,
                     layoutH,
-                    renderScaleX: safeBufW / layoutW,
-                    renderScaleY: safeBufH / layoutH,
+                    renderScaleX: renderScale,
+                    renderScaleY: renderScale,
                     renderOffsetX: 0,
                     renderOffsetY: 0,
                 };
@@ -966,21 +989,44 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             };
         }
 
-        const layoutW = Math.max(1, Math.round(cssW));
-        const layoutH = Math.max(1, Math.round(cssH));
-        const renderScaleX = safeBufW / layoutW;
-        const renderScaleY = safeBufH / layoutH;
-        const renderOffsetX = 0;
-        const renderOffsetY = 0;
+        // The title/login surface gets the same integer device-pixel snapping as the
+        // gameplay branch above so NEAREST-sampled title sprites and bitmap fonts map
+        // 1:N onto device pixels at any OS/browser scaling. The scene itself stays
+        // authored at native fixed-mode size (no interface scaling on the title
+        // screen, matching OSRS). Layout uses ceil so the scale stays exact — up to
+        // one device pixel at the right/bottom edge is clipped instead of letting the
+        // ratio drift fractional (which made login text resample unevenly).
+        const dprComponent = Math.max(1, Math.round(safeBufW / Math.max(1, cssW)));
+        const layoutW = Math.max(1, Math.ceil(safeBufW / dprComponent));
+        const layoutH = Math.max(1, Math.ceil(safeBufH / dprComponent));
 
         return {
             layoutW,
             layoutH,
-            renderScaleX,
-            renderScaleY,
-            renderOffsetX,
-            renderOffsetY,
+            renderScaleX: dprComponent,
+            renderScaleY: dprComponent,
+            renderOffsetX: 0,
+            renderOffsetY: 0,
         };
+    }
+
+    /**
+     * Public view of the active UI layout metrics so overlays that composite the
+     * login surface (LoginOverlay) author their textures in the exact same space
+     * as input mapping and the widget surface.
+     */
+    getUiRenderMetrics(
+        bufW: number,
+        bufH: number,
+    ): {
+        layoutW: number;
+        layoutH: number;
+        renderScaleX: number;
+        renderScaleY: number;
+        renderOffsetX: number;
+        renderOffsetY: number;
+    } {
+        return this.computeUiRenderMetrics(bufW, bufH);
     }
 
     override getCanvasResolutionScale(cssWidth: number, cssHeight: number): number {
@@ -996,22 +1042,15 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         const gameState = this.osrsClient.gameState;
         const isLoginLikeState =
             gameState === GameState.DOWNLOADING || this.osrsClient.isOnLoginScreen();
-        if (isLoginLikeState && !isMobileMode) {
-            return 1;
-        }
 
-        // Only scale for clean integer DPR values (e.g. 2x Retina).
-        // Fractional DPR (e.g. 1.25 from 125% Windows scaling) would cause
-        // widgets to appear physically smaller since the layout system uses
-        // buffer dimensions and sub-pixel interpolation blurs bitmap sprites.
-        if (!isMobileMode) {
-            const roundedDpr = Math.round(dpr);
-            if (Math.abs(dpr - roundedDpr) >= 0.01 || roundedDpr < 2) {
-                return 1;
-            }
-        }
-
-        const maxScale = isLoginLikeState ? 3 : isIos ? 1 : 2;
+        // Render the backing store at the device's real pixel ratio, including
+        // fractional values (125%/150% Windows scaling, browser zoom on Retina),
+        // so the 3D scene is always native-resolution. computeUiRenderMetrics
+        // snaps the widget render scale to an integer device-pixel ratio so
+        // NEAREST-sampled sprites and bitmap fonts stay pixel-perfect.
+        // Handhelds cap at 2 for fill-rate/memory; the iOS scene framebuffer is
+        // compensated via its quality profile so 3D cost stays flat.
+        const maxScale = isLoginLikeState ? 3 : isMobileMode ? 2 : 3;
         const targetScale = Math.min(dpr, maxScale);
 
         const safeCssWidth = Number.isFinite(cssWidth) ? Math.max(1, cssWidth) : 1;
@@ -1544,7 +1583,17 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
     }
 
     private acquireHealthBarEntry(): HealthBarEntry {
-        return this.healthBarPool.pop() ?? { worldX: 0, worldZ: 0, plane: 0, ratio: 1 };
+        return (
+            this.healthBarPool.pop() ?? {
+                worldX: 0,
+                worldZ: 0,
+                plane: 0,
+                health: 0,
+                health2: 0,
+                cycle: 0,
+                cycleOffset: 0,
+            }
+        );
     }
 
     private acquireOverheadPrayerEntry(): OverheadPrayerEntry {
@@ -1581,7 +1630,6 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
     private resetHealthBarOutput(): void {
         if (this.healthBarOutput.length === 0) return;
         for (const entry of this.healthBarOutput) {
-            entry.alpha = undefined;
             entry.defId = undefined;
             entry.heightOffsetTiles = undefined;
             this.healthBarPool.push(entry);
@@ -1707,7 +1755,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         let worldX = baseWorldX;
         let worldZ = baseWorldZ;
         let defaultHeight = npcTypeId != null ? this.getNpcDefaultHeight(npcTypeId) : 200;
-        let logicalHeightTiles = Math.max(0.5, defaultHeight / 128);
+        let logicalHeightTiles = defaultHeight / 128;
 
         try {
             if (npcTypeId == null || npcTypeId < 0) {
@@ -1772,10 +1820,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                 return {
                     worldX,
                     worldZ,
-                    logicalHeightTiles: Math.max(
-                        0.5,
-                        baseLogicalHeight / 128 + animHeightOffsetTiles,
-                    ),
+                    logicalHeightTiles: baseLogicalHeight / 128 + animHeightOffsetTiles,
                 };
             }
 
@@ -1785,7 +1830,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             } catch {}
             const baseLogicalHeight =
                 npcType.heightOffset >= 0 ? npcType.heightOffset : defaultHeight;
-            logicalHeightTiles = Math.max(0.5, baseLogicalHeight / 128 + animHeightOffsetTiles);
+            logicalHeightTiles = baseLogicalHeight / 128 + animHeightOffsetTiles;
 
             // Model-space center can be offset from origin; rotate it like npc.vert.glsl.
             try {
@@ -2187,45 +2232,49 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         }
     }
 
-    private computeHealthBarVisual(
-        def: HealthBarDefinitionState,
-        update: HealthBarUpdateState,
-        clientCycle: number,
-    ): { ratio: number; alpha: number } | undefined {
-        const now = clientCycle | 0;
-        const cycle = update.cycle | 0;
-        const elapsed = (now - cycle) | 0;
-        if (elapsed < 0) return undefined;
-        const width = Math.max(1, def.width | 0);
-        const start = Math.max(0, Math.min(width, update.health | 0));
-        const end = Math.max(0, Math.min(width, update.health2 | 0));
-        const cycleOffset = Math.max(0, update.cycleOffset | 0);
-        const int5 = Math.max(0, def.int5 | 0);
-        const int3 = def.int3 | 0;
-        const stepCycles = def.stepIncrement | 0;
-        if (int5 + cycleOffset + cycle <= now) return undefined;
+    private makeActorGroupKey(isNpc: boolean, serverId: number): number {
+        return (((isNpc ? 1 : 0) << 24) | ((serverId | 0) & 0xffffff)) | 0;
+    }
 
-        let value = end;
-        let alpha = 1;
-        if (cycleOffset > elapsed) {
-            // Quantize interpolation to multiples of stepIncrement.
-            const step = stepCycles === 0 ? 0 : stepCycles * Math.floor(elapsed / stepCycles);
-            // integer division truncates toward zero (Java semantics).
-            value = (start + Math.trunc((step * (end - start)) / cycleOffset)) | 0;
-        } else {
-            value = end;
-            const remaining = int5 + cycleOffset - elapsed;
-            if (int3 >= 0) {
-                const denom = Math.max(1, int5 - int3);
-                // alpha is computed via integer division, then treated as either
-                // fully opaque (>= 255) or a 0..254 fractional alpha.
-                const var81 = Math.trunc((remaining << 8) / denom);
-                alpha = var81 >= 0 && var81 < 255 ? var81 / 255 : 1;
-            }
-        }
-        if (end > 0 && value < 1) value = 1;
-        const ratio = Math.max(0, Math.min(1, value / width));
-        return { ratio, alpha };
+    private appendPlayerOverheadText(
+        index: number,
+        output: OverheadTextEntry[],
+        maxEntries: number,
+        playerDefaultHeightTiles: number | undefined,
+    ): void {
+        if (output.length >= maxEntries) return;
+        if (!this.shouldRenderPlayerIndex(index)) return;
+        const pe = this.osrsClient.playerEcs;
+        const chatState = pe.getOverheadChat(index);
+        if (!chatState) return;
+        const text = chatState.text;
+        if (!text || text.length === 0) return;
+
+        const overhead = this.acquireOverheadTextEntry();
+        overhead.worldX = (pe.getX(index) | 0) / 128.0;
+        overhead.worldZ = (pe.getY(index) | 0) / 128.0;
+        overhead.plane = pe.getLevel(index) | 0;
+        overhead.footprintRadius = WebGLOsrsRenderer.PLAYER_FOOTPRINT_RADIUS;
+        overhead.groupKey = this.makeActorGroupKey(false, pe.getServerIdForIndex?.(index) ?? 0);
+        overhead.text = text;
+        overhead.color = this.mapOverheadColor(chatState.color);
+        overhead.colorId =
+            typeof chatState.color === "number" && chatState.color >= 0 && chatState.color < 0x100
+                ? chatState.color | 0
+                : undefined;
+        overhead.effect = chatState.effect ?? 0;
+        overhead.modIcon = this.resolveModIcon(chatState.modIcon);
+        overhead.pattern = chatState.pattern;
+        const duration = chatState.duration && chatState.duration > 0 ? chatState.duration : 1;
+        const remaining = Math.max(0, Math.min(duration, chatState.remaining ?? duration));
+        overhead.duration = duration;
+        overhead.remaining = remaining;
+        overhead.life = this.computeOverheadAlpha(overhead);
+        overhead.heightOffsetTiles = this.resolvePlayerLogicalHeightTiles(
+            index,
+            playerDefaultHeightTiles,
+        );
+        output.push(overhead);
     }
 
     private appendActorHealthBars(
@@ -2235,6 +2284,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         worldX: number,
         worldZ: number,
         plane: number,
+        footprintRadius: number,
         baseHeightTiles: number,
         output: HealthBarEntry[],
         clientCycle: number,
@@ -2243,7 +2293,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         if (output.length >= maxOutput) return;
         const state = map.get(serverId);
         if (!state) return;
-        const groupKey = ((kind === "npc" ? 1 : 0) << 24) | ((serverId | 0) & 0xffffff) | 0;
+        const groupKey = this.makeActorGroupKey(kind === "npc", serverId);
         // Iterate from the tail of the deque.
         for (let i = state.bars.length - 1; i >= 0; i--) {
             if (output.length >= maxOutput) break;
@@ -2255,17 +2305,18 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                 }
                 continue;
             }
-            const osrs = this.computeHealthBarVisual(bar.def, update, clientCycle);
-            if (!osrs || osrs.alpha <= 0) continue;
             const entry = this.acquireHealthBarEntry();
             entry.worldX = worldX;
             entry.worldZ = worldZ;
             entry.plane = plane;
+            entry.footprintRadius = footprintRadius | 0;
             // Health bar at logicalHeightWithAnimationOffset + 15 units.
             // No additional offset needed - baseHeightTiles already includes the +15 offset
             entry.heightOffsetTiles = baseHeightTiles ?? 0;
-            entry.ratio = osrs.ratio;
-            entry.alpha = osrs.alpha;
+            entry.health = update.health | 0;
+            entry.health2 = update.health2 | 0;
+            entry.cycle = update.cycle | 0;
+            entry.cycleOffset = update.cycleOffset | 0;
             entry.defId = bar.def.defId | 0;
             entry.groupKey = groupKey;
             output.push(entry);
@@ -2331,7 +2382,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
     }
 
     private resolvePlayerHitsplatOffset(index: number, fallback?: number): number {
-        return Math.max(0.25, this.resolvePlayerLogicalHeightTiles(index, fallback) * 0.5);
+        return this.resolvePlayerLogicalHeightTiles(index, fallback) * 0.5;
     }
 
     private resolvePlayerHeadIconOffset(index: number, fallback?: number): number {
@@ -2339,12 +2390,10 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         return this.resolvePlayerLogicalHeightTiles(index, fallback) + 15 / 128;
     }
 
+    // Overhead text displays at full opacity until its cycle ends.
     private computeOverheadAlpha(entry: OverheadTextEntry): number {
         if (entry.duration <= 0) return 1;
-        if (entry.remaining <= 0) return 0;
-        const fadeStart = Math.max(1, entry.duration - OVERHEAD_CHAT_FADE_TICKS);
-        if (entry.remaining >= fadeStart) return 1;
-        return Math.max(0, entry.remaining / Math.max(1, OVERHEAD_CHAT_FADE_TICKS));
+        return entry.remaining > 0 ? 1 : 0;
     }
 
     private getNpcTypeIdForServer(serverId: number): number | undefined {
@@ -2930,7 +2979,8 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             }
         } catch {}
 
-        // Add overhead prayer overlay to manager if available
+        // Create overhead prayer overlay now; registered after the health bar overlay
+        // so head icons stack above bars in the shared per-actor offset chain.
         try {
             if (this.overlayManager && this.hitsplatProgram && this.sceneUniformBuffer) {
                 const op = new OverheadPrayerOverlay(this.hitsplatProgram, {
@@ -2938,7 +2988,6 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                     getLoadedCacheInfo: () => this.osrsClient.loadedCache?.info,
                 });
                 this.overheadPrayerOverlay = op;
-                this.overlayManager.add(op);
                 // Init may fail if cache not ready - will be reinitialized in initOverlays()
                 try {
                     op.init({ app: this.app, sceneUniforms: this.sceneUniformBuffer });
@@ -3113,10 +3162,13 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
 
         // Draw actor damage overlays after the plugin/world post-present overlays so they
         // cannot cover them, but before widgets so game UI still stays on top. Keep
-        // hitsplats after health bars so damage numbers stay on top when they overlap.
+        // Per-actor element order: health bars, then head icons, then hitsplats on top.
         try {
             if (this.overlayManager && this.healthBarOverlay) {
                 this.overlayManager.add(this.healthBarOverlay);
+            }
+            if (this.overlayManager && this.overheadPrayerOverlay) {
+                this.overlayManager.add(this.overheadPrayerOverlay);
             }
             if (this.overlayManager && this.hitsplatOverlay) {
                 this.overlayManager.add(this.hitsplatOverlay);
@@ -6756,6 +6808,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                         entry.worldX = playerWorldX;
                         entry.worldZ = playerWorldZ;
                         entry.plane = playerLevel;
+                        entry.footprintRadius = WebGLOsrsRenderer.PLAYER_FOOTPRINT_RADIUS;
                         entry.heightOffsetTiles = hitsplatOffset;
                         entry.damage = state.hitSplatValues[slot] | 0;
                         entry.count = 1;
@@ -6777,6 +6830,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                         playerWorldX,
                         playerWorldZ,
                         playerLevel,
+                        WebGLOsrsRenderer.PLAYER_FOOTPRINT_RADIUS,
                         healthBarOffset,
                         healthBars,
                         clientCycle,
@@ -6785,56 +6839,20 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                 }
             }
 
+            // Other players' overhead text first; the local player's is appended after
+            // NPC text so it settles last in the overlap pass and draws on top.
+            const localPlayerTextIdx = this.getControlledPlayerEcsIndex();
             try {
                 const pe = this.osrsClient.playerEcs;
                 const count = pe.size?.() ?? (pe as any).size?.() ?? 0;
-                if (count > 0) {
-                    for (let i = 0; i < count; i++) {
-                        if (overheadTexts.length >= overheadTextMaxEntries) break;
-                        if (!this.shouldRenderPlayerIndex(i)) continue;
-                        const chatState = pe.getOverheadChat(i);
-                        if (!chatState) continue;
-                        const px = pe.getX(i) | 0;
-                        const py = pe.getY(i) | 0;
-                        const worldX = px / 128.0;
-                        const worldZ = py / 128.0;
-                        const plane = pe.getLevel(i) | 0;
-                        const overhead = this.acquireOverheadTextEntry();
-                        overhead.worldX = worldX;
-                        overhead.worldZ = worldZ;
-                        overhead.plane = plane;
-                        const text = chatState.text;
-                        if (!text || text.length === 0) {
-                            this.overheadTextPool.push(overhead);
-                            continue;
-                        }
-
-                        overhead.text = text;
-                        overhead.color = this.mapOverheadColor(chatState.color);
-                        overhead.colorId =
-                            typeof chatState.color === "number" &&
-                            chatState.color >= 0 &&
-                            chatState.color < 0x100
-                                ? chatState.color | 0
-                                : undefined;
-                        overhead.effect = chatState.effect ?? 0;
-                        overhead.modIcon = this.resolveModIcon(chatState.modIcon);
-                        overhead.pattern = chatState.pattern;
-                        const duration =
-                            chatState.duration && chatState.duration > 0 ? chatState.duration : 1;
-                        const remaining = Math.max(
-                            0,
-                            Math.min(duration, chatState.remaining ?? duration),
-                        );
-                        overhead.duration = duration;
-                        overhead.remaining = remaining;
-                        overhead.life = this.computeOverheadAlpha(overhead);
-                        overhead.heightOffsetTiles = this.resolvePlayerLogicalHeightTiles(
-                            i,
-                            playerDefaultHeightTiles,
-                        );
-                        overheadTexts.push(overhead);
-                    }
+                for (let i = 0; i < count; i++) {
+                    if (i === localPlayerTextIdx) continue;
+                    this.appendPlayerOverheadText(
+                        i,
+                        overheadTexts,
+                        overheadTextMaxEntries,
+                        playerDefaultHeightTiles,
+                    );
                 }
             } catch {}
 
@@ -6872,9 +6890,23 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                     overhead.life = this.computeOverheadAlpha(overhead);
                     const npcTypeId = ne.getNpcTypeId(ecsId) | 0;
                     const npcHeight = npcTypeId > 0 ? this.getNpcDefaultHeight(npcTypeId) : 200;
-                    overhead.heightOffsetTiles = Math.max(0.5, npcHeight / 128.0);
+                    overhead.footprintRadius = this.getNpcFootprintRadius(npcTypeId);
+                    overhead.groupKey = this.makeActorGroupKey(true, ne.getServerId(ecsId) | 0);
+                    overhead.heightOffsetTiles = npcHeight / 128.0;
                     overheadTexts.push(overhead);
                 });
+            } catch {}
+
+            // Local player's overhead text settles last in the overlap pass.
+            try {
+                if (localPlayerTextIdx !== undefined) {
+                    this.appendPlayerOverheadText(
+                        localPlayerTextIdx,
+                        overheadTexts,
+                        overheadTextMaxEntries,
+                        playerDefaultHeightTiles,
+                    );
+                }
             } catch {}
 
             // Render overhead prayer icons for all players
@@ -6898,6 +6930,11 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                         entry.worldX = worldX;
                         entry.worldZ = worldZ;
                         entry.plane = plane;
+                        entry.footprintRadius = WebGLOsrsRenderer.PLAYER_FOOTPRINT_RADIUS;
+                        entry.groupKey = this.makeActorGroupKey(
+                            false,
+                            pe.getServerIdForIndex?.(i) ?? 0,
+                        );
                         entry.headIconPrayer = headIconPrayer;
                         // Position above the player head, above any health bars/hitsplats
                         entry.heightOffsetTiles = this.resolvePlayerHeadIconOffset(
@@ -6963,6 +7000,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                             entry.worldX = worldX;
                             entry.worldZ = worldZ;
                             entry.plane = plane;
+                            entry.footprintRadius = WebGLOsrsRenderer.PLAYER_FOOTPRINT_RADIUS;
                             entry.heightOffsetTiles = hitsplatOffset;
                             entry.damage = state.hitSplatValues[slot] | 0;
                             entry.count = 1;
@@ -6985,6 +7023,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                                 worldX,
                                 worldZ,
                                 plane,
+                                WebGLOsrsRenderer.PLAYER_FOOTPRINT_RADIUS,
                                 healthBarOffset,
                                 healthBars,
                                 clientCycle,
@@ -7054,12 +7093,11 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                             const npcMapY = npcMapId & 0xff;
                             const baseWorldX = npcMapX * 64 + localX / 128.0;
                             const baseWorldZ = npcMapY * 64 + localY / 128.0;
-                            // Use the NPC's raw render plane for height sampling.
-                            // Height sampling (BridgePlaneStrategy.RENDER) already applies OSRS bridge promotion;
-                            // using the pre-promoted occupancy plane here would double-apply it on bridge tiles,
-                            // causing overhead overlays (health bars/hitsplats) to render at the wrong Y.
+                            // Raw plane: overlay anchor heights apply bridge promotion
+                            // per sample, mirroring the model placement plane.
                             const plane = npcEcs.getLevel(ecsId) | 0;
                             const npcTypeId = npcEcs.getNpcTypeId?.(ecsId);
+                            const footprintRadius = this.getNpcFootprintRadius(npcTypeId);
                             const overlayAnchor = this.resolveNpcOverlayAnchor(
                                 ecsId,
                                 baseWorldX,
@@ -7068,10 +7106,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                             );
                             const worldX = overlayAnchor.worldX;
                             const worldZ = overlayAnchor.worldZ;
-                            const hitsplatOffset = Math.max(
-                                0.25,
-                                overlayAnchor.logicalHeightTiles * 0.5,
-                            );
+                            const hitsplatOffset = overlayAnchor.logicalHeightTiles * 0.5;
                             const healthBarOffset = overlayAnchor.logicalHeightTiles + 15 / 128;
                             if (hasHealth && healthBars.length < healthBarMaxEntries) {
                                 this.appendActorHealthBars(
@@ -7081,6 +7116,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                                     worldX,
                                     worldZ,
                                     plane,
+                                    footprintRadius,
                                     healthBarOffset,
                                     healthBars,
                                     clientCycle,
@@ -7104,6 +7140,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                                 entry.worldX = worldX;
                                 entry.worldZ = worldZ;
                                 entry.plane = plane;
+                                entry.footprintRadius = footprintRadius;
                                 entry.heightOffsetTiles = hitsplatOffset;
                                 entry.damage = state.hitSplatValues[slot] | 0;
                                 entry.count = 1;
@@ -7178,6 +7215,8 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             // so no need to manually call setGameState() here
 
             if (!this.uiHidden) {
+                // Reset the per-actor 2D element offsets before this frame's draws.
+                this.actor2dStacks.clear();
                 this.overlayManager?.update({
                     time,
                     delta: deltaTime,
@@ -7201,6 +7240,8 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                         overheadTexts: overheadTexts.length > 0 ? overheadTexts : undefined,
                         overheadPrayers: overheadPrayers.length > 0 ? overheadPrayers : undefined,
                         groundItems: groundOverlayEntries,
+                        gameCycle: clientCycle | 0,
+                        actor2dStacks: this.actor2dStacks,
                         // spotAnimations removed
                     },
                     helpers: this.getOverlayHelpers(),
@@ -7817,38 +7858,52 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         state.destTile = undefined;
         state.currentTile = undefined;
 
+        const destWorldX = ClientState.destinationWorldX | 0;
+        const destWorldY = ClientState.destinationWorldY | 0;
+        let activeDestX = destWorldX;
+        let activeDestY = destWorldY;
+        if (activeDestX === 0 && activeDestY === 0) {
+            const destLocalX = ClientState.destinationX | 0;
+            const destLocalY = ClientState.destinationY | 0;
+            if (destLocalX !== 0 || destLocalY !== 0) {
+                activeDestX = ClientState.localToWorldX(destLocalX) | 0;
+                activeDestY = ClientState.localToWorldY(destLocalY) | 0;
+            }
+        }
+        const hasActiveDestination = activeDestX !== 0 || activeDestY !== 0;
         const nativeTileHighlights = this.osrsClient.tileHighlightManager.getRenderEntries();
-        state.tileHighlights = nativeTileHighlights.length > 0 ? nativeTileHighlights : undefined;
+        const shouldOwnDestinationTile =
+            tileMarkersConfig.enabled &&
+            tileMarkersConfig.showDestinationTile &&
+            hasActiveDestination;
+        const destinationColor = tileMarkersConfig.destinationTileColor & 0xffffff;
+        const defaultNativeDestinationColor = 0xa9a753;
+        const visibleTileHighlights = shouldOwnDestinationTile
+            ? nativeTileHighlights.filter((highlight) => {
+                  if ((highlight.slot | 0) === 4) {
+                      return false;
+                  }
+                  const color = highlight.colorRgb & 0xffffff;
+                  return color !== destinationColor && color !== defaultNativeDestinationColor;
+              })
+            : nativeTileHighlights;
+        state.tileHighlights =
+            visibleTileHighlights.length > 0 ? visibleTileHighlights : undefined;
 
         if (!tileMarkersConfig.enabled) {
             return;
         }
 
-        const nativeHasCurrentTile = this.osrsClient.tileHighlightManager.hasRenderableSlot(3);
-        const nativeHasDestinationTile = this.osrsClient.tileHighlightManager.hasRenderableSlot(4);
-        if (tileMarkersConfig.showDestinationTile && !nativeHasDestinationTile) {
-            const destWorldX = ClientState.destinationWorldX | 0;
-            const destWorldY = ClientState.destinationWorldY | 0;
-            if (destWorldX !== 0 || destWorldY !== 0) {
-                if (!state.destTile) {
-                    state.destTile = { x: 0, y: 0 };
-                }
-                // Use stored world destination directly. Re-deriving from local destination
-                // against a changing scene base causes marker drift during movement sync.
-                state.destTile.x = destWorldX;
-                state.destTile.y = destWorldY;
-            } else {
-                // Fallback for older state where only local destination may be populated.
-                const destLocalX = ClientState.destinationX | 0;
-                const destLocalY = ClientState.destinationY | 0;
-                if (destLocalX !== 0 || destLocalY !== 0) {
-                    if (!state.destTile) {
-                        state.destTile = { x: 0, y: 0 };
-                    }
-                    state.destTile.x = ClientState.localToWorldX(destLocalX) | 0;
-                    state.destTile.y = ClientState.localToWorldY(destLocalY) | 0;
-                }
+        const nativeHasCurrentTile = visibleTileHighlights.some(
+            (highlight) => (highlight.slot | 0) === 3,
+        );
+        if (tileMarkersConfig.showDestinationTile && hasActiveDestination) {
+            if (!state.destTile) {
+                state.destTile = { x: 0, y: 0 };
             }
+            // Use the corrected client destination as the single source of truth.
+            state.destTile.x = activeDestX;
+            state.destTile.y = activeDestY;
         }
 
         if (!tileMarkersConfig.showCurrentTile || nativeHasCurrentTile) {
@@ -7918,6 +7973,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         if (!this.cachedOverlayHelpers) {
             this.cachedOverlayHelpers = {
                 getTileHeightAtPlane: this.getTileHeightAtPlane.bind(this),
+                getMinTileHeightInRadius: this.getMinTileHeightInRadius.bind(this),
                 sampleHeightAtExactPlane: this.sampleHeightAtExactPlane.bind(this),
                 getEffectivePlaneForTile: this.getEffectivePlaneForTile.bind(this),
                 getOccupancyPlaneForTile: this.getOccupancyPlaneForTile.bind(this),
@@ -9721,6 +9777,73 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
     // Compute height sampling at a fixed plane without applying bridge promotion per-sample.
     private getTileHeightAtPlane(worldX: number, worldY: number, plane: number): number {
         return this.sampleHeightAtExactPlane(worldX, worldY, plane);
+    }
+
+    // Height sample with per-tile bridge promotion, matching the plane selection used
+    // when placing actor models so 2D anchors stay attached to them.
+    private getBridgedTileHeight(worldX: number, worldY: number, plane: number): number {
+        const tileX = Math.floor(worldX);
+        const tileY = Math.floor(worldY);
+        const map = this.getPreferredMapForWorldTile(tileX, tileY);
+        const local = map ? this.getMapLocalTile(map, tileX, tileY) : undefined;
+        const samplePlane =
+            map && local
+                ? resolveHeightSamplePlaneForLocal(map, plane, local.x, local.y)
+                : plane;
+        return this.sampleHeightAtExactPlane(worldX, worldY, samplePlane);
+    }
+
+    // Highest terrain sample (min in negative-up space) across an actor footprint.
+    // radius is in fine units (128 per tile); 0 falls back to a single center sample.
+    private getMinTileHeightInRadius(
+        worldX: number,
+        worldZ: number,
+        plane: number,
+        radius: number,
+    ): number {
+        if ((radius | 0) === 0) {
+            return this.getBridgedTileHeight(worldX, worldZ, plane);
+        }
+        const fineX = Math.round(worldX * 128) | 0;
+        const fineZ = Math.round(worldZ * 128) | 0;
+        const half = (radius / 2) | 0;
+        const minTileX = ((fineX - half) >> 7) + 1;
+        const minTileZ = ((fineZ - half) >> 7) + 1;
+        const maxTileX = (fineX + half) >> 7;
+        const maxTileZ = (fineZ + half) >> 7;
+        let min = Infinity;
+        for (let tileX = minTileX; tileX <= maxTileX; tileX++) {
+            for (let tileZ = minTileZ; tileZ <= maxTileZ; tileZ++) {
+                min = Math.min(min, this.getBridgedTileHeight(tileX, tileZ, plane));
+            }
+        }
+        min = Math.min(min, this.getBridgedTileHeight(worldX, worldZ, plane));
+        min = Math.min(
+            min,
+            this.getBridgedTileHeight((fineX - half) / 128, (fineZ - half) / 128, plane),
+        );
+        min = Math.min(
+            min,
+            this.getBridgedTileHeight((fineX - half) / 128, (fineZ + half) / 128, plane),
+        );
+        min = Math.min(
+            min,
+            this.getBridgedTileHeight((fineX + half) / 128, (fineZ - half) / 128, plane),
+        );
+        return Math.min(
+            min,
+            this.getBridgedTileHeight((fineX + half) / 128, (fineZ + half) / 128, plane),
+        );
+    }
+
+    private getNpcFootprintRadius(npcTypeId: number | undefined): number {
+        if (npcTypeId == null || npcTypeId < 0) return 0;
+        try {
+            const npcType = this.osrsClient.npcTypeLoader?.load?.(npcTypeId | 0);
+            return npcType ? npcType.footprintSize | 0 : 0;
+        } catch {
+            return 0;
+        }
     }
 
     private getControlledPlayerWorldViewId(): number {

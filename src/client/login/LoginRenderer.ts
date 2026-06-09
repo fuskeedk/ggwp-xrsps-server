@@ -1757,6 +1757,7 @@ export class LoginRenderer {
                             buttonX + (this.worldSelectButtonSprite.subWidth >> 1),
                             buttonY + 22,
                             0xffffff,
+                            true,
                         );
                     }
 
@@ -2034,6 +2035,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             251,
             0xffff00,
+            true,
         );
         this.drawButton(ctx, this.loginBoxCenter - 80, 291, "New User");
         this.drawButton(ctx, this.loginBoxCenter + 80, 291, "Existing User");
@@ -2048,6 +2050,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             201,
             0xffff00,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2056,6 +2059,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             236,
             0xffffff,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2064,6 +2068,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             251,
             0xffffff,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2072,6 +2077,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             266,
             0xffffff,
+            true,
         );
         this.drawButton(ctx, this.loginBoxCenter - 80, 321, "Continue");
         this.drawButton(ctx, this.loginBoxCenter + 80, 321, "Cancel");
@@ -2091,6 +2097,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             textY,
             0xffff00,
+            true,
         );
         textY += 15;
         this.drawCenteredText(
@@ -2100,6 +2107,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             textY,
             0xffff00,
+            true,
         );
         textY += 15;
         this.drawCenteredText(
@@ -2109,6 +2117,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             textY,
             0xffff00,
+            true,
         );
         textY += 10; // OSRS uses 10px gap before input fields
 
@@ -2125,6 +2134,7 @@ export class LoginRenderer {
             this.loginBoxX + 180 - 108,
             textY,
             0xffffff,
+            true,
         );
         textY += 15;
 
@@ -2137,6 +2147,7 @@ export class LoginRenderer {
             this.loginBoxX + 180 - 108,
             textY,
             0xffffff,
+            true,
         );
         textY += 30;
 
@@ -2155,6 +2166,7 @@ export class LoginRenderer {
                     checkboxX,
                     textY,
                     0xffff00,
+                    true,
                 );
                 const textWidth = this.measureText(this.fontBold12, "Remember username: ");
                 this.drawSprite(
@@ -2185,6 +2197,7 @@ export class LoginRenderer {
                 this.loginBoxX + 180,
                 357,
                 0xffffff,
+                true,
             );
         }
     }
@@ -2198,6 +2211,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             201,
             0xffff00,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2206,6 +2220,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             221,
             0xffff00,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2214,6 +2229,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             241,
             0xffff00,
+            true,
         );
         this.drawButton(ctx, this.loginBoxX + 180, 276, "Try again");
         this.drawButton(ctx, this.loginBoxX + 180, 326, "Forgotten password?");
@@ -2229,6 +2245,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             201,
             0xffff00,
+            true,
         );
 
         let textY = 236;
@@ -2239,6 +2256,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             textY,
             0xffffff,
+            true,
         );
         textY += 15;
         this.drawCenteredText(
@@ -2248,6 +2266,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             textY,
             0xffffff,
+            true,
         );
         textY += 15;
         this.drawCenteredText(
@@ -2257,6 +2276,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             textY,
             0xffffff,
+            true,
         );
         textY += 15;
 
@@ -2269,6 +2289,7 @@ export class LoginRenderer {
             this.loginBoxX + 180 - 108,
             textY,
             0xffffff,
+            true,
         );
 
         // Trust checkbox
@@ -2280,6 +2301,7 @@ export class LoginRenderer {
             this.loginBoxX + 180 - 9,
             textY,
             0xffff00,
+            true,
         );
         textY += 15;
         this.drawText(
@@ -2289,6 +2311,7 @@ export class LoginRenderer {
             this.loginBoxX + 180 - 9,
             textY,
             0xffff00,
+            true,
         );
 
         const trustTextWidth = this.measureText(this.fontBold12, "for 30 days: ");
@@ -2303,17 +2326,6 @@ export class LoginRenderer {
 
         this.drawButton(ctx, this.loginBoxX + 180 - 80, 321, "Continue");
         this.drawButton(ctx, this.loginBoxX + 180 + 80, 321, "Cancel");
-
-        if (this.fontPlain11) {
-            this.drawCenteredText(
-                ctx,
-                this.fontPlain11,
-                "Can't login? Click here.",
-                this.loginBoxX + 180,
-                357,
-                0xffffff,
-            );
-        }
     }
 
     private drawForgotPassword(ctx: RenderContext, state: LoginState): void {
@@ -2326,6 +2338,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             201,
             0xffff00,
+            true,
         );
 
         let textY = 221;
@@ -2336,6 +2349,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             textY,
             0xffffff,
+            true,
         );
         textY += 15;
         this.drawCenteredText(
@@ -2345,6 +2359,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             textY,
             0xffffff,
+            true,
         );
         textY += 15;
         this.drawCenteredText(
@@ -2354,6 +2369,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             textY,
             0xffffff,
+            true,
         );
         textY += 15;
 
@@ -2366,6 +2382,7 @@ export class LoginRenderer {
             this.loginBoxX + 180 - 108,
             textY,
             0xffffff,
+            true,
         );
 
         this.drawButton(ctx, this.loginBoxX + 180 - 80, 321, "Recover");
@@ -2379,6 +2396,7 @@ export class LoginRenderer {
                 this.loginBoxCenter,
                 356,
                 0x0fffffff,
+                true,
             );
         }
     }
@@ -2392,6 +2410,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             216,
             0xffffff,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2400,6 +2419,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             231,
             0xffffff,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2408,6 +2428,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             246,
             0xffffff,
+            true,
         );
         this.drawButton(ctx, this.loginBoxX + 180, 321, "Back");
     }
@@ -2425,6 +2446,7 @@ export class LoginRenderer {
                 this.loginBoxCenter,
                 textY,
                 0xffff00,
+                true,
             );
             textY += 15;
             this.drawCenteredText(
@@ -2434,6 +2456,7 @@ export class LoginRenderer {
                 this.loginBoxCenter,
                 textY,
                 0xffff00,
+                true,
             );
             textY += 15;
             this.drawCenteredText(
@@ -2443,6 +2466,7 @@ export class LoginRenderer {
                 this.loginBoxCenter,
                 textY,
                 0xffff00,
+                true,
             );
 
             // DOB fields would be drawn here
@@ -2457,6 +2481,7 @@ export class LoginRenderer {
                 this.loginBoxX + 180,
                 216,
                 0xffff00,
+                true,
             );
             this.drawButton(ctx, this.loginBoxX + 180 - 80, 321, "Set Date of Birth");
             this.drawButton(ctx, this.loginBoxX + 180 + 80, 321, "Back");
@@ -2472,6 +2497,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             216,
             0xffff00,
+            true,
         );
         this.drawButton(ctx, this.loginBoxX + 180, 301, "Ok");
     }
@@ -2485,6 +2511,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             216,
             0xffffff,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2493,6 +2520,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             231,
             0xffffff,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2501,6 +2529,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             246,
             0xffffff,
+            true,
         );
         this.drawButton(ctx, this.loginBoxX + 180, 311, "Try Again");
     }
@@ -2514,6 +2543,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             209,
             0xffff00,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2522,6 +2552,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             229,
             0xffffff,
+            true,
         );
         this.drawButton(ctx, this.loginBoxX + 180, 311, "Play");
     }
@@ -2535,6 +2566,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             201,
             0xffff00,
+            true,
         );
         this.drawButton(ctx, this.loginBoxCenter - 80, 311, "Accept");
         this.drawButton(ctx, this.loginBoxCenter + 80, 311, "Decline");
@@ -2549,6 +2581,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             216,
             0xffff00,
+            true,
         );
         this.drawButton(ctx, this.loginBoxX + 180, 311, "Back");
     }
@@ -2562,6 +2595,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             201,
             0xffff00,
+            true,
         );
         this.drawButton(ctx, this.loginBoxX + 180, 276, "Appeal");
         this.drawButton(ctx, this.loginBoxX + 180, 326, "Back");
@@ -2576,6 +2610,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             221,
             0xffffff,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2584,6 +2619,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             236,
             0xffffff,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2592,6 +2628,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             251,
             0xffffff,
+            true,
         );
         this.drawButton(ctx, this.loginBoxX + 180, 301, "Ok");
     }
@@ -2605,6 +2642,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             216,
             0xffff00,
+            true,
         );
         this.drawButton(ctx, this.loginBoxX + 180 - 80, 321, "Set Date of Birth");
         this.drawButton(ctx, this.loginBoxX + 180 + 80, 321, "Back");
@@ -2619,6 +2657,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             201,
             0xffff00,
+            true,
         );
         this.drawButton(ctx, this.loginBoxX + 180, 276, "Download Launcher");
         this.drawButton(ctx, this.loginBoxX + 180, 326, "Back");
@@ -2634,6 +2673,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             201,
             0xffff00,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2642,6 +2682,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             236,
             0xffffff,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2650,6 +2691,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             251,
             0xffffff,
+            true,
         );
         this.drawCenteredText(
             ctx,
@@ -2658,6 +2700,7 @@ export class LoginRenderer {
             this.loginBoxX + 180,
             266,
             0xffffff,
+            true,
         );
         this.drawButton(ctx, this.loginBoxCenter - 80, 321, "Continue");
         this.drawButton(ctx, this.loginBoxCenter + 80, 321, "Cancel");
@@ -3846,7 +3889,7 @@ export class LoginRenderer {
         const buttonY = Math.floor(centerY - buttonH / 2);
 
         this.drawSprite(ctx, this.titlebuttonSprite, buttonX, buttonY);
-        this.drawCenteredText(ctx, font, text, centerX, centerY + 5, 0xffffff);
+        this.drawCenteredText(ctx, font, text, centerX, centerY + 5, 0xffffff, true);
     }
 
     private drawSprite(ctx: RenderContext, sprite: IndexedSprite, x: number, y: number): void {
@@ -3917,9 +3960,10 @@ export class LoginRenderer {
         x: number,
         y: number,
         color: number,
+        shadowed: boolean = false,
     ): void {
         const textWidth = this.measureText(font, text);
-        this.drawText(ctx, font, text, x - Math.floor(textWidth / 2), y, color);
+        this.drawText(ctx, font, text, x - Math.floor(textWidth / 2), y, color, shadowed);
     }
 
     /** Performance: cached text measurement to avoid repeated font.measure() calls */
@@ -3945,7 +3989,14 @@ export class LoginRenderer {
         x: number,
         y: number,
         color: number,
+        shadowed: boolean = false,
     ): void {
+        // The native title screen draws login-box text with a black +1,+1 shadow
+        // (AbstractFont.draw(..., color, 0)); world select and the loading bar
+        // pass -1 (no shadow).
+        if (shadowed) {
+            font.draw(ctx, text, x + 1, y + 1, "#000000");
+        }
         const colorStr = "#" + (color & 0xffffff).toString(16).padStart(6, "0");
         font.draw(ctx, text, x, y, colorStr);
     }
