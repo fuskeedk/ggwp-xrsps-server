@@ -462,13 +462,20 @@ export class CombatEffectService {
 
     // ── NPC Animation ───────────────────────────────────────────────
 
-    broadcastNpcSequence(npc: NpcState, seqId: number | undefined): void {
+    broadcastNpcSequence(
+        npc: NpcState,
+        seqId: number | undefined,
+        opts?: { yieldToExisting?: boolean },
+    ): void {
         if (seqId === undefined || seqId < 0) return;
         const frame = this.svc.activeFrame;
         if (!frame) return;
         const id = npc.id;
         const existing = frame.npcUpdates.find((d: { id?: number; seq?: number }) => d?.id === id);
         if (existing?.seq !== undefined && existing.seq >= 0) {
+            // Interruptible sequences (e.g. blocks) never replace a sequence
+            // already broadcast this tick - attack animations win over blocks.
+            if (opts?.yieldToExisting) return;
             const existingPriority = this.getSeqForcedPriority(existing.seq);
             const newPriority = this.getSeqForcedPriority(seqId);
             if (newPriority >= existingPriority) {

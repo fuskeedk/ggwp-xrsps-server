@@ -171,6 +171,8 @@ export class PvpCombatHandler {
         this.services.applySmite(player, target, targetHitsplat.amount);
         this.services.tryActivateRedemption(target);
         this.services.closeInterruptibleInterfaces(target);
+        // Being attacked interrupts weak queue tasks (e.g. Home Teleport)
+        target.interruptWeakQueues();
 
         this.services.log(
             "info",

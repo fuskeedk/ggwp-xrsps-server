@@ -1307,7 +1307,6 @@ export class PlayerCombatManager {
                 style: plan.hitsplatStyle,
                 attackDelay: plan.attackDelay,
                 hitDelay: plan.hitDelay,
-                // RSMod parity: retaliateDamage calculated at hit confirm, not here
                 retaliationDelay: plan.retaliationDelay,
                 expectedHitTick,
                 landed: !!plan.hitLanded,

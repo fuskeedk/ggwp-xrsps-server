@@ -1129,6 +1129,9 @@ function executeTeleport(
         return;
     }
 
+    // Casting is player input: cancels weak queue tasks (e.g. an in-progress Home Teleport)
+    player.interruptWeakQueues();
+
     const requestTeleportAction = services.movement.requestTeleportAction;
     if (!requestTeleportAction) {
         services.system.logger.warn?.(

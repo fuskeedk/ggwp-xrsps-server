@@ -101,6 +101,8 @@ export interface MessageHandlerServices {
     ) => void;
     clearPendingWalkCommand: (ws: WebSocket) => void;
     clearActionsInGroup: (playerId: number, group: string) => number;
+    /** Clears the weak class of pending behavior (weak queue tasks + interruptible actions). */
+    interruptPlayerInput: (player: PlayerState) => number;
     canUseAdminTeleport: (player: PlayerState) => boolean;
     teleportPlayer: (
         player: PlayerState,

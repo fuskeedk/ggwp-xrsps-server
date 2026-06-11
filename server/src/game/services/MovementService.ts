@@ -131,8 +131,7 @@ export class MovementService {
         }
 
         try {
-            this.services.actionScheduler.clearActionsInGroup(player.id, "skill.woodcut");
-            this.services.actionScheduler.clearActionsInGroup(player.id, "inventory");
+            this.services.actionScheduler.cancelInterruptibleActions(player.id);
             player.clearInteraction();
             player.stopAnimation();
             player.clearWalkDestination();

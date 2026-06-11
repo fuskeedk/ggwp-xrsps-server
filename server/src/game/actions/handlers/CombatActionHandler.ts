@@ -263,7 +263,11 @@ export interface CombatActionServices {
     /** Resolve NPC's attack range. */
     resolveNpcAttackRange(npc: NpcState, attackType: AttackType): number;
     /** Broadcast NPC sequence animation. */
-    broadcastNpcSequence(npc: NpcState, seqId: number): void;
+    broadcastNpcSequence(
+        npc: NpcState,
+        seqId: number,
+        opts?: { yieldToExisting?: boolean },
+    ): void;
     /** Estimate NPC despawn delay from death sequence. */
     estimateNpcDespawnDelayTicksFromSeq(seqId: number | undefined): number;
 
@@ -661,8 +665,8 @@ export class CombatActionHandler {
                 svc.combatEffectService.pickNpcHitDelay(npc, player, attackSpeed),
             resolveNpcAttackRange: (npc, attackType) =>
                 svc.combatEffectService.resolveNpcAttackRange(npc, attackType),
-            broadcastNpcSequence: (npc, seqId) =>
-                svc.combatEffectService.broadcastNpcSequence(npc, seqId),
+            broadcastNpcSequence: (npc, seqId, opts) =>
+                svc.combatEffectService.broadcastNpcSequence(npc, seqId, opts),
             estimateNpcDespawnDelayTicksFromSeq: (seqId) =>
                 svc.combatEffectService.estimateNpcDespawnDelayTicksFromSeq(seqId),
 
@@ -1211,7 +1215,8 @@ export class CombatActionHandler {
                     hitData,
                     scheduleTick,
                 );
-                if (inlineResult.effects?.length) {
+                // Outside an active frame the hit handler dispatches its own effects.
+                if (inlineResult.effects?.length && this.subServices.isActiveFrame()) {
                     effects.push(...inlineResult.effects);
                 }
             } else {

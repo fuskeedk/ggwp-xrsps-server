@@ -65,6 +65,8 @@ export class NpcRetaliationHandler {
         );
         this.services.tryActivateRedemption(player);
         this.services.closeInterruptibleInterfaces(player);
+        // Being attacked interrupts weak queue tasks (e.g. Home Teleport)
+        player.interruptWeakQueues();
 
         npc.engageCombat(player.id, tick);
 
@@ -76,7 +78,7 @@ export class NpcRetaliationHandler {
         if (!player.hasPendingSeq()) {
             const blockSeqCandidate = this.services.pickBlockSequence(player);
             const blockSeq = blockSeqCandidate >= 0 ? blockSeqCandidate : DEFAULT_BLOCK_SEQ;
-            player.queueOneShotSeq(blockSeq, 0);
+            player.queueOneShotSeq(blockSeq, 0, { interruptible: true });
         }
 
         // Handle auto-retaliate
@@ -207,7 +209,8 @@ export class NpcRetaliationHandler {
             // action would land a tick late; resolve the hit inline instead so the
             // hitsplat is broadcast in the same cycle as the swing animation.
             const hitResult = this.executeCombatNpcRetaliateAction(player, hitData, tick);
-            if (hitResult.effects?.length) {
+            // Outside an active frame the hit handler dispatches its own effects.
+            if (hitResult.effects?.length && this.services.isActiveFrame()) {
                 effects.push(...hitResult.effects);
             }
         } else {

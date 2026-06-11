@@ -667,14 +667,6 @@ export class CombatEngine {
         );
     }
 
-    /**
-     * @deprecated Use computeHitDelay instead - this is kept for backwards compatibility
-     */
-    private pickHitDelay(_player: PlayerState, _npc?: NpcState): number {
-        // melee hits have a 1 tick delay
-        return 1;
-    }
-
     private getTileDistance(player: PlayerState, npc: NpcState): number {
         const px = player.tileX;
         const py = player.tileY;

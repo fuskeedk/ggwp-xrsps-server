@@ -489,10 +489,21 @@ export class PlayerState extends Actor {
     }
 
     /**
-     * Terminate all queued tasks.
+     * Terminate all queued tasks regardless of priority.
+     * Reserved for hard resets like death — player input must use
+     * interruptWeakQueues() so standard/strong tasks (queued damage,
+     * level-ups, death) survive.
      */
     interruptQueues(): void {
         this.taskQueue.terminateTasks();
+    }
+
+    /**
+     * Terminate weak queued tasks only.
+     * Called on player input: walk clicks, new interactions, teleport requests.
+     */
+    interruptWeakQueues(): void {
+        this.taskQueue.terminateWeakTasks();
     }
 
     // ========================================================================

@@ -146,7 +146,11 @@ export class NpcHitHandler {
         if (npcHitsplat.hpCurrent > 0) {
             const npcCombatSeq = this.services.getNpcCombatSequences(npc.typeId);
             if (npcCombatSeq?.block !== undefined) {
-                this.services.broadcastNpcSequence(npc, npcCombatSeq.block);
+                // Blocks never replace a sequence already broadcast this tick
+                // (e.g. the NPC's own attack when the hit lands on its swing tick).
+                this.services.broadcastNpcSequence(npc, npcCombatSeq.block, {
+                    yieldToExisting: true,
+                });
             }
         }
 
