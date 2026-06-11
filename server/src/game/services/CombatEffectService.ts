@@ -438,7 +438,8 @@ export class CombatEffectService {
                 return Math.max(1, 1 + Math.floor((3 + distance) / 6));
             case AttackType.Melee:
             default:
-                return 1;
+                // Melee hits resolve on the swing tick itself.
+                return 0;
         }
     }
 

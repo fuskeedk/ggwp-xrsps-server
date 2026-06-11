@@ -12,6 +12,7 @@ import * as CombatFormulas from "../../combat/CombatFormulaProvider";
 import { MagicStyle, MeleeStyle, RangedStyle } from "../../combat/CombatXp";
 import type { MagicStyleMode, MeleeStyleMode, RangedStyleMode } from "../../combat/CombatXp";
 import {
+    type EquipmentBonusResult,
     type SlayerTaskInfo,
     type TargetInfo,
     calculateEquipmentBonuses,
@@ -177,22 +178,6 @@ export interface PlayerAttackModifiers {
     accuracyMultiplier?: number;
     maxHitMultiplier?: number;
     forceHit?: boolean;
-}
-
-export interface NpcRetaliationPlan {
-    damage: number;
-    maxHit: number;
-    style: number;
-    hitDelay: number;
-    attackType: AttackType;
-}
-
-export interface NpcRetaliationContext {
-    player: PlayerState;
-    npc: NpcState;
-    attackSpeed: number;
-    pickNpcHitDelay?: (npc: NpcState, player: PlayerState, attackSpeed: number) => number;
-    attackTypeOverride?: AttackType;
 }
 
 // Re-export NpcCombatProfile from npc.ts for backward compatibility
@@ -362,19 +347,22 @@ export class CombatEngine {
         modifiers?: PlayerAttackModifiers,
     ): PlayerAttackPlan {
         const attackSpeed = Math.max(1, context.attackSpeed);
-        const baseProfile = this.computePlayerAttackProfile(context);
         const equipment = this.getPlayerEquipment(context.player);
         const targetInfo = this.buildTargetInfo(context.npc);
         const slayerTask = this.getSlayerTaskInfo(context.player);
         const hp = this.getPlayerHitpoints(context.player);
         const playerMagicLevel = this.getBoostedLevel(context.player, SkillId.Magic);
+        // Equipment effects are resolved before the attack profile because
+        // void scales the effective level inside the profile computation.
+        const styleKind = this.resolveAttackStyle(
+            context.player,
+            this.aggregatePlayerBonuses(context.player),
+        ).kind;
         const activeSpellId =
-            baseProfile.style.kind === AttackType.Magic
-                ? this.getActiveSpellId(context.player)
-                : undefined;
+            styleKind === AttackType.Magic ? this.getActiveSpellId(context.player) : undefined;
         const equipmentBonuses = calculateEquipmentBonuses(
             equipment,
-            baseProfile.style.kind,
+            styleKind,
             targetInfo,
             slayerTask,
             hp.current,
@@ -382,6 +370,7 @@ export class CombatEngine {
             playerMagicLevel,
             activeSpellId,
         );
+        const baseProfile = this.computePlayerAttackProfile(context, equipmentBonuses);
         const accuracyMultiplierRaw = modifiers?.accuracyMultiplier;
         const accuracyMultiplier = Number.isFinite(accuracyMultiplierRaw)
             ? accuracyMultiplierRaw
@@ -408,12 +397,11 @@ export class CombatEngine {
         const hitChance = forceHit
             ? 1
             : this.computeHitChance(attackProfile.attackRoll, defenceRoll);
-        // Hit delays are now computed using authentic RSMod formulas
-        // Melee: 0 ticks, Ranged: 1 + floor((3+dist)/6), Magic: 1 + floor((1+dist)/3)
-        // CRITICAL: All player hits on NPCs get +1 tick delay because NPCs process before players.
-        // Reference: docs/tick-cycle-order.md, docs/osrs-mechanics.md
-        const baseHitDelay = this.computeHitDelay(context, attackProfile.style);
-        const hitDelay = baseHitDelay + 1; // +1 for NPC target
+        // Hit delays relative to the attack tick:
+        // Melee: 0 ticks, Ranged: 1 + floor((3+dist)/6), Magic: 1 + floor((1+dist)/3).
+        // A 0-tick hit resolves inline on the attack tick, so the hitsplat is
+        // broadcast in the same cycle as the attack animation.
+        const hitDelay = this.computeHitDelay(context, attackProfile.style);
         const roll = this.rng.next();
         const hitLanded = forceHit ? true : roll < hitChance;
         let damage = hitLanded ? this.rollDamage(Math.max(0, maxHit)) : 0;
@@ -557,51 +545,6 @@ export class CombatEngine {
             projectile: projectilePlan,
             ammoEffect,
             additionalHits,
-        };
-    }
-
-    planNpcRetaliation(context: NpcRetaliationContext): NpcRetaliationPlan {
-        const attackSpeed = Math.max(1, context.attackSpeed);
-        // Use NPC's owned combat profile directly (loaded at spawn)
-        const profile = context.npc.combat;
-
-        // Determine attack type from profile
-        const attackType: AttackType = context.attackTypeOverride ?? profile.attackType;
-
-        // NPC retaliation hit delay from swing to impact.
-        const hitDelay = Math.max(
-            1,
-            context.pickNpcHitDelay?.(context.npc, context.player, attackSpeed) ??
-                this.pickDefaultNpcHitDelay(context.npc, context.player, attackSpeed, attackType),
-        );
-
-        // Use CombatFormulas for hit chance and max hit calculation
-        const playerDefenceLevel = this.getBoostedLevel(context.player, SkillId.Defence);
-        const playerMagicLevel = this.getBoostedLevel(context.player, SkillId.Magic);
-        const playerDefenceBonus = this.getPlayerDefenceBonus(context.player, attackType);
-
-        const combatResult = CombatFormulas.calculateNpcVsPlayer(
-            profile,
-            {
-                defenceLevel: playerDefenceLevel,
-                magicLevel: playerMagicLevel,
-                defenceBonus: playerDefenceBonus,
-            },
-            attackType,
-        );
-
-        // Roll hit and damage
-        const hitLanded = this.rng.next() < combatResult.hitChance;
-        const damage = hitLanded
-            ? CombatFormulas.rollDamage(combatResult.maxHit, this.rng.next())
-            : 0;
-
-        return {
-            damage,
-            maxHit: combatResult.maxHit,
-            style: hitLanded ? HITMARK_DAMAGE : HITMARK_BLOCK,
-            hitDelay,
-            attackType,
         };
     }
 
@@ -1017,16 +960,9 @@ export class CombatEngine {
     }
 
     /**
-     * Resolve the NPC's max hit from profile or estimate from combat level.
-     * In OSRS, NPC max hits are defined per-NPC in the cache/wiki data.
-     *
-     * OSRS NPC Max Hit Formula (melee):
-     * effectiveStrength = strengthLevel + 8 + stanceBonus (NPCs typically +3 aggressive)
-     * maxHit = floor(0.5 + effectiveStrength * (strengthBonus + 64) / 640)
-     *
-     * For NPCs without explicit strength bonus, assume strengthBonus = 0:
-     * maxHit = floor(0.5 + effectiveStrength * 64 / 640)
-     * maxHit = floor(0.5 + effectiveStrength / 10)
+     * Resolve the NPC's max hit from profile or estimate from its strength level.
+     * NPC max hits are defined per-NPC in the cache/wiki data; the formula is the
+     * fallback. NPC effective levels are level + 9 (8 + the fixed +1 stance bonus).
      */
     private resolveNpcMaxHit(profile: NpcCombatProfile | undefined, npc: NpcState): number {
         // Use explicit maxHit from profile if provided
@@ -1034,11 +970,8 @@ export class CombatEngine {
             return profile.maxHit;
         }
 
-        // Calculate from strength level using RSMod formula
-        // RSMod: effectiveStrength = strengthLevel + 8 (no stance bonus for NPCs)
         if (profile?.strengthLevel !== undefined && profile.strengthLevel > 0) {
-            const strengthLevel = profile.strengthLevel;
-            const effectiveStrength = strengthLevel + 8;
+            const effectiveStrength = CombatFormulas.npcEffectiveStrength(profile.strengthLevel);
             const strengthBonus = profile.strengthBonus ?? 0;
             const maxHit = Math.floor(0.5 + (effectiveStrength * (strengthBonus + 64)) / 640);
             return Math.max(1, maxHit);
@@ -1065,12 +998,21 @@ export class CombatEngine {
                 return Math.max(1, 1 + Math.floor((3 + distance) / 6));
             case AttackType.Melee:
             default:
-                // NPC melee retaliation hit resolves 1 tick after swing.
-                return 1;
+                // NPC melee retaliation hits resolve on the swing tick itself.
+                return 0;
         }
     }
 
-    private computePlayerAttackProfile(context: PlayerAttackContext): {
+    /** Apply a void-style effective-level multiplier, flooring the result. */
+    private applyEffectiveLevelMultiplier(level: number, multiplier?: number): number {
+        if (multiplier === undefined || multiplier === 1) return level;
+        return Math.floor(level * Math.max(0, multiplier));
+    }
+
+    private computePlayerAttackProfile(
+        context: PlayerAttackContext,
+        equipmentEffects?: EquipmentBonusResult,
+    ): {
         style: AttackStyle;
         attackRoll: number;
         maxHit: number;
@@ -1079,20 +1021,28 @@ export class CombatEngine {
         const equipmentBonuses = this.aggregatePlayerBonuses(context.player);
         const style = this.resolveAttackStyle(context.player, equipmentBonuses);
         const stanceBonus = this.resolveStanceBonuses(context.player, style);
+        const accuracyLevelMultiplier = equipmentEffects?.accuracyLevelMultiplier;
+        const strengthLevelMultiplier = equipmentEffects?.strengthLevelMultiplier;
         switch (style.kind) {
             case AttackType.Ranged: {
-                const effectiveLevel = this.computeEffectiveLevel(
-                    this.getBoostedLevel(context.player, SkillId.Ranged),
-                    this.getPrayerMultiplier(context.player, "ranged"),
-                    stanceBonus.ranged ?? 0,
+                const effectiveLevel = this.applyEffectiveLevelMultiplier(
+                    this.computeEffectiveLevel(
+                        this.getBoostedLevel(context.player, SkillId.Ranged),
+                        this.getPrayerMultiplier(context.player, "ranged"),
+                        stanceBonus.ranged ?? 0,
+                    ),
+                    accuracyLevelMultiplier,
                 );
                 const attackBonus = equipmentBonuses[style.bonusIndex] ?? 0;
                 const attackRoll = effectiveLevel * Math.max(0, attackBonus + 64);
 
-                const effectiveStrength = this.computeEffectiveLevel(
-                    this.getBoostedLevel(context.player, SkillId.Ranged),
-                    this.getPrayerMultiplier(context.player, "ranged_strength"),
-                    stanceBonus.rangedStrength ?? 0,
+                const effectiveStrength = this.applyEffectiveLevelMultiplier(
+                    this.computeEffectiveLevel(
+                        this.getBoostedLevel(context.player, SkillId.Ranged),
+                        this.getPrayerMultiplier(context.player, "ranged_strength"),
+                        stanceBonus.rangedStrength ?? 0,
+                    ),
+                    strengthLevelMultiplier,
                 );
                 const rangedStrengthBonus = equipmentBonuses[RANGED_STRENGTH_INDEX] ?? 0;
                 const maxHit = Math.floor(
@@ -1108,7 +1058,13 @@ export class CombatEngine {
                     stanceBonus.magic ?? 0,
                 );
                 const attackBonus = equipmentBonuses[style.bonusIndex] ?? 0;
-                const attackRoll = effectiveLevel * Math.max(0, attackBonus + 64);
+                // Void scales the accuracy level only; powered-staff base damage
+                // continues to use the unscaled effective magic level.
+                const accuracyLevel = this.applyEffectiveLevelMultiplier(
+                    effectiveLevel,
+                    accuracyLevelMultiplier,
+                );
+                const attackRoll = accuracyLevel * Math.max(0, attackBonus + 64);
 
                 const magicDamagePct = equipmentBonuses[MAGIC_DAMAGE_INDEX] ?? 0;
                 const baseDamage = this.resolveMagicBaseDamage(context.player, effectiveLevel);
@@ -1119,18 +1075,24 @@ export class CombatEngine {
                 return { style, attackRoll, maxHit, equipmentBonuses };
             }
             case AttackType.Melee: {
-                const effectiveAttack = this.computeEffectiveLevel(
-                    this.getBoostedLevel(context.player, SkillId.Attack),
-                    this.getPrayerMultiplier(context.player, "attack"),
-                    stanceBonus.attack ?? 0,
+                const effectiveAttack = this.applyEffectiveLevelMultiplier(
+                    this.computeEffectiveLevel(
+                        this.getBoostedLevel(context.player, SkillId.Attack),
+                        this.getPrayerMultiplier(context.player, "attack"),
+                        stanceBonus.attack ?? 0,
+                    ),
+                    accuracyLevelMultiplier,
                 );
                 const attackBonus = equipmentBonuses[style.bonusIndex] ?? 0;
                 const attackRoll = effectiveAttack * Math.max(0, attackBonus + 64);
 
-                const effectiveStrength = this.computeEffectiveLevel(
-                    this.getBoostedLevel(context.player, SkillId.Strength),
-                    this.getPrayerMultiplier(context.player, "strength"),
-                    stanceBonus.strength ?? 0,
+                const effectiveStrength = this.applyEffectiveLevelMultiplier(
+                    this.computeEffectiveLevel(
+                        this.getBoostedLevel(context.player, SkillId.Strength),
+                        this.getPrayerMultiplier(context.player, "strength"),
+                        stanceBonus.strength ?? 0,
+                    ),
+                    strengthLevelMultiplier,
                 );
                 const meleeStrengthBonus = equipmentBonuses[MELEE_STRENGTH_INDEX] ?? 0;
                 const maxHit = Math.floor(
@@ -1167,11 +1129,11 @@ export class CombatEngine {
                 return effectiveMagicDefence * Math.max(0, defenceBonus + 64);
             }
             case AttackType.Ranged: {
-                const effectiveRangedDefence = this.computeEffectiveLevel(defenceLevel, 1, 0);
+                const effectiveRangedDefence = CombatFormulas.npcEffectiveDefence(defenceLevel);
                 return effectiveRangedDefence * Math.max(0, defenceBonus + 64);
             }
             case AttackType.Melee: {
-                const effectiveDefence = this.computeEffectiveLevel(defenceLevel, 1, 0);
+                const effectiveDefence = CombatFormulas.npcEffectiveDefence(defenceLevel);
                 return effectiveDefence * Math.max(0, defenceBonus + 64);
             }
         }
@@ -1441,6 +1403,52 @@ export class CombatEngine {
         return bestIdx as AttackBonusIndex.Stab | AttackBonusIndex.Slash | AttackBonusIndex.Crush;
     }
 
+    /**
+     * Roll an NPC's hit on a player using the NPC's combat profile and the
+     * player's current defence state. Returns 0 on a miss.
+     * Public for use by PlayerCombatManager.
+     */
+    rollNpcVsPlayerDamage(
+        npc: NpcState,
+        player: PlayerState,
+        attackTypeOverride?: AttackType,
+    ): number {
+        const profile = npc.combat;
+        const attackType = attackTypeOverride ?? profile.attackType;
+        const result = CombatFormulas.calculateNpcVsPlayer(
+            profile,
+            this.buildPlayerDefenceProfile(player, attackType),
+            attackType,
+        );
+        if (this.rng.next() >= result.hitChance) {
+            return 0;
+        }
+        return CombatFormulas.rollDamage(result.maxHit, this.rng.next());
+    }
+
+    /**
+     * Build the defender-side profile for NPC-vs-player rolls: boosted levels,
+     * defence bonus vs the incoming attack type, defence/magic prayer multipliers,
+     * and the defence stance bonus from the player's current combat style.
+     * Public for use by PlayerCombatManager.
+     */
+    buildPlayerDefenceProfile(
+        player: PlayerState,
+        attackType: AttackType,
+    ): CombatFormulas.PlayerDefenceProfile {
+        const bonuses = this.aggregatePlayerBonuses(player);
+        const style = this.resolveAttackStyle(player, bonuses);
+        const stance = this.resolveStanceBonuses(player, style);
+        return {
+            defenceLevel: this.getBoostedLevel(player, SkillId.Defence),
+            magicLevel: this.getBoostedLevel(player, SkillId.Magic),
+            defenceBonus: this.getPlayerDefenceBonus(player, attackType),
+            defencePrayerMultiplier: this.getPrayerMultiplier(player, "defence"),
+            magicPrayerMultiplier: this.getPrayerMultiplier(player, "magic"),
+            defenceStanceBonus: stance.defence ?? 0,
+        };
+    }
+
     /** Get player's boosted skill level. Public for use by PlayerCombatManager. */
     getBoostedLevel(player: PlayerState, skill: SkillId): number {
         const entry = player.skillSystem.getSkill(skill);
@@ -1531,24 +1539,4 @@ export class CombatEngine {
         return bonuses[defenceIndex] ?? 0;
     }
 
-    /**
-     * Compute player's defence roll against an NPC attack.
-     * Magic defence uses 70% magic, 30% defence.
-     */
-    private computePlayerDefenceRoll(
-        defenceLevel: number,
-        magicLevel: number,
-        defenceBonus: number,
-        attackType: AttackType,
-    ): number {
-        let effectiveDefence: number;
-        if (attackType === AttackType.Magic) {
-            // OSRS: Magic defence = floor(magic * 0.7 + defence * 0.3) + 8
-            effectiveDefence = Math.floor(magicLevel * 0.7 + defenceLevel * 0.3) + 8;
-        } else {
-            // Melee/ranged defence = defence level + 8
-            effectiveDefence = defenceLevel + 8;
-        }
-        return effectiveDefence * Math.max(0, defenceBonus + 64);
-    }
 }

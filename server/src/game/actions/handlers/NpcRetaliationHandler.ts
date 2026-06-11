@@ -50,27 +50,16 @@ export class NpcRetaliationHandler {
             style = HITMARK_DAMAGE,
             type2: rawType2,
             damage2: rawDamage2,
-            attackType: rawAttackType,
         } = data;
         const damage = Math.max(0, rawDamage);
         const maxHit = Math.max(0, rawMaxHit);
-        const attackType = this.services.resolveNpcAttackType(
-            npc,
-            this.services.normalizeAttackType(rawAttackType) ?? undefined,
-        );
-        const mitigatedDamage = this.services.applyProtectionPrayers(
-            player,
-            damage,
-            attackType,
-            "npc",
-        );
         const type2 = Number.isFinite(rawType2) ? rawType2 : undefined;
         const damage2 = Number.isFinite(rawDamage2) ? rawDamage2 : undefined;
 
         const playerHitsplat = this.services.applyPlayerHitsplat(
             player,
             style,
-            mitigatedDamage,
+            damage,
             tick,
             maxHit,
         );
@@ -175,8 +164,8 @@ export class NpcRetaliationHandler {
             npc.popPendingSeq();
         }
 
-        // Schedule hit.
-        // Melee retaliation hits resolve 1 tick after swing; ranged/magic keep their travel delay.
+        // Resolve the hit. Melee hits resolve on the swing tick itself;
+        // ranged/magic hits keep their projectile travel delay.
 
         // Compute damage if not provided (e.g., for aggression-initiated attacks)
         const {
@@ -186,7 +175,7 @@ export class NpcRetaliationHandler {
             style = HITMARK_DAMAGE,
             type2: rawType2,
             damage2: rawDamage2,
-            hitDelay: rawHitDelay = 1,
+            hitDelay: rawHitDelay,
         } = data;
         let damage = Math.max(0, rawDamage);
         const maxHit = Math.max(0, rawMaxHit);
@@ -194,36 +183,53 @@ export class NpcRetaliationHandler {
             // Roll NPC damage for aggression attack using actual NPC stats
             damage = this.services.rollRetaliateDamage(npc, player);
         }
+        // Protection prayers are evaluated on the swing tick; toggling them after
+        // the swing does not change the already-queued hit.
+        damage = this.services.applyProtectionPrayers(player, damage, attackType, "npc");
         const type2 = Number.isFinite(rawType2) ? rawType2 : undefined;
         const damage2 = Number.isFinite(rawDamage2) ? rawDamage2 : undefined;
-        const hitDelay = Math.max(1, rawHitDelay);
-        const enqueueResult = this.services.scheduleAction(
-            player.id,
-            {
-                kind: "combat.npcRetaliate",
-                data: {
-                    npcId: npc.id,
-                    damage,
-                    maxHit,
-                    style,
-                    type2,
-                    damage2,
-                    attackType,
-                    phase: "hit",
-                },
-                groups: ["combat.retaliate"],
-                cooldownTicks: 0,
-                delayTicks: hitDelay,
-            },
-            tick,
+        const hitDelay = Math.max(
+            0,
+            rawHitDelay ?? this.services.pickNpcHitDelay(npc, player, npc.attackSpeed),
         );
-        if (!enqueueResult.ok) {
-            this.services.log(
-                "warn",
-                `[combat] failed to schedule npc retaliation hit (player=${player.id}, npc=${
-                    npc.id
-                }): ${enqueueResult.reason ?? "unknown"}`,
+        const hitData = {
+            npcId: npc.id,
+            damage,
+            maxHit,
+            style,
+            type2,
+            damage2,
+            attackType,
+            phase: "hit" as const,
+        };
+        if (hitDelay <= 0) {
+            // The scheduler drains its queue once per tick, so a queued 0-delay
+            // action would land a tick late; resolve the hit inline instead so the
+            // hitsplat is broadcast in the same cycle as the swing animation.
+            const hitResult = this.executeCombatNpcRetaliateAction(player, hitData, tick);
+            if (hitResult.effects?.length) {
+                effects.push(...hitResult.effects);
+            }
+        } else {
+            const enqueueResult = this.services.scheduleAction(
+                player.id,
+                {
+                    kind: "combat.npcRetaliate",
+                    data: hitData,
+                    groups: ["combat.retaliate"],
+                    cooldownTicks: 0,
+                    delayTicks: hitDelay,
+                },
+                tick,
             );
+            if (!enqueueResult.ok) {
+                this.services.log(
+                    "warn",
+                    `[combat] failed to schedule npc retaliation hit (player=${player.id}, npc=${
+                        npc.id
+                    }): ${enqueueResult.reason ?? "unknown"}`,
+                );
+            }
         }
 
         if (!this.services.isActiveFrame() && effects.length > 0) {

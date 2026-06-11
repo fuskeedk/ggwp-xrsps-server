@@ -258,6 +258,8 @@ export interface CombatActionServices {
     getNpcAttackSoundId(typeId: number): number;
     /** Resolve NPC's attack type. */
     resolveNpcAttackType(npc: NpcState, hint?: AttackType): AttackType;
+    /** Resolve the NPC's swing-to-impact hit delay (0 for melee). */
+    pickNpcHitDelay(npc: NpcState, player: PlayerState, attackSpeed: number): number;
     /** Resolve NPC's attack range. */
     resolveNpcAttackRange(npc: NpcState, attackType: AttackType): number;
     /** Broadcast NPC sequence animation. */
@@ -655,6 +657,8 @@ export class CombatActionHandler {
                 svc.combatDataService.getNpcAttackSoundId({ typeId } as unknown as NpcState),
             resolveNpcAttackType: (npc, hint) =>
                 svc.combatEffectService.resolveNpcAttackType(npc, hint),
+            pickNpcHitDelay: (npc, player, attackSpeed) =>
+                svc.combatEffectService.pickNpcHitDelay(npc, player, attackSpeed),
             resolveNpcAttackRange: (npc, attackType) =>
                 svc.combatEffectService.resolveNpcAttackRange(npc, attackType),
             broadcastNpcSequence: (npc, seqId) =>
@@ -1127,7 +1131,7 @@ export class CombatActionHandler {
         let fallbackHitDelay =
             minimumProjectileHitDelay !== undefined
                 ? minimumProjectileHitDelay
-                : Math.max(1, this.svc.playerCombatService!.pickHitDelay(player));
+                : Math.max(0, this.svc.playerCombatService!.pickHitDelay(player));
 
         // Award magic base XP on cast
         // Skip if onMagicAttack already awarded base XP at schedule time (prevents double XP)
@@ -1152,7 +1156,7 @@ export class CombatActionHandler {
                 spellId,
                 ammoEffect,
             } = entryData;
-            const hitDelay = Math.max(1, Math.ceil(rawHitDelay), minimumProjectileHitDelay ?? 0);
+            const hitDelay = Math.max(0, Math.ceil(rawHitDelay), minimumProjectileHitDelay ?? 0);
             const damage = Math.max(0, rawDamage);
             const maxHit = Math.max(0, rawMaxHit);
             const style = explicitStyle ?? (damage > 0 || landed ? HITMARK_DAMAGE : HITMARK_BLOCK);
@@ -1163,14 +1167,8 @@ export class CombatActionHandler {
                 expectedHitTick !== undefined
                     ? Math.max(minimumExpectedHitTick, expectedHitTick)
                     : minimumExpectedHitTick;
-            let retaliateDamage = hitPayload.retaliateDamage;
-            if (retaliateDamage === undefined) {
-                retaliateDamage = this.svc.playerCombatManager?.rollRetaliateDamage(npc, player);
-            }
-            if (retaliateDamage === undefined) {
-                retaliateDamage = 0;
-            }
-            retaliateDamage = Math.max(0, retaliateDamage);
+            // NPC retaliation damage is rolled at swing time in NpcRetaliationHandler,
+            // so it reflects the player's prayers and gear when the NPC attacks.
             const totalRetaliationDelay = Math.max(1, hitPayload.retaliationDelay ?? attackDelay);
 
             const hitData = {
@@ -1182,7 +1180,6 @@ export class CombatActionHandler {
                 damage2,
                 attackDelay,
                 hitDelay,
-                retaliateDamage,
                 retaliationDelay: Math.max(0, totalRetaliationDelay - hitDelay),
                 retaliationTotalDelay: totalRetaliationDelay,
                 expectedHitTick: resolvedExpectedHitTick,
@@ -1195,32 +1192,51 @@ export class CombatActionHandler {
                 hitIndex: hitIndex++,
                 xpGrantedOnAttack: false,
             };
-            const hitResult = this.svc.actionScheduler.requestAction(
-                player.id,
-                {
-                    kind: "combat.playerHit",
-                    data: hitData,
-                    groups: ["combat.hit"],
-                    cooldownTicks: 0,
-                    delayTicks: hitDelay,
-                },
-                scheduleTick,
-            );
-            if (!hitResult.ok) {
-                logger.warn(
-                    `[combat] failed to schedule player hit (player=${player.id}, npc=${npc.id}): ${
-                        hitResult.reason ?? "unknown"
-                    }`,
-                );
-                continue;
+            const resolvedAttackType = normalizeAttackType(entryAttackType) ?? plannedAttackType;
+            const grantXpOnAttack =
+                resolvedAttackType !== AttackType.Magic &&
+                this.resolveHitLanded(landed, style, damage) &&
+                damage > 0;
+            if (grantXpOnAttack) {
+                hitData.xpGrantedOnAttack = true;
             }
 
-            const resolvedAttackType = normalizeAttackType(entryAttackType) ?? plannedAttackType;
-            const shouldGrantXpOnAttack =
-                resolvedAttackType !== AttackType.Magic &&
-                this.resolveHitLanded(landed, style, damage);
-            if (shouldGrantXpOnAttack && damage > 0) {
-                hitData.xpGrantedOnAttack = true;
+            if (hitDelay <= 0) {
+                // 0-tick hits (melee) resolve inline on the attack tick, so the
+                // hitsplat goes out in the same cycle as the attack animation.
+                // The scheduler drains its queue once per tick, so a queued
+                // 0-delay action would not run until the next tick.
+                const inlineResult = this.executeCombatPlayerHitAction(
+                    player,
+                    hitData,
+                    scheduleTick,
+                );
+                if (inlineResult.effects?.length) {
+                    effects.push(...inlineResult.effects);
+                }
+            } else {
+                const hitResult = this.svc.actionScheduler.requestAction(
+                    player.id,
+                    {
+                        kind: "combat.playerHit",
+                        data: hitData,
+                        groups: ["combat.hit"],
+                        cooldownTicks: 0,
+                        delayTicks: hitDelay,
+                    },
+                    scheduleTick,
+                );
+                if (!hitResult.ok) {
+                    logger.warn(
+                        `[combat] failed to schedule player hit (player=${player.id}, npc=${npc.id}): ${
+                            hitResult.reason ?? "unknown"
+                        }`,
+                    );
+                    continue;
+                }
+            }
+
+            if (grantXpOnAttack) {
                 this.svc.skillService.awardCombatXp(
                     player,
                     damage,

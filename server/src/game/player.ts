@@ -372,15 +372,6 @@ export class PlayerState extends Actor {
         this.combat.combatTargetFocus = null;
     }
 
-    /**
-     * Check if attack delay is ready (can attack now).
-     * RSMod: Combat.isAttackDelayReady(pawn)
-     * @deprecated Use player.combat.isAttackDelayReady() directly
-     */
-    isAttackDelayReady(): boolean {
-        return this.combat.attackDelayTicks <= 0;
-    }
-
     // ========================================================================
     // RSMod-style systems: TimerMap, LockState, QueueTaskSet
     // ========================================================================
@@ -1118,14 +1109,14 @@ export class PlayerState extends Actor {
     }
 
     /**
-     * Add delay to the player's attack timer (OSRS: eating food adds +3 ticks, combo food +2 ticks).
-     * Reference: docs/tick-cycle-order.md
+     * Delay the player's next attack (eating food adds +3 ticks, combo food +2 ticks).
      *
-     * @param ticks Number of ticks to add to attack delay
+     * @param ticks Number of ticks to delay the next attack from now
+     * @param currentTick Current game tick
      */
-    addAttackDelay(ticks: number): void {
+    addAttackDelay(ticks: number, currentTick: number): void {
         if (!(ticks > 0)) return;
-        this.combat.attackDelayTicks = Math.max(this.combat.attackDelayTicks, 0) + ticks;
+        this.combat.delayNextAttack(currentTick + ticks);
     }
 }
 
