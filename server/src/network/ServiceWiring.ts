@@ -307,6 +307,10 @@ export function registerMessageHandlers(svc: ServerServices, router: MessageRout
             svc.gamemodeUi.normalizeSideJournalState(player, value),
         queueSideJournalGamemodeUi: (player) => svc.gamemodeUi.applySideJournalUi(player),
         syncMusicInterface: (player) => svc.soundManager!.syncMusicInterfaceForPlayer(player),
+        handleMusicModeChange: (player, previousMode, nextMode) =>
+            svc.soundManager!.handleMusicModeChange(player, previousMode, nextMode),
+        handleMusicVolumeChange: (player, previousVolume, nextVolume) =>
+            svc.soundManager!.handleMusicVolumeChange(player, previousVolume, nextVolume),
         getWidgetOpenHandler: (groupId) =>
             svc.scriptRuntime.getServices().widgetOpenHandlers?.get(groupId),
         handleCs2ModalCloseState: (player, groupId) =>

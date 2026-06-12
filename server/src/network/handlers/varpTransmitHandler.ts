@@ -58,9 +58,10 @@ export function createVarpTransmitHandler(
             }
             if (varpId === VARP_MUSICPLAY) {
                 services.getGamemode()?.onVarpTransmit?.(p, varpId, value, previousVarpValue);
+                services.handleMusicModeChange?.(p, previousVarpValue, nextVarpValue);
             }
             if (varpId === VARP_MUSIC_VOLUME) {
-                // Music volume handled by sound manager via gamemode hook
+                services.handleMusicVolumeChange?.(p, previousVarpValue, nextVarpValue);
             }
             if (varpId === VARP_OPTION_RUN) {
                 p.setRunToggle(value !== 0);

@@ -338,6 +338,16 @@ export interface MessageHandlerServices {
     ) => { tab: number; stateVarp: number };
     queueSideJournalGamemodeUi: (player: PlayerState) => void;
     syncMusicInterface: (player: PlayerState) => void;
+    handleMusicModeChange?: (
+        player: PlayerState,
+        previousMode: number,
+        nextMode: number,
+    ) => void;
+    handleMusicVolumeChange?: (
+        player: PlayerState,
+        previousVolume: number,
+        nextVolume: number,
+    ) => void;
     getWidgetOpenHandler: (groupId: number) => WidgetOpenHandler | undefined;
     handleCs2ModalCloseState: (player: PlayerState, groupId: number) => void;
     handleDialogCloseState: (player: PlayerState, groupId: number) => void;
