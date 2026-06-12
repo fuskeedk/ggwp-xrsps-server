@@ -293,6 +293,7 @@ export interface MessageHandlerServices {
           }) => string | void | Promise<string | void>)
         | undefined;
     getCurrentTick: () => number;
+    getTickerStats: () => import("../game/ticker").TickerStats;
 
     // Debug
     broadcast: (message: string | Uint8Array, context: string) => void;

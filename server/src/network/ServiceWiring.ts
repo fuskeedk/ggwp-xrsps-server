@@ -262,6 +262,7 @@ export function registerMessageHandlers(svc: ServerServices, router: MessageRout
                   }) => string | void | Promise<string | void>)
                 | undefined,
         getCurrentTick: () => svc.ticker.currentTick(),
+        getTickerStats: () => svc.ticker.stats(),
 
         // Debug
         broadcast: (message, context) => svc.broadcastService.broadcast(message, context),

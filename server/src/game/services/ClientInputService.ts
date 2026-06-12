@@ -64,8 +64,23 @@ export class ClientInputService {
         if (this.queues.size === 0) return;
         this.draining = true;
         try {
-            for (const [ws, queue] of this.queues) {
-                this.queues.delete(ws);
+            const entries = Array.from(this.queues.entries());
+            this.queues.clear();
+            // World-entry (pre-login) queues first in arrival order, then
+            // players in id order, matching the engine cycle of login
+            // registration followed by per-player message handling.
+            const playerIds = new Map<WebSocket, number | undefined>();
+            for (const [ws] of entries) {
+                playerIds.set(ws, this.svc.players?.get(ws)?.id);
+            }
+            entries.sort((a, b) => {
+                const pa = playerIds.get(a[0]);
+                const pb = playerIds.get(b[0]);
+                if (pa === undefined) return pb === undefined ? 0 : -1;
+                if (pb === undefined) return 1;
+                return pa - pb;
+            });
+            for (const [ws, queue] of entries) {
                 if (ws.readyState !== WebSocket.OPEN) continue;
                 const handler = this.handlers.get(ws);
                 if (!handler) continue;
