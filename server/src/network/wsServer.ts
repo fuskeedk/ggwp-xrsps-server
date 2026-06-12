@@ -15,6 +15,7 @@ import type { ObjTypeLoader } from "../../../src/rs/config/objtype/ObjTypeLoader
 import { ACCOUNT_SUMMARY_GROUP_ID } from "../../../src/shared/ui/accountSummary";
 import { VARP_FOLLOWER_INDEX } from "../../../src/shared/vars";
 import { MusicCatalogService } from "../audio/MusicCatalogService";
+import { MusicRegionService } from "../audio/MusicRegionService";
 import { MusicUnlockService } from "../audio/MusicUnlockService";
 import { NpcSoundLookup } from "../audio/NpcSoundLookup";
 import { config } from "../config";
@@ -293,6 +294,7 @@ export class WSServer {
     private dbRepository?: DbRepository;
     private npcSoundLookup?: NpcSoundLookup;
     private musicCatalogService?: MusicCatalogService;
+    private musicRegionService?: MusicRegionService;
     private musicUnlockService?: MusicUnlockService;
     private autosaveIntervalTicks!: number;
     private groundItems!: GroundItemManager;
@@ -409,6 +411,7 @@ export class WSServer {
             ["combatCategoryData", () => self.combatCategoryData],
             ["npcSoundLookup", () => self.npcSoundLookup],
             ["musicCatalogService", () => self.musicCatalogService],
+            ["musicRegionService", () => self.musicRegionService],
             ["musicUnlockService", () => self.musicUnlockService],
             ["playerCombatManager", () => self.playerCombatManager],
             ["playerCombatService", () => self.playerCombatService],
@@ -829,6 +832,9 @@ export class WSServer {
             enqueueSoundBroadcast: (soundId, x, y, level) =>
                 this.broadcastService.enqueueSoundBroadcast(soundId, x, y, level),
             syncMusicInterface: (player) => this.soundManager?.syncMusicInterfaceForPlayer(player),
+            playSongForPlayer: (player, trackId, trackName) =>
+                this.soundManager?.playSongForPlayer(player, trackId, trackName),
+            skipMusicTrack: (player) => this.soundManager?.skipTrackForPlayer(player) ?? false,
             queueCombatSnapshot: (...args: Parameters<typeof this.queueCombatSnapshot>) =>
                 this.queueCombatSnapshot(...args),
             queueWidgetEvent: (pid, evt) => this.queueWidgetEvent(pid, evt),
@@ -1175,6 +1181,7 @@ export class WSServer {
                 this.musicCatalogService = new MusicCatalogService(this.dbRepository);
                 this.scriptAdapterDeps.musicCatalogService = this.musicCatalogService;
 
+                this.musicRegionService = new MusicRegionService();
                 this.musicUnlockService = new MusicUnlockService(this.musicCatalogService);
             } catch (err) {
                 logger.warn("[combat] failed to load combat category data", err);

@@ -1270,9 +1270,9 @@ export class CombatEngine {
             // They have built-in spells and don't require autocast or combatSpellId
             if (POWERED_STAFF_CATEGORIES.has(category)) {
                 // Map style slot to magic mode for powered staves
-                // Style 0 = Accurate, Style 1 = Accurate, Style 2 = Longrange (defensive)
+                // Slots 0/1 = Accurate, slot 3 = Longrange (defensive)
                 const mode: MagicStyleMode =
-                    styleSlot === 2 ? MagicStyle.Defensive : MagicStyle.Accurate;
+                    styleSlot === 3 ? MagicStyle.Defensive : MagicStyle.Accurate;
                 return { kind: AttackType.Magic, mode, bonusIndex: AttackBonusIndex.Magic };
             }
             // Only use magic if autocast is enabled with a valid spell
