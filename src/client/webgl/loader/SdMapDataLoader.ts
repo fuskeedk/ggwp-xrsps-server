@@ -250,7 +250,17 @@ function buildTerrainPickData(
     const perTilePlanes: number[][] = new Array(tileCount);
     const vertexOffset = worldTileOffset * -128;
 
-    const addTile = (tile: SceneTile | undefined, renderLevel: number): void => {
+    // Each triangle stores two planes packed in one byte:
+    //   bits 0-1: height plane — the heightmap level the geometry sits on
+    //             (grid level +1 on bridge columns, where the column is shifted down).
+    //   bits 2-3: draw plane — the level the tile is emitted under for rendering;
+    //             picking accepts a triangle only while this plane is visible and
+    //             not above the player's plane.
+    const addTile = (
+        tile: SceneTile | undefined,
+        drawPlane: number,
+        heightPlane: number = drawPlane,
+    ): void => {
         const tileModel = tile?.tileModel;
         if (!tileModel) return;
 
@@ -261,19 +271,30 @@ function buildTerrainPickData(
         const idx = localY * coreSize + localX;
         const verts = perTileVertices[idx] ?? (perTileVertices[idx] = []);
         const planes = perTilePlanes[idx] ?? (perTilePlanes[idx] = []);
-        const cullPlane = Math.max(0, Math.min(scene.levels - 1, renderLevel | 0));
+        const maxPlane = scene.levels - 1;
+        const packed =
+            (Math.max(0, Math.min(maxPlane, heightPlane | 0)) & 0x3) |
+            ((Math.max(0, Math.min(maxPlane, drawPlane | 0)) & 0x3) << 2);
 
-        for (const face of tileModel.faces) {
-            const fv = face.vertices;
-            for (let i = 0; i < 3; i++) {
-                const v = fv[i];
-                verts.push(
-                    (v.x + vertexOffset) / 128.0,
-                    v.y / 128.0,
-                    (v.z + vertexOffset) / 128.0,
-                );
+        const addFaces = (faces: typeof tileModel.faces): void => {
+            for (const face of faces) {
+                const fv = face.vertices;
+                for (let i = 0; i < 3; i++) {
+                    const v = fv[i];
+                    verts.push(
+                        (v.x + vertexOffset) / 128.0,
+                        v.y / 128.0,
+                        (v.z + vertexOffset) / 128.0,
+                    );
+                }
+                planes.push(packed & 0xff);
             }
-            planes.push(cullPlane & 0xff);
+        };
+        addFaces(tileModel.faces);
+        // Invisible faces (transparent overlays such as bridge decks) are not
+        // rendered but stay click-testable, like every face of a drawn tile.
+        if (tileModel.hiddenFaces.length > 0) {
+            addFaces(tileModel.hiddenFaces);
         }
     };
 
@@ -285,8 +306,10 @@ function buildTerrainPickData(
     for (let level = 0; level < scene.levels; level++) {
         for (let x = startX; x < endX; x++) {
             for (let y = startY; y < endY; y++) {
+                const bridgeColumn = (scene.tileRenderFlags[1][x][y] & 0x2) !== 0;
+                const heightPlane = bridgeColumn ? level + 1 : level;
                 if (level === 0 && (scene.tileRenderFlags[1][x][y] & 0x8) !== 0) {
-                    addTile(scene.tiles[1][x]?.[y], level);
+                    addTile(scene.tiles[1][x]?.[y], level, bridgeColumn ? 2 : 1);
                 }
 
                 const tile = scene.tiles[level][x]?.[y];
@@ -295,19 +318,19 @@ function buildTerrainPickData(
                 }
 
                 if (level === 0 && isBridgeSurfaceTile(tile)) {
-                    addTile(tile, level);
+                    addTile(tile, level, heightPlane);
                     const linked = getBridgeLinkedBelow(tile);
-                    if (linked) addTile(linked, level);
+                    if (linked) addTile(linked, level, 0);
                     continue;
                 }
                 if (level === 1 && (scene.tileRenderFlags[1][x][y] & 0x8) !== 0) {
                     continue;
                 }
 
-                addTile(tile, level);
+                addTile(tile, level, heightPlane);
                 if (level === 0) {
                     const linked = getBridgeLinkedBelow(tile);
-                    if (linked) addTile(linked, level);
+                    if (linked) addTile(linked, level, 0);
                 }
             }
         }

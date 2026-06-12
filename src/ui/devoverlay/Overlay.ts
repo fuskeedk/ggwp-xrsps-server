@@ -117,7 +117,7 @@ export interface OverlayUpdateArgs {
     state: {
         // Hover marker
         hoverEnabled: boolean;
-        hoverTile?: { x: number; y: number };
+        hoverTile?: { x: number; y: number; plane?: number };
         // Player
         playerLevel: number;
         playerRawLevel?: number;

@@ -92,6 +92,10 @@ export class SceneTileModel {
     faceTextures?: Int32Array;
 
     faces: SceneTileFace[] = [];
+    // Faces with an invisible overlay colour and no texture. They are never
+    // rendered, but stay click-testable like every face of a drawn tile model
+    // (invisible bridge decks rely on this).
+    hiddenFaces: SceneTileFace[] = [];
     // This can be less than faces.length due to hidden faces
     normalFaceCount: number;
 
@@ -422,9 +426,7 @@ export class SceneTileModel {
             this.minimapFaceColorsB[i] = minimapHslB;
             this.minimapFaceColorsC[i] = minimapHslC;
 
-            if (hslA === INVALID_HSL_COLOR && faceTextureId === -1) {
-                continue;
-            }
+            const isHiddenFace = hslA === INVALID_HSL_COLOR && faceTextureId === -1;
 
             const u0 = (this.vertexX[a] - tileX) / TILE_SIZE;
             const v0 = (this.vertexZ[a] - tileY) / TILE_SIZE;
@@ -435,7 +437,7 @@ export class SceneTileModel {
             const u2 = (this.vertexX[c] - tileX) / TILE_SIZE;
             const v2 = (this.vertexZ[c] - tileY) / TILE_SIZE;
 
-            this.faces.push({
+            (isHiddenFace ? this.hiddenFaces : this.faces).push({
                 vertices: [
                     {
                         x: this.vertexX[a],

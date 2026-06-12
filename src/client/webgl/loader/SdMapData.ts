@@ -74,7 +74,9 @@ export type SdMapData = {
 
     // CPU-side terrain triangles used for click/hover tile picking.
     // Vertices are local tile-space xyz triples, grouped by terrainPickTileOffsets.
-    // Planes are render cull planes, matching terrain draw range visibility.
+    // Planes pack two values per triangle: bits 0-1 hold the height plane the
+    // geometry sits on (bridge columns are shifted down, so it is one above the
+    // grid level there) and bits 2-3 hold the draw plane the tile is emitted under.
     terrainPickTileOffsets: Uint32Array;
     terrainPickVertices: Float32Array;
     terrainPickPlanes: Uint8Array;
