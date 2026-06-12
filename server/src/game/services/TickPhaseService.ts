@@ -154,6 +154,16 @@ export class TickPhaseService {
                     return nearbyPlayers;
                 };
 
+                // Deferred NPC deaths run before NPC turns so a dying NPC
+                // cannot move or attack on its death tick.
+                for (const death of npcManager.consumeDueDeathProcessing(frame.tick)) {
+                    this.svc.combatActionHandler?.processScheduledNpcDeath(
+                        death.npcId,
+                        death.killerPlayerId,
+                        frame.tick,
+                    );
+                }
+
                 const npcTickResult = npcManager.tick(
                     frame.tick,
                     playerLookup,

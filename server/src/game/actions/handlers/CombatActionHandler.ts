@@ -397,6 +397,8 @@ export interface CombatActionServices {
         respawnTick: number,
         drops?: PendingNpcDrop[],
     ): boolean;
+    /** Defer NPC death processing: the death animation starts the tick after the fatal hit. */
+    scheduleNpcDeath(npcId: number, killerPlayerId: number, deathTick: number): void;
 
     // --- Prayer/Combat Effects ---
     /** Apply protection prayers to damage. */
@@ -602,8 +604,16 @@ export class CombatActionHandler {
             this.pvpHandler.executePlayerVsPlayerHit(player, data, tick),
         );
         this.retaliationHandler = new NpcRetaliationHandler(subServices);
-        this.companionHandler = new CompanionHitHandler(subServices, (player, npc, tick, effects) =>
-            this.npcHitHandler.handleNpcDeath(player, npc, tick, effects),
+        this.companionHandler = new CompanionHitHandler(
+            subServices,
+            (player, npc, tick, effects) => {
+                // Companion kills defer death processing to the next tick, same as player kills.
+                subServices.scheduleNpcDeath(npc.id, player.id, tick + 1);
+                if (!subServices.isActiveFrame() && effects.length > 0) {
+                    subServices.dispatchActionEffects(effects);
+                }
+                return { ok: true, cooldownTicks: 0, groups: [], effects };
+            },
         );
     }
 
@@ -755,6 +765,9 @@ export class CombatActionHandler {
 
             queueNpcDeath: (npcId, despawnTick, respawnTick, drops) =>
                 svc.npcManager?.queueDeath?.(npcId, despawnTick, respawnTick, drops) ?? false,
+            scheduleNpcDeath: (npcId, killerPlayerId, deathTick) => {
+                svc.npcManager?.scheduleDeathProcessing(npcId, killerPlayerId, deathTick);
+            },
 
             applyProtectionPrayers: (target, damage, attackType, sourceType) =>
                 svc.combatEffectService.applyProtectionPrayers(
@@ -1362,6 +1375,17 @@ export class CombatActionHandler {
         tick: number,
     ): ActionExecutionResult {
         return this.npcHitHandler.executeCombatPlayerHitAction(player, data, tick);
+    }
+
+    /**
+     * Run deferred NPC death processing. Scheduled for the tick after the fatal
+     * hit and invoked from the pre-movement phase, before NPC turns, so a dying
+     * NPC cannot move or attack on its death tick.
+     */
+    processScheduledNpcDeath(npcId: number, killerPlayerId: number, tick: number): void {
+        const npc = this.svc.npcManager?.getById(npcId);
+        if (!npc || npc.isDead(tick) || npc.getHitpoints() > 0) return;
+        this.npcHitHandler.handleNpcDeath(killerPlayerId, npc, tick, []);
     }
 
     /**

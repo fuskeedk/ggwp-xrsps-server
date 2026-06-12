@@ -14,7 +14,6 @@ import {
     StatusHitsplat,
 } from "./combat/HitEffects";
 import { AGGRESSION_TIMER_TICKS, TARGET_SEARCH_INTERVAL } from "./combat/NpcCombatAI";
-import { ACTIVE_COMBAT_TIMER_TICKS } from "./model/timer";
 
 /**
  * RSMod parity: NPC random walk timer range.
@@ -189,7 +188,6 @@ export class NpcState extends Actor {
     private nextAttackTick: number = 0;
 
     private combatTargetPlayerId?: number;
-    private combatTimeoutTick: number = 0;
     /** Tick when NPC was last hit (for flinch mechanics) */
     private lastHitTick: number = 0;
     /** RSMod parity: Timer-based roaming - tick when next roam attempt can occur */
@@ -362,7 +360,6 @@ export class NpcState extends Actor {
         this.orientation = this.rot;
         this.deadUntilTick = 0;
         this.combatTargetPlayerId = undefined;
-        this.combatTimeoutTick = 0;
         this.lastHitTick = 0;
         this.stuckTicks = 0;
         this.lastMoveTick = 0;
@@ -407,7 +404,6 @@ export class NpcState extends Actor {
      */
     recordAttack(currentTick: number): void {
         this.nextAttackTick = currentTick + this.attackSpeed;
-        this.combatTimeoutTick = currentTick + ACTIVE_COMBAT_TIMER_TICKS;
     }
 
     /**
@@ -439,7 +435,6 @@ export class NpcState extends Actor {
         this.deadUntilTick = until;
         this.hitpoints = 0;
         this.combatTargetPlayerId = undefined;
-        this.combatTimeoutTick = 0;
         this.clearPath();
         this.clearInteractionTarget();
         this.clearPendingSeqs();
@@ -475,8 +470,6 @@ export class NpcState extends Actor {
         const normalized = playerId;
         const changedTarget = this.combatTargetPlayerId !== normalized;
         this.combatTargetPlayerId = normalized;
-        // ACTIVE_COMBAT_TIMER = 17 ticks (10.2 seconds)
-        this.combatTimeoutTick = currentTick + ACTIVE_COMBAT_TIMER_TICKS;
         // Face the combat target immediately (RSMod/OSRS behavior while chasing/attacking).
         this.setInteraction(EntityType.Player, normalized);
         // Only clear roaming path when first entering combat or switching targets.
@@ -499,14 +492,9 @@ export class NpcState extends Actor {
         if (this.combatTargetPlayerId === undefined) {
             return;
         }
-        if (currentTick > this.combatTimeoutTick) {
-            // drop stale combat after the active-combat window expires
-            // so NPCs do not chase forever without any recent combat activity.
-            this.disengageCombat();
-            this.scheduleNextAggressionCheck(currentTick);
-            return;
-        }
 
+        // Combat has no inactivity decay: an engaged NPC keeps its target until
+        // the target dies, leaves the plane, or moves beyond the chase limit.
         // If playerLookup is provided, verify player is still in range and visible
         if (playerLookup) {
             const player = this.resolveCombatTargetPlayer(playerLookup);
@@ -519,7 +507,8 @@ export class NpcState extends Actor {
     }
 
     isInCombat(currentTick: number): boolean {
-        return this.combatTargetPlayerId !== undefined && currentTick <= this.combatTimeoutTick;
+        if (this.isDead(currentTick) || this.hitpoints <= 0) return false;
+        return this.combatTargetPlayerId !== undefined;
     }
 
     getCombatTargetPlayerId(): number | undefined {
@@ -564,7 +553,6 @@ export class NpcState extends Actor {
     private disengageCombatInternal(clearInteraction: boolean): void {
         const hadPath = this.hasPath();
         this.combatTargetPlayerId = undefined;
-        this.combatTimeoutTick = 0;
         if (hadPath) {
             this.forceSyncUpdate = true;
         }

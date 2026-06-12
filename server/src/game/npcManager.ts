@@ -179,6 +179,12 @@ export class NpcManager {
         number,
         { despawnTick: number; respawnTick: number; pendingDrops?: PendingNpcDrop[] }
     >();
+    // NPCs that took a fatal hit and process their death on a later tick:
+    // the death animation/despawn pipeline starts the tick after the killing hitsplat.
+    private readonly pendingDeathProcessing = new Map<
+        number,
+        { killerPlayerId: number; deathTick: number }
+    >();
     // Boss scripts for NPCs with complex combat behaviors
     private readonly bossScripts = new Map<number, BossScript>();
 
@@ -484,6 +490,7 @@ export class NpcManager {
         const normalizedId = npcId | 0;
         if (normalizedId <= 0) return false;
         this.pendingDeaths.delete(normalizedId);
+        this.pendingDeathProcessing.delete(normalizedId);
         this.pendingRespawns.delete(normalizedId);
         const npc = this.npcs.get(normalizedId);
         if (!npc) return false;
@@ -594,6 +601,34 @@ export class NpcManager {
 
     cancelRespawn(npcId: number): boolean {
         return this.pendingRespawns.delete(npcId);
+    }
+
+    /** Schedule deferred death processing for an NPC that just took a fatal hit. */
+    scheduleDeathProcessing(npcId: number, killerPlayerId: number, deathTick: number): boolean {
+        if (npcId <= 0 || !this.npcs.has(npcId)) return false;
+        if (this.pendingDeathProcessing.has(npcId)) return true;
+        this.pendingDeathProcessing.set(npcId, {
+            killerPlayerId,
+            deathTick: Math.max(0, deathTick),
+        });
+        return true;
+    }
+
+    /** Drain death-processing entries that are due on this tick. */
+    consumeDueDeathProcessing(
+        currentTick: number,
+    ): Array<{ npcId: number; killerPlayerId: number }> {
+        if (this.pendingDeathProcessing.size === 0) return [];
+        const due: Array<{ npcId: number; killerPlayerId: number }> = [];
+        for (const [npcId, entry] of this.pendingDeathProcessing) {
+            if (currentTick >= entry.deathTick) {
+                due.push({ npcId, killerPlayerId: entry.killerPlayerId });
+            }
+        }
+        for (const entry of due) {
+            this.pendingDeathProcessing.delete(entry.npcId);
+        }
+        return due;
     }
 
     /** Return the cached type definition for an NPC or undefined if unavailable. */
@@ -805,9 +840,18 @@ export class NpcManager {
                     for (const hitsplat of statusHitsplats) {
                         statusEvents.push({ npcId: npc.id, hitsplat });
                     }
+                    // Status damage (poison/venom) can be fatal: route through the
+                    // deferred death pipeline like combat hits.
+                    if (npc.getHitpoints() <= 0 && !npc.isDead(currentTick)) {
+                        this.scheduleDeathProcessing(
+                            npc.id,
+                            npc.getCombatTargetPlayerId() ?? 0,
+                            currentTick + 1,
+                        );
+                    }
                 }
 
-                const shouldRecoverToSpawn = this.shouldRecoverToSpawn(npc);
+                const shouldRecoverToSpawn = this.shouldRecoverToSpawn(npc, currentTick);
 
                 // 1.5. OSRS NPC Aggression: Check for players to target
                 // Reference: docs/npc-behavior.md - Aggressive NPCs target nearby players
@@ -1332,7 +1376,7 @@ export class NpcManager {
         return undefined;
     }
 
-    private shouldRecoverToSpawn(npc: NpcState): boolean {
+    private shouldRecoverToSpawn(npc: NpcState, currentTick: number): boolean {
         // Player followers are transient companions, not ambient roamers.
         // Their summon tile is not a "home" that they should recover back to.
         if (npc.isPlayerFollower()) {
@@ -1354,6 +1398,12 @@ export class NpcManager {
                 npc.tileY !== npc.spawnY ||
                 npc.hasPath()
             );
+        }
+        // The roam-area leash never interrupts an active fight: an engaged NPC
+        // chases and attacks until its target dies, leaves the plane, or moves
+        // beyond the hard chase limit. Recovery starts only after combat ends.
+        if (npc.isInCombat(currentTick)) {
+            return false;
         }
         return npc.level !== npc.spawnLevel || npc.isOutsideRoamArea();
     }

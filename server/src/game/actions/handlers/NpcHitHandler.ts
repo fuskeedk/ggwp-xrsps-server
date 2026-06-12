@@ -256,9 +256,11 @@ export class NpcHitHandler {
             this.playCombatSounds(player, npc, hitLanded, style, attackTypeHint);
         }
 
-        // Handle NPC death
+        // Handle NPC death. NPCs process fatal damage on their next turn: the
+        // death animation and despawn pipeline start the tick after the killing
+        // hitsplat (the NPC cannot act in between - hp 0 blocks all combat paths).
         if (npcHitsplat.hpCurrent <= 0) {
-            return this.handleNpcDeath(player, npc, tick, effects);
+            this.services.scheduleNpcDeath(npc.id, player.id, tick + 1);
         }
 
         if (!this.services.isActiveFrame() && effects.length > 0) {
@@ -268,7 +270,7 @@ export class NpcHitHandler {
     }
 
     handleNpcDeath(
-        player: PlayerState,
+        killerPlayerId: number,
         npc: NpcState,
         tick: number,
         effects: ActionEffect[],
@@ -319,7 +321,7 @@ export class NpcHitHandler {
         this.services.clearInteractionsWithNpc(npc.id);
 
         // Cancel pending combat actions for any player queue this NPC could have queued into.
-        const affectedPlayerIds = new Set<number>([player.id]);
+        const affectedPlayerIds = new Set<number>([killerPlayerId]);
         const npcTargetPlayerId = npc.getCombatTargetPlayerId();
         if (npcTargetPlayerId !== undefined && npcTargetPlayerId >= 0) {
             affectedPlayerIds.add(npcTargetPlayerId);
@@ -337,10 +339,11 @@ export class NpcHitHandler {
                                   | CombatNpcRetaliateActionData
                           ).npcId
                         : undefined;
+                // combat.retaliate is deliberately NOT cancelled: pending entries are
+                // hits already in flight when the NPC died, and those still land.
                 return (
                     actionNpcId === npc.id &&
                     (action.groups.includes("combat.attack") ||
-                        action.groups.includes("combat.retaliate") ||
                         action.groups.includes("combat.hit"))
                 );
             });
@@ -367,7 +370,7 @@ export class NpcHitHandler {
         this.services.cleanupNpc(npc);
 
         // Gamemode event: notify of NPC kill
-        const killerId = eligibility?.primaryLooter?.id ?? player.id;
+        const killerId = eligibility?.primaryLooter?.id ?? killerPlayerId;
         this.services.onNpcKill(killerId, npc.typeId, npc.getCombatLevel(), npc);
 
         if (!this.services.isActiveFrame() && effects.length > 0) {

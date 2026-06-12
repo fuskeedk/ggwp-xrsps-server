@@ -2,7 +2,7 @@ import type { PrayerName } from "../../../../src/rs/prayer/prayers";
 import { SkillId } from "../../../../src/rs/skill/skills";
 import { logger } from "../../utils/logger";
 import type { ServerServices } from "../ServerServices";
-import type { ActionEffect, ScheduledAction } from "../actions/types";
+import type { ActionEffect } from "../actions/types";
 import { AttackType } from "../combat/AttackType";
 import { combatEffectApplicator } from "../combat/CombatEffectApplicator";
 import {
@@ -18,9 +18,6 @@ import type { NpcState } from "../npc";
 import type { PendingNpcDrop } from "../npcManager";
 import type { PlayerState } from "../player";
 import { CombatEngine } from "../systems/combat/CombatEngine";
-
-export const COMBAT_SOUND_DELAY_CYCLES = 3;
-const RESPAWN_DELAY_TICKS = 17;
 
 export const PROTECTION_PRAYER_MAP: Record<AttackType, PrayerName> = {
     melee: "protect_from_melee",
@@ -315,90 +312,9 @@ export class CombatEffectService {
         if (npc.isPlayerFollower?.() === true || npc.isDead(tick)) {
             return;
         }
-
-        logger.info(`[combat] NPC ${npc.id} (type ${npc.typeId}) died`);
-        npc.clearInteractionTarget();
-
-        const playerCombatManager = this.svc.playerCombatManager;
-        const eligibility = playerCombatManager?.getDropEligibility?.(npc);
-        const inWilderness = isInWilderness(npc.tileX, npc.tileY);
-        const pendingDrops = this.rollNpcDrops(npc, eligibility).map((drop) => ({
-            ...drop,
-            isWilderness: inWilderness,
-        }));
-
-        const combatDataService = this.svc.combatDataService;
-        const deathSeq = combatDataService.getNpcCombatSequences(npc.typeId)?.death;
-        if (deathSeq !== undefined && deathSeq >= 0) {
-            npc.queueOneShotSeq(deathSeq);
-            this.broadcastNpcSequence(npc, deathSeq);
-            npc.popPendingSeq();
-        }
-
-        const deathSoundId = combatDataService.getNpcDeathSoundId(npc);
-        if (deathSoundId !== undefined && deathSoundId > 0) {
-            this.svc.networkLayer.withDirectSendBypass("combat_npc_death_sound", () =>
-                this.svc.broadcastService.broadcastSound(
-                    {
-                        soundId: deathSoundId,
-                        x: npc.tileX,
-                        y: npc.tileY,
-                        level: npc.level,
-                        delay: COMBAT_SOUND_DELAY_CYCLES,
-                    },
-                    "combat_npc_death_sound",
-                ),
-            );
-        }
-
-        const players = this.svc.players;
-        players?.clearInteractionsWithNpc(npc.id);
-
-        const affectedPlayerIds = new Set<number>([player.id]);
-        const npcTargetPlayerId = npc.getCombatTargetPlayerId();
-        if (npcTargetPlayerId !== undefined && npcTargetPlayerId >= 0) {
-            affectedPlayerIds.add(npcTargetPlayerId);
-        }
-        const actionScheduler = this.svc.actionScheduler;
-        for (const affectedPlayerId of affectedPlayerIds) {
-            actionScheduler?.cancelActions(affectedPlayerId, (action: ScheduledAction) => {
-                const actionData = action.data as Record<string, unknown> | undefined;
-                const actionNpcId =
-                    action.kind === "combat.attack" ||
-                    action.kind === "combat.playerHit" ||
-                    action.kind === "combat.npcRetaliate"
-                        ? actionData?.npcId
-                        : undefined;
-                return (
-                    actionNpcId === npc.id &&
-                    (action.groups.includes("combat.attack") ||
-                        action.groups.includes("combat.retaliate") ||
-                        action.groups.includes("combat.hit"))
-                );
-            });
-        }
-
-        const deathDelayTicks = this.estimateNpcDespawnDelayTicksFromSeq(deathSeq);
-        const despawnTick = tick + Math.max(1, deathDelayTicks);
-        const respawnTick = Math.max(tick + RESPAWN_DELAY_TICKS, despawnTick + 1);
-        try {
-            npc.markDeadUntil(despawnTick, tick);
-        } catch (err) {
-            logger.warn("[npc] mark dead failed", err);
-        }
-        const npcManager = this.svc.npcManager;
-        const queued =
-            npcManager?.queueDeath?.(npc.id, despawnTick, respawnTick, pendingDrops) ?? false;
-        if (!queued) {
-            logger.warn(
-                `[combat] Failed to queue NPC respawn (npc=${npc.id}, respawnTick=${respawnTick})`,
-            );
-        }
-
-        playerCombatManager?.cleanupNpc?.(npc);
-
-        const killerId = eligibility?.primaryLooter?.id ?? player.id;
-        this.svc.gamemode.onNpcKill(killerId, npc.typeId);
+        // Defer to the canonical death pipeline: NPCs process fatal damage on
+        // their next turn, one tick after the killing hitsplat.
+        this.svc.npcManager?.scheduleDeathProcessing(npc.id, player.id, tick + 1);
     }
 
     // ── NPC Combat Resolution ───────────────────────────────────────

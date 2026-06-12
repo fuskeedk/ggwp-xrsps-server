@@ -77,6 +77,10 @@ import { MessagingService } from "../game/services/MessagingService";
 import { MovementService } from "../game/services/MovementService";
 import { PlayerCombatService } from "../game/services/PlayerCombatService";
 import {
+    ProjectileTimingService,
+    type ProjectileTimingServiceDeps,
+} from "../game/services/ProjectileTimingService";
+import {
     type ScriptServiceAdapterDeps,
     buildScriptServices,
 } from "../game/services/ScriptServiceAdapter";
@@ -279,6 +283,7 @@ export class WSServer {
     > = new Map();
     private pendingNpcUpdates: NpcUpdateDelta[] = [];
     private projectileSystem!: ProjectileSystem;
+    private projectileTimingService?: ProjectileTimingService;
     // pendingWalkCommands moved to MovementService
     private pendingDirectSends = new Map<
         WebSocket,
@@ -425,6 +430,11 @@ export class WSServer {
             ["sailingInstanceManager", () => self.sailingInstanceManager],
             ["doorManager", () => self.doorManager],
             ["projectileSystem", () => self.projectileSystem],
+            ["projectileTimingService", () => self.projectileTimingService],
+            // Cache loaders owned by DataLoaderService; exposed as svc fields for encoders.
+            ["healthBarDefLoader", () => self.dataLoaderService?.getHealthBarDefLoader()],
+            ["basTypeLoader", () => self.dataLoaderService?.getBasTypeLoader()],
+            ["idkTypeLoader", () => self.dataLoaderService?.getIdkTypeLoader()],
             ["combatActionHandler", () => self.combatActionHandler],
             ["spellActionHandler", () => self.spellActionHandler],
             ["inventoryActionHandler", () => self.inventoryActionHandler],
@@ -1026,6 +1036,26 @@ export class WSServer {
             this.playerDeathService = new PlayerDeathService(this.svc);
             // Initialize ProjectileSystem
             this.projectileSystem = new ProjectileSystem(this.svc);
+            this.projectileTimingService = new ProjectileTimingService({
+                getTickMs: () => this.options.tickMs,
+                getCurrentTick: () => this.options.ticker.currentTick(),
+                getActiveFrame: () =>
+                    this.activeFrame as unknown as ReturnType<
+                        ProjectileTimingServiceDeps["getActiveFrame"]
+                    >,
+                getSeqTypeLoader: () => this.dataLoaderService.getSeqTypeLoader(),
+                getNpcManager: () => this.npcManager,
+                getProjectileSystem: () => this.projectileSystem,
+                getPathService: () => this.options.pathService,
+                pickSpellCastSequence: (player, spellId, isAutocast) =>
+                    this.playerCombatService?.pickSpellCastSequence(
+                        player,
+                        spellId,
+                        isAutocast,
+                    ) ?? -1,
+                pickAttackSequence: (player) =>
+                    this.playerCombatService?.pickAttackSequence(player) ?? -1,
+            });
             // Initialize GatheringSystemManager
             this.gatheringSystem = new GatheringSystemManager(this.svc);
             // Initialize EquipmentHandler

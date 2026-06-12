@@ -19,6 +19,7 @@ export class CombatDataService {
         attack: number;
         block: number;
         death: number;
+        deathSound: number;
     };
     private npcCombatStats?: Record<string, Record<string, unknown>>;
     private specialAttackCostUnitsByWeapon?: Map<number, number>;
@@ -32,15 +33,32 @@ export class CombatDataService {
     loadNpcCombatDefs(): void {
         if (this.npcCombatDefs) return;
         try {
-            const raw = require(path.resolve("server/data/npc-combat-defs.json"));
-            const defaults = raw?.defaults;
-            if (defaults) {
-                this.npcCombatDefaults = {
-                    attack: defaults.attack ?? 422,
-                    block: defaults.block ?? 424,
-                    death: defaults.death ?? 836,
+            const raw = require(path.resolve("server/data/npc-combat-defs.json")) as {
+                defaults?: {
+                    humanoid?: {
+                        attack?: number;
+                        block?: number;
+                        death?: number;
+                        deathSound?: number;
+                    };
                 };
-            }
+                npcs?: Record<
+                    string,
+                    {
+                        anims?: { attack?: number; block?: number; death?: number };
+                        sounds?: { death?: number };
+                        deathSound?: number;
+                    }
+                >;
+                refs?: { npcs?: Array<[number, number, number, number?]> };
+            };
+            const defaultsRaw = raw?.defaults?.humanoid;
+            this.npcCombatDefaults = {
+                attack: defaultsRaw?.attack ?? 422,
+                block: defaultsRaw?.block ?? 424,
+                death: defaultsRaw?.death ?? 836,
+                deathSound: defaultsRaw?.deathSound ?? 512,
+            };
             const entries: Record<
                 string,
                 { attack?: number; block?: number; death?: number; deathSound?: number }
@@ -48,16 +66,36 @@ export class CombatDataService {
             const npcs = raw?.npcs;
             if (npcs && typeof npcs === "object") {
                 for (const [key, val] of Object.entries(npcs)) {
-                    if (val && typeof val === "object") {
-                        entries[key] = val;
-                    }
+                    if (!val || typeof val !== "object") continue;
+                    entries[key] = {
+                        attack: val.anims?.attack,
+                        block: val.anims?.block,
+                        death: val.anims?.death,
+                        deathSound: val.sounds?.death ?? val.deathSound,
+                    };
                 }
             }
+            // Additional sequences derived from references, kept in the same
+            // file to avoid multiple sources of truth. Manual entries win.
+            for (const row of raw?.refs?.npcs ?? []) {
+                const [npcId, attack, block, death] = row;
+                if (!(npcId > 0) || !(attack >= 0) || !(block >= 0)) continue;
+                const idKey = String(npcId);
+                if (entries[idKey]) continue;
+                entries[idKey] = {
+                    attack,
+                    block,
+                    death: death !== undefined && death >= 0 ? death : undefined,
+                };
+            }
             this.npcCombatDefs = entries;
+            logger.info(
+                `[combat] loaded ${Object.keys(entries).length} NPC combat definitions`,
+            );
         } catch (err) {
             logger.warn("[combat] failed to load npc-combat-defs.json", err);
             this.npcCombatDefs = {};
-            this.npcCombatDefaults = { attack: 422, block: 424, death: 836 };
+            this.npcCombatDefaults = { attack: 422, block: 424, death: 836, deathSound: 512 };
         }
     }
 
@@ -171,7 +209,7 @@ export class CombatDataService {
 
     getNpcCombatDefaultDeathSound(): number {
         this.loadNpcCombatDefs();
-        return this.npcCombatDefaults?.death ?? 836;
+        return this.npcCombatDefaults?.deathSound ?? 512;
     }
 
     getNpcDeathSoundId(npc: NpcState): number | undefined {

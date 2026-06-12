@@ -30,14 +30,14 @@ export class NpcRetaliationHandler {
         if (npc.level !== player.level) {
             return { ok: false, reason: "different_plane" };
         }
-        // Do not allow retaliation swings/hits from dead NPCs.
-        // This prevents delayed retaliation hitsplats appearing after NPC death.
-        if (npc.getHitpoints() <= 0 || npc.isDead(tick)) {
-            return { ok: false, reason: "npc_dead" };
-        }
-
         const effects: ActionEffect[] = [];
         const phase = data.phase === "swing" || data.phase === "hit" ? data.phase : "hit";
+
+        // Dead NPCs cannot start new swings, but a hit already in flight when the
+        // NPC died still lands - the swing happened while it was alive.
+        if (phase === "swing" && (npc.getHitpoints() <= 0 || npc.isDead(tick))) {
+            return { ok: false, reason: "npc_dead" };
+        }
 
         if (phase === "swing") {
             return this.handleNpcRetaliateSwing(player, npc, data, tick, effects);
