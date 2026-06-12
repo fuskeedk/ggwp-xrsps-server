@@ -7991,6 +7991,8 @@ export class OsrsClient {
             }
         }
 
+        this.playerEcs.setIsHidden(ecsIndex, data?.isHidden === true);
+
         const appearance = data?.appearance;
         if (appearance && typeof appearance === "object") {
             // Sync equipment inventory only for local player

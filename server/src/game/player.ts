@@ -537,6 +537,8 @@ export class PlayerState extends Actor {
     private appearanceDirty: boolean = false;
     private combatStateDirty: boolean = false;
     public appearance: PlayerAppearance;
+    /** Carried in the appearance block; hidden players are not rendered by clients. */
+    public isHidden: boolean = false;
     /** Player display name */
     public name: string = "";
     /** Display mode (mobile vs desktop) - set during login based on clientType */
@@ -627,6 +629,12 @@ export class PlayerState extends Actor {
     }
 
     markAppearanceDirty(): void {
+        this.appearanceDirty = true;
+    }
+
+    setHidden(hidden: boolean): void {
+        if (this.isHidden === hidden) return;
+        this.isHidden = hidden;
         this.appearanceDirty = true;
     }
 

@@ -1052,6 +1052,15 @@ export class NpcEcs {
     }
 
     /**
+     * Iterates server-linked NPC ECS IDs in view-entry order (Map insertion
+     * order): retained NPCs keep their position, new arrivals append. Used
+     * where draw-order tie-breaks depend on the npc list ordering.
+     */
+    getServerLinkedEcsIds(): IterableIterator<number> {
+        return this.serverIdLookup.values();
+    }
+
+    /**
      * Iterates over all active NPC ECS IDs (all NPCs, not just server-linked).
      * Uses a generator to avoid array allocation - mobile friendly.
      */

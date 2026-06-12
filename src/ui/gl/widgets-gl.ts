@@ -2655,6 +2655,7 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
 
                             const ecsIdx = otherPlayerEcs.getIndexForServerId?.(otherId);
                             if (ecsIdx === undefined || ecsIdx < 0) continue;
+                            if (otherPlayerEcs.getIsHidden?.(ecsIdx)) continue;
 
                             const fineX = otherPlayerEcs.getX(ecsIdx) | 0;
                             const fineY = otherPlayerEcs.getY(ecsIdx) | 0;
@@ -2710,14 +2711,17 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                     minimapRenderer.flushDots();
 
                     // Draw player marker at center (white square, scaled for render resolution)
-                    const markerSize = 4 * minimapRenderScale;
-                    minimapRenderer.drawSolidRect(
-                        centerX,
-                        centerY,
-                        markerSize,
-                        markerSize,
-                        [1, 1, 1, 1],
-                    );
+                    const localEcsIdx = osrsClient.playerEcs?.getIndexForServerId?.(localPlayerId);
+                    if (localEcsIdx === undefined || !osrsClient.playerEcs.getIsHidden(localEcsIdx)) {
+                        const markerSize = 4 * minimapRenderScale;
+                        minimapRenderer.drawSolidRect(
+                            centerX,
+                            centerY,
+                            markerSize,
+                            markerSize,
+                            [1, 1, 1, 1],
+                        );
+                    }
 
                     // Draw destination flag (unrotated overlay)
                     let destWorldX = ClientState.destinationWorldX;

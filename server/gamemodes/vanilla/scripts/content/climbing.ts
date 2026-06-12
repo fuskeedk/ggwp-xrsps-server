@@ -32,6 +32,8 @@ interface CollisionChecker {
 // -- Animations (from animation_names.txt) -----------------------------------
 const LADDER_CLIMB_UP_ANIM = 828; // human_reachforladder
 const LADDER_CLIMB_DOWN_ANIM = 827; // human_pickupfloor
+const WALL_CLIMB_UP_ANIM = 737; // human_climbing
+const WALL_CLIMB_DOWN_ANIM = 740; // human_climbing_down
 
 // -- Intermap link table (CS2 script 1705) -----------------------------------
 interface TraversalDestination {
@@ -490,6 +492,64 @@ function executeTraversal(
 }
 
 // ---------------------------------------------------------------------------
+// Ledge crossings — ledges whose two sides sit on different planes
+// ---------------------------------------------------------------------------
+
+/**
+ * Using the ledge moves the player to the side opposite their current plane:
+ * the low side lands one tile from the ledge towards `lowSideDy`, the high
+ * side one tile the other way. Player plane selects the direction.
+ */
+interface LedgeCrossing {
+    locId: number;
+    lowLevel: number;
+    highLevel: number;
+    /** Tile offset from the ledge to the low-side landing tile (y axis). */
+    lowSideDy: -1 | 1;
+}
+
+const LEDGE_CROSSINGS: ReadonlyArray<LedgeCrossing> = [
+    // Ice Path ledge (Trollweiss, Desert Treasure route): the lower path is
+    // north of the ledge at ground level, the upper path south of it on
+    // level 1 behind the ice fence.
+    { locId: 6455, lowLevel: 0, highLevel: 1, lowSideDy: 1 },
+];
+
+function registerLedgeCrossings(registry: IScriptRegistry): void {
+    for (const ledge of LEDGE_CROSSINGS) {
+        registry.registerLocInteraction(
+            ledge.locId,
+            (event) => {
+                const { player, tile, level, services } = event;
+                if (level !== ledge.lowLevel && level !== ledge.highLevel) {
+                    return;
+                }
+                const up = level === ledge.lowLevel;
+                const dest = {
+                    x: tile.x,
+                    y: tile.y + (up ? -ledge.lowSideDy : ledge.lowSideDy),
+                    level: up ? ledge.highLevel : ledge.lowLevel,
+                };
+                services.animation.playPlayerSeq(
+                    player,
+                    up ? WALL_CLIMB_UP_ANIM : WALL_CLIMB_DOWN_ANIM,
+                );
+                services.movement.requestTeleportAction(player, {
+                    x: dest.x,
+                    y: dest.y,
+                    level: dest.level,
+                    delayTicks: CLIMB_DELAY_TICKS,
+                    preserveAnimation: true,
+                    requireCanTeleport: false,
+                    replacePending: true,
+                });
+            },
+            "use",
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Registration
 // ---------------------------------------------------------------------------
 
@@ -497,6 +557,8 @@ export function registerClimbingHandlers(
     registry: IScriptRegistry,
     _services: ScriptServices,
 ): void {
+    registerLedgeCrossings(registry);
+
     // ---- climb-up: default plane + 1 ----
     registry.registerLocAction("climb-up", (event) => {
         const dest = resolveDestination(event, +1);

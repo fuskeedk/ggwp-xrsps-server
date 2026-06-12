@@ -168,7 +168,7 @@ export class PlayerPacketEncoder {
         return encodeAppearanceBinary(view, {
             combatLevel: player?.skillSystem.combatLevel ?? 3,
             skillLevel: player?.skillSystem.skillTotal ?? 32,
-            isHidden: false,
+            isHidden: player?.isHidden === true,
             actions: ["", "", ""],
         });
     }

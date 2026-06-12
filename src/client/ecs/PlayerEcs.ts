@@ -126,6 +126,7 @@ export class PlayerEcs {
     private appearances: (PlayerAppearance | undefined)[] = [];
     private combatLevels!: Uint8Array; // 0..126
     private teams!: Uint8Array; // 0 = none
+    private hidden!: Uint8Array; // 0/1, from appearance isHidden
 
     // Model cache for dynamic animation (stored as any to avoid circular deps)
     private baseModels: (any | undefined)[] = [];
@@ -324,6 +325,7 @@ export class PlayerEcs {
         this.appearances[index] = undefined;
         this.combatLevels[index] = 0;
         this.teams[index] = 0;
+        this.hidden[index] = 0;
 
         // Initialize model cache
         this.baseModels[index] = undefined;
@@ -373,6 +375,7 @@ export class PlayerEcs {
         this.appearances[index] = undefined;
         this.combatLevels[index] = 0;
         this.teams[index] = 0;
+        this.hidden[index] = 0;
 
         // Clear model cache
         this.baseModels[index] = undefined;
@@ -411,6 +414,7 @@ export class PlayerEcs {
             this.baseModels[i] = undefined;
             if (this.combatLevels) this.combatLevels[i] = 0;
             if (this.teams) this.teams[i] = 0;
+            if (this.hidden) this.hidden[i] = 0;
         }
 
         // Clear appearance cache
@@ -537,6 +541,7 @@ export class PlayerEcs {
         this.srvChainActive = grow(this.srvChainActive, Uint8Array);
         this.combatLevels = grow(this.combatLevels, Uint8Array);
         this.teams = grow(this.teams, Uint8Array);
+        this.hidden = grow(this.hidden, Uint8Array);
         this.overheadColorId = grow(this.overheadColorId, Uint8Array);
         this.overheadEffect = grow(this.overheadEffect, Uint8Array);
         this.overheadCycle = grow(this.overheadCycle, Uint16Array);
@@ -1250,6 +1255,14 @@ export class PlayerEcs {
         if (!(i >= 0 && i < this.capacity)) return;
         const normalized = Number.isFinite(team) ? team | 0 : 0;
         this.teams[i] = normalized > 0 ? normalized & 0xff : 0;
+    }
+    getIsHidden(i: number): boolean {
+        if (!(i >= 0 && i < this.capacity)) return false;
+        return this.hidden[i] === 1;
+    }
+    setIsHidden(i: number, isHidden: boolean): void {
+        if (!(i >= 0 && i < this.capacity)) return;
+        this.hidden[i] = isHidden ? 1 : 0;
     }
     getDefaultHeightTiles(i: number): number | undefined {
         const appearance = this.appearances[i];

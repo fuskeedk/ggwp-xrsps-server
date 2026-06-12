@@ -314,6 +314,7 @@ export class PlayerSyncManager {
             const existing = this.playerEcs.getIndexForServerId(serverId);
             const ecsIndex = existing !== undefined ? existing : this.ensurePlayer(serverId);
             if (ecsIndex === undefined) return;
+            if (this.playerEcs.getIsHidden(ecsIndex)) return;
             const modIcon = playerTypeIdToModIcon(chat.playerType);
             const pattern = decodeChatPattern(chat.extra);
             const color = typeof chat.color === "number" ? chat.color : 0;
@@ -654,6 +655,7 @@ export class PlayerSyncManager {
             const data = {
                 name: decoded.name,
                 combatLevel: decoded.combatLevel,
+                isHidden: decoded.isHidden === true,
                 actions: decoded.actions,
                 appearance: {
                     gender: decoded.gender,
