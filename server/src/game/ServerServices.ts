@@ -287,7 +287,10 @@ export interface ServerServices {
     >;
     readonly playerGroundSerial: Map<number, number>;
     readonly playerGroundChunk: Map<number, number>;
-    readonly pendingDirectSends: Map<WebSocket, { message: string | Uint8Array; context: string }>;
+    readonly pendingDirectSends: Map<
+        WebSocket,
+        Array<{ message: string | Uint8Array; context: string }>
+    >;
     pendingDebugRequests?: Map<number, WebSocket>;
     readonly wssClients: Set<WebSocket>;
     pendingNpcUpdates: import("./npc").NpcUpdateDelta[];

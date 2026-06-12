@@ -280,15 +280,11 @@ export class TickPhaseService {
                                 message,
                             },
                         });
-                        if (sock && (sock as WebSocket).readyState === WebSocket.OPEN) {
-                            if (this.svc.pendingDirectSends.size > 512) {
-                                this.svc.pendingDirectSends.clear();
-                            }
-                            this.svc.pendingDirectSends.set(sock, {
-                                message: debugMsg,
-                                context: "walk_path_debug_repath",
-                            });
-                        }
+                        this.svc.broadcastService.queueDirectSend(
+                            sock,
+                            debugMsg,
+                            "walk_path_debug_repath",
+                        );
                     } catch (err) {
                         logger.warn("Failed to send walk path debug repath", err);
                     }
@@ -679,11 +675,13 @@ export class TickPhaseService {
             if (this.svc.pendingDirectSends.size > 0) {
                 const entries = Array.from(this.svc.pendingDirectSends.entries());
                 this.svc.pendingDirectSends.clear();
-                for (const [ws, entry] of entries) {
-                    try {
-                        this.svc.networkLayer.sendWithGuard(ws, entry.message, entry.context);
-                    } catch (err) {
-                        logger.warn("Failed to flush pending direct send", err);
+                for (const [ws, queue] of entries) {
+                    for (const entry of queue) {
+                        try {
+                            this.svc.networkLayer.sendWithGuard(ws, entry.message, entry.context);
+                        } catch (err) {
+                            logger.warn("Failed to flush pending direct send", err);
+                        }
                     }
                 }
             }

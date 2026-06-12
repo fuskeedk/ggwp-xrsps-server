@@ -21,11 +21,26 @@ const MAX_QUEUED_MESSAGES_PER_TICK = 30;
 export class ClientInputService {
     private readonly handlers = new Map<WebSocket, RawMessageHandler>();
     private readonly queues = new Map<WebSocket, RawData[]>();
+    private draining = false;
 
     constructor(private readonly svc: ServerServices) {}
 
     registerConnection(ws: WebSocket, handler: RawMessageHandler): void {
         this.handlers.set(ws, handler);
+    }
+
+    /**
+     * True while drain() is executing queued messages, i.e. the current call
+     * stack is inside the client_input tick phase. Drain is fully synchronous,
+     * so handlers can use this to tell tick-time processing apart from
+     * arrival-time processing.
+     */
+    isDraining(): boolean {
+        return this.draining;
+    }
+
+    hasQueued(ws: WebSocket): boolean {
+        return this.queues.has(ws);
     }
 
     enqueue(ws: WebSocket, raw: RawData): void {
@@ -47,18 +62,23 @@ export class ClientInputService {
 
     drain(): void {
         if (this.queues.size === 0) return;
-        for (const [ws, queue] of this.queues) {
-            this.queues.delete(ws);
-            if (ws.readyState !== WebSocket.OPEN) continue;
-            const handler = this.handlers.get(ws);
-            if (!handler) continue;
-            for (const raw of queue) {
-                try {
-                    handler(raw);
-                } catch (err) {
-                    logger.error("[client_input] message handler threw", err);
+        this.draining = true;
+        try {
+            for (const [ws, queue] of this.queues) {
+                this.queues.delete(ws);
+                if (ws.readyState !== WebSocket.OPEN) continue;
+                const handler = this.handlers.get(ws);
+                if (!handler) continue;
+                for (const raw of queue) {
+                    try {
+                        handler(raw);
+                    } catch (err) {
+                        logger.error("[client_input] message handler threw", err);
+                    }
                 }
             }
+        } finally {
+            this.draining = false;
         }
     }
 

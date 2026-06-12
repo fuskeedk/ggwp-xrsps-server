@@ -280,7 +280,7 @@ export class WSServer {
     // pendingWalkCommands moved to MovementService
     private pendingDirectSends = new Map<
         WebSocket,
-        { message: string | Uint8Array; context: string }
+        Array<{ message: string | Uint8Array; context: string }>
     >();
     // isBroadcastPhase, messageBatches, enableMessageBatching, directSendBypassDepth,
     // directSendWarningContexts moved to PlayerNetworkLayer

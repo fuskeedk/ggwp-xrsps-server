@@ -866,7 +866,14 @@ export class LoginHandshakeService {
             if (parsed.type === "login") {
                 this.handleLoginMessage(ws, parsed.payload);
             } else if (parsed.type === "handshake") {
-                this.handleHandshakeMessage(ws, parsed.payload as any);
+                // World entry is tick-aligned: a handshake arriving between
+                // ticks is queued and re-processed during the client_input
+                // drain so players are never added to the world mid-phase.
+                if (this.svc.clientInputService.isDraining()) {
+                    this.handleHandshakeMessage(ws, parsed.payload as any);
+                } else {
+                    this.svc.clientInputService.enqueue(ws, raw);
+                }
             } else {
                 logger.info(`[binary] Unhandled: ${parsed.type}`);
             }
@@ -875,9 +882,11 @@ export class LoginHandshakeService {
 
         ws.on("message", (raw) => {
             // In-world input is queued and drained at a fixed point at the
-            // start of the game tick; pre-login traffic (handshake/login) is
-            // handled immediately since the player is not yet in the world.
-            if (this.svc.players?.get(ws)) {
+            // start of the game tick. Pre-login traffic (handshake/login) is
+            // handled immediately since the player is not yet in the world —
+            // except when a deferred handshake is already queued, in which
+            // case later messages queue behind it to preserve ordering.
+            if (this.svc.players?.get(ws) || this.svc.clientInputService.hasQueued(ws)) {
                 this.svc.clientInputService.enqueue(ws, raw);
             } else {
                 handleRawMessage(raw);

@@ -187,10 +187,16 @@ export class BroadcastService {
     ): void {
         if (!sock || sock.readyState !== WebSocket.OPEN) return;
         const pendingDirectSends = this.svc.pendingDirectSends;
-        if (pendingDirectSends.size > 512) {
-            pendingDirectSends.clear();
+        const queue = pendingDirectSends.get(sock);
+        if (!queue) {
+            pendingDirectSends.set(sock, [{ message, context }]);
+            return;
         }
-        pendingDirectSends.set(sock, { message, context });
+        if (queue.length >= 64) {
+            logger.warn(`[direct-send] queue full for socket; dropping ${context}`);
+            return;
+        }
+        queue.push({ message, context });
     }
 
     enqueueForcedMovement(event: ForcedMovementBroadcast): void {
