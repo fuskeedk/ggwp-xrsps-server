@@ -157,9 +157,10 @@ export class NpcHitHandler {
         // Handle ammo effects
         this.handleAmmoEffects(player, npc, data, npcHitsplat, hitsplatTick);
 
-        // Refresh NPC combat timer
-        npc.engageCombat(player.id, tick);
-
+        // Retaliation setup must observe the NPC's combat state from BEFORE this
+        // hit: an idle NPC gets the flinch delay (half attack speed + 1), while an
+        // already-fighting NPC keeps its existing attack timer. Engaging first
+        // would make every first hit look like a mid-combat hit.
         this.services.confirmHitLanded(
             player.id,
             tick,
@@ -168,6 +169,9 @@ export class NpcHitHandler {
             attackTypeHint,
             player,
         );
+
+        // Refresh NPC combat timer
+        npc.engageCombat(player.id, tick);
 
         // Award combat XP
         const xpGrantedOnAttack =

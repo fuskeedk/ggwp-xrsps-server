@@ -205,8 +205,8 @@ export function canNpcAttack(state: NpcCombatState, currentTick: number): boolea
  * Set NPC's combat target.
  *
  * OSRS Retaliation timing: When an NPC is provoked (attacked first),
- * the delay before its first retaliation swing is: ceil(attackSpeed / 2) ticks.
- * Reference: tick-cycle-order.md
+ * the delay before its first retaliation swing is half its attack speed
+ * rounded down, plus one tick.
  */
 export function setNpcTarget(
     state: NpcCombatState,
@@ -216,8 +216,7 @@ export function setNpcTarget(
     attackSpeed: number = 4,
 ): NpcCombatState {
     // Calculate retaliation delay for provoked NPCs
-    // OSRS formula: ceil(attack_speed / 2) ticks to first swing
-    const retaliationDelay = provoked ? Math.ceil(attackSpeed / 2) : 0;
+    const retaliationDelay = provoked ? Math.floor(attackSpeed / 2) + 1 : 0;
 
     return {
         ...state,
@@ -682,8 +681,8 @@ export function calculateNpcAttack(
     const damage = hit ? Math.floor(random() * (npcStats.maxHit + 1)) : 0;
 
     // Calculate hit delay based on attack type
-    // Melee resolves 1 tick after swing; ranged/magic include projectile travel.
-    let hitDelay = 1;
+    // Melee resolves on the swing tick; ranged/magic include projectile travel.
+    let hitDelay = 0;
     if (npcStats.attackType === AttackType.Ranged) {
         hitDelay = 1 + Math.floor((3 + distance) / 6);
     } else if (npcStats.attackType === AttackType.Magic) {

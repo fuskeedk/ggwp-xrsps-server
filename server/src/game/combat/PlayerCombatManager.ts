@@ -753,8 +753,8 @@ export class PlayerCombatManager {
             const wasAlreadyInCombat = npc.isInCombat(tick);
             if (!wasAlreadyInCombat) {
                 // Fresh engagement - apply standard retaliation delay.
-                // Delay here is "until first retaliation swing". The retaliation hit then
-                // resolves on its normal attack hit delay (1 tick for melee in this scheduler flow).
+                // Delay here is "until first retaliation swing". Melee retaliation hits
+                // resolve on the swing tick; ranged/magic add projectile travel.
                 const npcAttackSpeed = npc.attackSpeed;
                 // Flinch timing: half the attack speed rounded down, plus one tick.
                 const retaliationDelay = Math.floor(npcAttackSpeed / 2) + 1;
@@ -1285,7 +1285,7 @@ export class PlayerCombatManager {
                 });
             }
         }
-        // OSRS: Melee hits resolve 1 tick after the swing; ranged/magic use projectile travel.
+        // OSRS: Melee hits resolve on the swing tick; ranged/magic use projectile travel.
         // Target spot (impact/splash) is emitted at hit execution time in wsServer.
         // Include attackStyleMode for combat XP calculation.
         const combatSpellId = player.combat.spellId;

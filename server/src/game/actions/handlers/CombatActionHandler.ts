@@ -1135,7 +1135,7 @@ export class CombatActionHandler {
         let fallbackHitDelay =
             minimumProjectileHitDelay !== undefined
                 ? minimumProjectileHitDelay
-                : Math.max(1, this.svc.playerCombatService!.pickHitDelay(player));
+                : Math.max(0, this.svc.playerCombatService!.pickHitDelay(player));
 
         // Award magic base XP on cast
         // Skip if onMagicAttack already awarded base XP at schedule time (prevents double XP)
@@ -1160,9 +1160,7 @@ export class CombatActionHandler {
                 spellId,
                 ammoEffect,
             } = entryData;
-            // Hits on NPCs never resolve on the attack tick: NPCs act before players
-            // within a tick, so the earliest a queued hit can apply is the next tick.
-            const hitDelay = Math.max(1, Math.ceil(rawHitDelay), minimumProjectileHitDelay ?? 0);
+            const hitDelay = Math.max(0, Math.ceil(rawHitDelay), minimumProjectileHitDelay ?? 0);
             const damage = Math.max(0, rawDamage);
             const maxHit = Math.max(0, rawMaxHit);
             const style = explicitStyle ?? (damage > 0 || landed ? HITMARK_DAMAGE : HITMARK_BLOCK);
@@ -1207,24 +1205,50 @@ export class CombatActionHandler {
                 hitData.xpGrantedOnAttack = true;
             }
 
-            const hitResult = this.svc.actionScheduler.requestAction(
-                player.id,
-                {
-                    kind: "combat.playerHit",
-                    data: hitData,
-                    groups: ["combat.hit"],
-                    cooldownTicks: 0,
-                    delayTicks: hitDelay,
-                },
-                scheduleTick,
-            );
-            if (!hitResult.ok) {
-                logger.warn(
-                    `[combat] failed to schedule player hit (player=${player.id}, npc=${npc.id}): ${
-                        hitResult.reason ?? "unknown"
-                    }`,
+            if (hitDelay <= 0) {
+                // The scheduler drains its queue once per tick, so a queued 0-delay
+                // action would land a tick late; resolve the hit inline instead so the
+                // hitsplat is broadcast in the same cycle as the swing animation.
+                const hitResult = this.npcHitHandler.executeCombatPlayerHitAction(
+                    player,
+                    hitData,
+                    scheduleTick,
                 );
-                continue;
+                if (!hitResult.ok) {
+                    // An earlier hit in this swing may have killed the NPC.
+                    if (hitResult.reason !== "target_already_dead") {
+                        logger.warn(
+                            `[combat] failed to resolve player hit (player=${player.id}, npc=${
+                                npc.id
+                            }): ${hitResult.reason ?? "unknown"}`,
+                        );
+                    }
+                    continue;
+                }
+                // Outside an active frame the hit handler dispatches its own effects.
+                if (hitResult.effects?.length && this.svc.activeFrame) {
+                    effects.push(...hitResult.effects);
+                }
+            } else {
+                const hitResult = this.svc.actionScheduler.requestAction(
+                    player.id,
+                    {
+                        kind: "combat.playerHit",
+                        data: hitData,
+                        groups: ["combat.hit"],
+                        cooldownTicks: 0,
+                        delayTicks: hitDelay,
+                    },
+                    scheduleTick,
+                );
+                if (!hitResult.ok) {
+                    logger.warn(
+                        `[combat] failed to schedule player hit (player=${player.id}, npc=${
+                            npc.id
+                        }): ${hitResult.reason ?? "unknown"}`,
+                    );
+                    continue;
+                }
             }
 
             if (grantXpOnAttack) {
