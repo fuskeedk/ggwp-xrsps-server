@@ -48,15 +48,15 @@ function effectiveMagicDefence(magicLevel: number, defenceLevel: number): number
 }
 
 function npcEffectiveAttack(attackLevel: number): number {
-    return attackLevel + 9;
+    return attackLevel + 8;
 }
 
 function npcEffectiveStrength(strengthLevel: number): number {
-    return strengthLevel + 9;
+    return strengthLevel + 8;
 }
 
 function npcEffectiveDefence(defenceLevel: number): number {
-    return defenceLevel + 9;
+    return defenceLevel + 8;
 }
 
 function getNpcAttackBonus(profile: NpcAttackBonusProfile, attackType: AttackType): number {

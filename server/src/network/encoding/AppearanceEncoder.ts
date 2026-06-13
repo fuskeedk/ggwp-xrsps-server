@@ -19,6 +19,7 @@
  * 13. actions (3 null-terminated strings)
  * 14. final byte
  * 15. custom ammo quantity (signed int)
+ * 16. custom ammo item id (signed int)
  */
 import { EquipmentSlot } from "../../../../src/rs/config/player/Equipment";
 import type { PlayerAppearance } from "../../game/player";
@@ -227,6 +228,12 @@ export function encodeAppearanceBinary(
     // 15. Project extension: authoritative equipped ammo quantity for local worn inventory sync.
     const ammoQty = Math.max(0, appearance?.equipQty?.[EquipmentSlot.AMMO] ?? 0);
     writer.writeInt(ammoQty);
+
+    // 16. Project extension: equipped ammo item id. The ammo slot is not part of the 12-slot
+    // composition wire format, so the item id is carried alongside the quantity to let the
+    // local worn inventory (inv 94) display the equipped ammo in the equipment tab.
+    const ammoItemId = appearance?.equip?.[EquipmentSlot.AMMO] ?? -1;
+    writer.writeInt(ammoItemId);
 
     return writer.toUint8Array();
 }

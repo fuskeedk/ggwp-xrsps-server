@@ -206,6 +206,17 @@ export class PlayerModelLoader {
                 // Determine actual equipment slot from item params if present (full fidelity)
                 const metaSlot = deriveEquipSlotFromParams(obj) ?? (slot as EquipmentSlot);
 
+                // OSRS PlayerComposition.getModel only renders the 12 composition slots; the
+                // ammo, ring and secondary-head slots never contribute a worn model. Skip them
+                // so a stackable ammo item (now carried in equip[]) can't leak into the model.
+                if (
+                    metaSlot === EquipmentSlot.AMMO ||
+                    metaSlot === EquipmentSlot.RING ||
+                    metaSlot === EquipmentSlot.HEAD2
+                ) {
+                    continue;
+                }
+
                 // Torso/arms suppression for body
                 if (metaSlot === EquipmentSlot.BODY) {
                     if (kits.length < 7) kits.length = 7;

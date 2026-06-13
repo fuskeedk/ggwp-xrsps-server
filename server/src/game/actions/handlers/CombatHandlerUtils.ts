@@ -1,4 +1,5 @@
 import { logger } from "../../../utils/logger";
+import { AmmoType, getAmmoType } from "../../combat/AmmoSystem";
 import { AttackType } from "../../combat/AttackType";
 import { DegradationSystem, getChargesUsed, setChargesUsed } from "../../combat/DegradationSystem";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
@@ -101,7 +102,7 @@ export function handleRangedAmmoConsumption(
     if (!(ammoId > 0) || ammoQty < hitCount) {
         services.queueChatMessage({
             messageType: "game",
-            text: "You have no ammo left.",
+            text: "There is no ammo left in your quiver.",
             targetPlayerIds: [player.id],
         });
         return { ok: false, reason: "ammo_missing" };
@@ -120,9 +121,21 @@ export function handleRangedAmmoConsumption(
     );
 
     if (result.error) {
+        const incompatible = result.error === "Incompatible ammunition";
+        let text = "There is no ammo left in your quiver.";
+        if (incompatible) {
+            const ammoType = getAmmoType(weaponItemId);
+            if (ammoType === AmmoType.Bolt) {
+                text = "You can't use that ammo with your crossbow.";
+            } else if (ammoType === AmmoType.Javelin) {
+                text = "You can't use that ammo with your ballista.";
+            } else {
+                text = "You can't use that ammo with your bow.";
+            }
+        }
         services.queueChatMessage({
             messageType: "game",
-            text: "You have no ammo left.",
+            text,
             targetPlayerIds: [player.id],
         });
         return { ok: false, reason: result.error ?? "ammo_missing" };

@@ -661,7 +661,16 @@ export class PlayerSyncManager {
                     gender: decoded.gender,
                     colors: decoded.colors,
                     kits: decoded.kits,
-                    equip: decoded.equipment,
+                    equip: (() => {
+                        // Ammo is not part of the 12-slot composition wire format; splice the
+                        // separately-carried ammo item id into slot 10 (EquipmentSlot.AMMO) so
+                        // the worn equipment interface can display the equipped ammo.
+                        const equip = decoded.equipment.slice();
+                        if (decoded.ammoItemId > 0) {
+                            equip[10] = decoded.ammoItemId;
+                        }
+                        return equip;
+                    })(),
                     equipQty: (() => {
                         const equipQty = new Array<number>(14).fill(0);
                         equipQty[10] = Math.max(0, decoded.ammoQuantity | 0);

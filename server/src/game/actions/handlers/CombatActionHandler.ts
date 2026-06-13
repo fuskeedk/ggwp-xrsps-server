@@ -958,6 +958,9 @@ export class CombatActionHandler {
                 effects,
             );
             if (!result.ok) {
+                // Out of (or incompatible) ammo: halt the auto-attack loop so the player stops
+                // re-firing and the quiver message is shown once instead of every attack tick.
+                this.svc.playerCombatManager?.stopAutoAttack(player.id);
                 return result;
             }
         }

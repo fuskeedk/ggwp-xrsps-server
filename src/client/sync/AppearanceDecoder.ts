@@ -19,6 +19,7 @@
  * 13. actions (3 null-terminated strings)
  * 14. final byte
  * 15. custom ammo quantity (signed int)
+ * 16. custom ammo item id (signed int)
  */
 
 const EQUIPMENT_SLOTS = 12;
@@ -82,6 +83,7 @@ export interface DecodedAppearance {
     isHidden: boolean;
     actions: [string, string, string];
     ammoQuantity: number;
+    ammoItemId: number;
 }
 
 /**
@@ -307,6 +309,10 @@ export function decodeAppearanceBinary(buffer: Uint8Array): DecodedAppearance | 
         // 15. Project extension: equipped ammo quantity for local equipment inventory sync.
         const ammoQuantity = reader.hasMore() ? Math.max(0, reader.readInt()) : 0;
 
+        // 16. Project extension: equipped ammo item id. Carried separately from the 12-slot
+        // composition format so the worn inventory can show the equipped ammo stack.
+        const ammoItemId = reader.hasMore() ? reader.readInt() : -1;
+
         return {
             gender,
             headIconPk,
@@ -331,6 +337,7 @@ export function decodeAppearanceBinary(buffer: Uint8Array): DecodedAppearance | 
             isHidden,
             actions,
             ammoQuantity,
+            ammoItemId,
         };
     } catch (err) {
         console.warn("[AppearanceDecoder] Failed to decode binary appearance", err);
