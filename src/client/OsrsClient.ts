@@ -2391,7 +2391,7 @@ export class OsrsClient {
                         typeof closingGroupId === "number" &&
                         CHATBOX_DIALOG_GROUP_IDS.has(closingGroupId | 0)
                     ) {
-                        this.updateChatboxVisibility();
+                        this.syncChatboxContentVisibilityFromWidget();
                     }
                 }
                 if (closingGroupId === ITEM_SPAWNER_MODAL_GROUP_ID) {
@@ -7855,9 +7855,9 @@ export class OsrsClient {
         return undefined;
     }
 
-    updateChatboxVisibility(): void {
-        // Server now controls chatbox visibility via set_hidden widget events.
-        const hidden = false;
+    syncChatboxContentVisibilityFromWidget(): void {
+        const chatboxModalWidget = this.widgetManager?.getWidgetByUid(CHATBOX_MODAL_TARGET_UID);
+        const hidden = !!(chatboxModalWidget?.hidden || chatboxModalWidget?.isHidden);
         try {
             const canvas: any = (this.renderer as any)?.canvas;
             const ui = canvas?.__ui;

@@ -597,6 +597,7 @@ export class InterfaceService {
                 action: "set_hidden",
                 uid: chatboxTargetUid,
                 hidden: true,
+                phase: "close",
             });
         }
     }
