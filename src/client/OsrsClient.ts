@@ -311,8 +311,6 @@ interface SelectedSpellInfo {
     sourceWidget?: any;
 }
 
-const CHATBOX_MODAL_TARGET_UID = (162 << 16) | 567;
-const CHATBOX_DIALOG_GROUP_IDS = new Set([231, 217, 193, 11]);
 const SETTINGS_MODAL_GROUP_ID = 134;
 const SETTINGS_MODAL_SEARCH_BAR_CHILD_ID = 32;
 const DEVICE_OPTION_INTERFACE_SCALING = 27;
@@ -2386,14 +2384,6 @@ export class OsrsClient {
                     console.log("[OsrsClient] Chat input restored after close");
                 }
 
-                if (targetUid === CHATBOX_MODAL_TARGET_UID) {
-                    if (
-                        typeof closingGroupId === "number" &&
-                        CHATBOX_DIALOG_GROUP_IDS.has(closingGroupId | 0)
-                    ) {
-                        this.syncChatboxContentVisibilityFromWidget();
-                    }
-                }
                 if (closingGroupId === ITEM_SPAWNER_MODAL_GROUP_ID) {
                     this.clearItemSpawnerSearchState();
                 }
@@ -7853,18 +7843,6 @@ export class OsrsClient {
             }
         }
         return undefined;
-    }
-
-    syncChatboxContentVisibilityFromWidget(): void {
-        const chatboxModalWidget = this.widgetManager?.getWidgetByUid(CHATBOX_MODAL_TARGET_UID);
-        const hidden = !!(chatboxModalWidget?.hidden || chatboxModalWidget?.isHidden);
-        try {
-            const canvas: any = (this.renderer as any)?.canvas;
-            const ui = canvas?.__ui;
-            if (ui?.chatbox) {
-                ui.chatbox.contentVisible = !hidden;
-            }
-        } catch {}
     }
 
     setRunMode(on: boolean, force: boolean = false): void {
