@@ -411,30 +411,17 @@ export class InventoryActionHandler {
         if (!slotEntry || slotEntry.quantity <= 0 || slotEntry.itemId !== expectedItemId) {
             return { ok: false, reason: "item_missing" };
         }
-        const consumedItemId = slotEntry.itemId;
 
-        const handler = this.svc.scriptRegistry.findItemAction(consumedItemId, option);
-        if (handler) {
-            handler({
-                player,
-                source: { slot: slotIndex, itemId: consumedItemId },
-                target: { slot: -1, itemId: -1 },
-                option,
-                tick: tick ?? 0,
-                services: this.svc.scriptRuntime.getServices(),
-            });
-            return {
-                ok: true,
-                cooldownTicks: 3,
-                effects: [{ type: "inventorySnapshot", playerId: player.id }],
-            };
-        }
-
-        // Fallback to regular consume
         const consumed = this.svc.inventoryService.consumeItem(player, slotIndex);
         if (!consumed) {
             return { ok: false, reason: "consume_failed" };
         }
+        try {
+            data.apply?.();
+        } catch (err) {
+            logger.warn("[inventory] scripted consume apply failed", err);
+        }
+
         return {
             ok: true,
             cooldownTicks: 3,

@@ -984,6 +984,7 @@ export function register(registry: IScriptRegistry, _services: ScriptServices): 
                             delayTicks: 0,
                             cooldownTicks: 0,
                             groups: ["skill.pickpocket"],
+                            rejectIfGroupPending: true,
                         },
                         tick,
                     );

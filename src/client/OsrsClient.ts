@@ -5240,6 +5240,9 @@ export class OsrsClient {
         }
 
         const visited = new Set<number>();
+        const visibleNodes: any[] = [];
+        const queuedTransmitKeys = new Set<string>();
+        const invRefreshGroupsAfterVarTransmit = new Set<number>();
         const stack: any[] = [];
         for (const r of allRoots) if (r) stack.push(r);
 
@@ -5254,7 +5257,17 @@ export class OsrsClient {
         }
 
         // Helper to queue a transmit event
-        const queueTransmit = (node: any, handler: any, cacheHandler: any[]) => {
+        const queueTransmit = (
+            node: any,
+            handler: any,
+            cacheHandler: any[],
+            eventType?: string,
+        ) => {
+            if (eventType) {
+                const key = `${((node?.uid ?? 0) as number) | 0}:${eventType}`;
+                if (queuedTransmitKeys.has(key)) return;
+                queuedTransmitKeys.add(key);
+            }
             // Prefer the OSRS-style args array (Object[]) to preserve exact
             // signature ordering (ints/strings can interleave).
             if (Array.isArray(cacheHandler) && cacheHandler.length > 0) {
@@ -5291,6 +5304,7 @@ export class OsrsClient {
 
             // Skip hidden widgets
             if (node.hidden || node.isHidden) continue;
+            visibleNodes.push(node);
 
             // Get widget's last processed cycle (default -1 for never processed)
             const lastCycle = node.lastTransmitCycle ?? -1;
@@ -5300,7 +5314,12 @@ export class OsrsClient {
                 (node.onChatTransmit || node.eventHandlers?.onChatTransmit) &&
                 shouldFire(cycles.chatCycle, lastCycle)
             ) {
-                queueTransmit(node, node.eventHandlers?.onChatTransmit, node.onChatTransmit);
+                queueTransmit(
+                    node,
+                    node.eventHandlers?.onChatTransmit,
+                    node.onChatTransmit,
+                    "onChatTransmit",
+                );
             }
 
             // onStatTransmit - check statTransmitTriggers if defined
@@ -5339,6 +5358,7 @@ export class OsrsClient {
                             node,
                             node.eventHandlers?.onStatTransmit,
                             node.onStatTransmit,
+                            "onStatTransmit",
                         );
                     }
 
@@ -5379,7 +5399,19 @@ export class OsrsClient {
                     }
 
                     if (shouldFireVar) {
-                        queueTransmit(node, node.eventHandlers?.onVarTransmit, node.onVarTransmit);
+                        queueTransmit(
+                            node,
+                            node.eventHandlers?.onVarTransmit,
+                            node.onVarTransmit,
+                            "onVarTransmit",
+                        );
+                        const groupId =
+                            typeof node.groupId === "number"
+                                ? node.groupId | 0
+                                : (((node.uid ?? 0) as number) >>> 16) | 0;
+                        if (groupId > 0) {
+                            invRefreshGroupsAfterVarTransmit.add(groupId);
+                        }
                     }
 
                     // Always update lastChangedVarpCount, even if we didn't fire
@@ -5420,7 +5452,12 @@ export class OsrsClient {
                     }
 
                     if (shouldFireInv) {
-                        queueTransmit(node, node.eventHandlers?.onInvTransmit, node.onInvTransmit);
+                        queueTransmit(
+                            node,
+                            node.eventHandlers?.onInvTransmit,
+                            node.onInvTransmit,
+                            "onInvTransmit",
+                        );
                     }
 
                     // Always update lastChangedInvCount, even if we didn't fire
@@ -5433,7 +5470,12 @@ export class OsrsClient {
                 (node.onMiscTransmit || node.eventHandlers?.onMiscTransmit) &&
                 shouldFire(cycles.miscCycle, lastCycle)
             ) {
-                queueTransmit(node, node.eventHandlers?.onMiscTransmit, node.onMiscTransmit);
+                queueTransmit(
+                    node,
+                    node.eventHandlers?.onMiscTransmit,
+                    node.onMiscTransmit,
+                    "onMiscTransmit",
+                );
             }
 
             // onStockTransmit - fires when Grand Exchange offers update (no trigger array)
@@ -5441,7 +5483,12 @@ export class OsrsClient {
                 (node.onStockTransmit || node.eventHandlers?.onStockTransmit) &&
                 shouldFire(cycles.stockCycle, lastCycle)
             ) {
-                queueTransmit(node, node.eventHandlers?.onStockTransmit, node.onStockTransmit);
+                queueTransmit(
+                    node,
+                    node.eventHandlers?.onStockTransmit,
+                    node.onStockTransmit,
+                    "onStockTransmit",
+                );
             }
 
             // onFriendTransmit - no trigger array
@@ -5449,7 +5496,12 @@ export class OsrsClient {
                 (node.onFriendTransmit || node.eventHandlers?.onFriendTransmit) &&
                 shouldFire(cycles.friendCycle, lastCycle)
             ) {
-                queueTransmit(node, node.eventHandlers?.onFriendTransmit, node.onFriendTransmit);
+                queueTransmit(
+                    node,
+                    node.eventHandlers?.onFriendTransmit,
+                    node.onFriendTransmit,
+                    "onFriendTransmit",
+                );
             }
 
             // onClanTransmit - no trigger array
@@ -5457,7 +5509,12 @@ export class OsrsClient {
                 (node.onClanTransmit || node.eventHandlers?.onClanTransmit) &&
                 shouldFire(cycles.clanCycle, lastCycle)
             ) {
-                queueTransmit(node, node.eventHandlers?.onClanTransmit, node.onClanTransmit);
+                queueTransmit(
+                    node,
+                    node.eventHandlers?.onClanTransmit,
+                    node.onClanTransmit,
+                    "onClanTransmit",
+                );
             }
 
             // onClanSettingsTransmit - no trigger array
@@ -5469,6 +5526,7 @@ export class OsrsClient {
                     node,
                     node.eventHandlers?.onClanSettingsTransmit,
                     node.onClanSettingsTransmit,
+                    "onClanSettingsTransmit",
                 );
             }
 
@@ -5481,6 +5539,7 @@ export class OsrsClient {
                     node,
                     node.eventHandlers?.onClanChannelTransmit,
                     node.onClanChannelTransmit,
+                    "onClanChannelTransmit",
                 );
             }
 
@@ -5499,6 +5558,25 @@ export class OsrsClient {
                 for (let i = node.children.length - 1; i >= 0; i--) {
                     stack.push(node.children[i]);
                 }
+            }
+        }
+
+        if (invRefreshGroupsAfterVarTransmit.size > 0) {
+            for (const node of visibleNodes) {
+                if (!node || !(node.onInvTransmit || node.eventHandlers?.onInvTransmit)) {
+                    continue;
+                }
+                const groupId =
+                    typeof node.groupId === "number"
+                        ? node.groupId | 0
+                        : (((node.uid ?? 0) as number) >>> 16) | 0;
+                if (!invRefreshGroupsAfterVarTransmit.has(groupId)) continue;
+                queueTransmit(
+                    node,
+                    node.eventHandlers?.onInvTransmit,
+                    node.onInvTransmit,
+                    "onInvTransmit",
+                );
             }
         }
 
@@ -5844,7 +5922,7 @@ export class OsrsClient {
         // Primary click should use the same default entry selection rules as the menu.
         const getPrimaryWidgetAction = (
             w: any,
-        ): { option: string; target: string; slot?: number; itemId?: number } => {
+        ): { option: string; target: string; slot?: number; itemId?: number; opIndex?: number } => {
             const uid = typeof w?.uid === "number" ? w.uid | 0 : 0;
             const ids = this.resolveWidgetIdentifiers(w);
             const resolvedWidgetId = (ids?.widgetId ?? uid) | 0;
@@ -5887,6 +5965,7 @@ export class OsrsClient {
 
             let entryOption: string | undefined;
             let entryTarget: string | undefined;
+            let entryOpIndex: number | undefined;
             const getWidgetByUidLocal = (uid: number) => this.widgetManager?.getWidgetByUid(uid);
             try {
                 const derived = deriveMenuEntriesForWidget(
@@ -5912,6 +5991,8 @@ export class OsrsClient {
                 if (fallback?.option) {
                     entryOption = String(fallback.option);
                     entryTarget = fallback.target;
+                    entryOpIndex =
+                        typeof fallback.opIndex === "number" ? fallback.opIndex | 0 : undefined;
                 }
 
                 // Widget menu entries are already in OSRS display order (top-to-bottom).
@@ -5953,6 +6034,10 @@ export class OsrsClient {
                 if (chosen && !isNonAction) {
                     entryOption = String(chosen.option);
                     entryTarget = chosen.target;
+                    entryOpIndex =
+                        typeof (chosen as any).opIndex === "number"
+                            ? ((chosen as any).opIndex | 0)
+                            : undefined;
                 }
 
                 // Shift-click drop overrides the inventory item's primary option only when
@@ -5972,6 +6057,10 @@ export class OsrsClient {
                     if (dropEntry?.option) {
                         entryOption = String(dropEntry.option);
                         entryTarget = dropEntry.target;
+                        entryOpIndex =
+                            typeof dropEntry.opIndex === "number"
+                                ? dropEntry.opIndex | 0
+                                : undefined;
                     }
                 }
             } catch {}
@@ -5997,7 +6086,7 @@ export class OsrsClient {
                 "";
             const slot = typeof w?.childIndex === "number" ? w.childIndex | 0 : undefined;
             const itemId = typeof w?.itemId === "number" && w.itemId > 0 ? w.itemId | 0 : undefined;
-            return { option, target, slot, itemId };
+            return { option, target, slot, itemId, opIndex: entryOpIndex };
         };
 
         // Helper to collect widgets from all roots
@@ -6664,7 +6753,7 @@ export class OsrsClient {
                         // Only transmit widget ops to the server when the transmit flag is set
                         // for the action (IF_SETEVENTS / Client.widgetFlags).
                         // Avoid double-send when the GL widget system already dispatches onWidgetAction.
-                        const { option, target, slot, itemId } = primaryAction;
+                        const { option, target, slot, itemId, opIndex } = primaryAction;
                         try {
                             const payload = this.buildWidgetActionPayload({
                                 widget: w,
@@ -6675,6 +6764,7 @@ export class OsrsClient {
                                 cursorY: this.clickedWidgetY,
                                 slot,
                                 itemId,
+                                opIndex,
                             });
                             if (payload) {
                                 // PlayerDesign (679): handle locally and do not transmit arrow/button ops.
@@ -7188,7 +7278,7 @@ export class OsrsClient {
                 // For draggable widgets, onClick fires on release (not mousedown)
                 // Check if this was a draggable widget that we deferred onClick for
                 if (this.isWidgetDraggable(this.clickedWidget)) {
-                    const { option, target, slot, itemId } = getPrimaryWidgetAction(
+                    const { option, target, slot, itemId, opIndex } = getPrimaryWidgetAction(
                         this.clickedWidget,
                     );
                     this.handleWidgetAction({
@@ -7200,6 +7290,7 @@ export class OsrsClient {
                         cursorY: releaseCtx.mouseY,
                         slot,
                         itemId,
+                        opIndex,
                     });
                 }
 

@@ -121,6 +121,12 @@ export class ActionScheduler {
             return { ok: false, reason: "action queue full" };
         }
         const groups = req.groups ? req.groups.map((g) => String(g)) : [];
+        if (
+            req.rejectIfGroupPending &&
+            groups.some((group) => state.queue.some((action) => action.groups.includes(group)))
+        ) {
+            return { ok: false, reason: "action group already pending" };
+        }
         const delay = req.delayTicks !== undefined ? Math.max(0, req.delayTicks) : DEFAULT_DELAY;
         let executeTick = currentTick + delay;
         for (const group of groups) {

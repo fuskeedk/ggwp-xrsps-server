@@ -29,6 +29,10 @@ export function registerMovementHandlers(
             enqueuedTick: nowTick,
         });
 
+        if (!ctx.player.canMove()) {
+            return;
+        }
+
         try {
             // Walking is player input: clears weak queue tasks and interruptible actions
             const removed = services.interruptPlayerInput(ctx.player);

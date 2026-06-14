@@ -460,18 +460,18 @@ export class WidgetDialogHandler {
         // Set varbit 5983 = 1 (dialog mode) - required before opening
         this.svc.variableService.queueVarbit(playerId, 5983, 1);
 
-        // Open chatbox modal with preScripts for background reset
+        // Open chatbox modal with preScripts for background reset and postScripts
+        // for dynamic option child creation. A cold-opened options dialog needs
+        // script 58 to run after interface 219 is mounted client-side.
         this.svc.interfaceService!.openChatboxModal(
             player,
             DIALOG_GROUP_OPTIONS,
             { dialogId },
             {
                 preScripts: [{ scriptId: 2379, args: [] }],
+                postScripts: [{ scriptId: 58, args: [title, pipeOptions] }],
             },
         );
-
-        // Run script 58 (chatbox_multi_init) to create option buttons
-        this.svc.broadcastService.queueClientScript(playerId, 58, title, pipeOptions);
 
         // Set flags for option buttons using helper
         setOptionsDialogFlags(this.svc.interfaceService!, player, options.length);

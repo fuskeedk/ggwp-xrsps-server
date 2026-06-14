@@ -16,6 +16,7 @@ import { CollisionFlag } from "../../pathfinding/legacy/pathfinder/flag/Collisio
 import { logger } from "../../utils/logger";
 import { DoorStateManager } from "../../world/DoorStateManager";
 import { Actor } from "../actor";
+import { LockStateChecks } from "../model/LockState";
 import { NpcState } from "../npc";
 import { PlayerState } from "../player";
 import type { ScriptRuntime } from "../scripts/ScriptRuntime";
@@ -396,6 +397,9 @@ export class PlayerInteractionSystem {
         if (!me) return { ok: false, message: "player not found" };
         if (!npc) return { ok: false, message: "npc not found" };
         if (npc.getHitpoints() <= 0) return { ok: false, message: "npc_dead" };
+        if (!LockStateChecks.canNpcInteract(me.lock)) {
+            return { ok: false, message: "interaction_locked" };
+        }
 
         // Block interactions during tutorial (gamemode can override per NPC)
         if (!me.canInteract()) {

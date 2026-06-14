@@ -144,6 +144,8 @@ export interface ActionRequest<K extends ActionKind = ActionKind> {
     delayTicks?: number;
     groups?: string[];
     cooldownTicks?: number;
+    /** Reject instead of serializing when any requested group already has a queued action. */
+    rejectIfGroupPending?: boolean;
 }
 
 export interface ScheduledAction<K extends ActionKind = ActionKind> {
