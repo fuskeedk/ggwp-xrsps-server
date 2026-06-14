@@ -1028,11 +1028,12 @@ export function register(registry: IScriptRegistry, _services: ScriptServices): 
 
             services.inventory.addItemToInventory(player, currencyId, totalCurrency);
             services.inventory.snapshotInventory(player);
+            const pouchText = count === 1 ? "coin pouch" : "coin pouches";
             services.messaging.sendGameMessage(
                 player,
                 isTokkul
-                    ? `You open the coin pouch and receive ${totalCurrency} Tokkul.`
-                    : `You open the coin pouch and receive ${totalCurrency} coins.`,
+                    ? `You open ${count} ${pouchText} and receive ${totalCurrency} Tokkul.`
+                    : `You open ${count} ${pouchText} and receive ${totalCurrency} coins.`,
             );
         };
 

@@ -15,6 +15,11 @@ import type { MessageHandler, MessageRouter } from "../MessageRouter";
 import type { Cs2ModalManager } from "../managers";
 import type { GroundItemActionPayload } from "../managers";
 
+type InventoryActionDef = {
+    inventoryActions?: Array<string | null | undefined>;
+    subops?: Array<Array<string | null | undefined> | null | undefined> | null;
+};
+
 export interface BinaryHandlerExtServices extends MessageHandlerServices {
     resolveGroundItemOptionByOpNum: (itemId: number, opNum: number) => string | undefined;
     handleGroundItemAction: (ws: WebSocket, payload: GroundItemActionPayload | undefined) => void;
@@ -22,8 +27,44 @@ export interface BinaryHandlerExtServices extends MessageHandlerServices {
     getScriptRuntime: () => ScriptRuntime;
     getCs2ModalManager: () => Cs2ModalManager;
     getWidgetDialogHandler: () => WidgetDialogHandler;
-    getObjType: (itemId: number) => { inventoryActions?: (string | null)[] } | undefined;
+    getObjType: (itemId: number) => InventoryActionDef | undefined;
     handleInventoryUseOnMessage: (ws: WebSocket, payload: Record<string, unknown>) => void;
+}
+
+function getItemActionDef(
+    itemId: number,
+    services: BinaryHandlerExtServices,
+): InventoryActionDef | undefined {
+    const customItem = CustomItemRegistry.get(itemId);
+    const customObjType = customItem?.definition?.objType as InventoryActionDef | undefined;
+    if (customObjType?.inventoryActions || customObjType?.subops) {
+        return customObjType;
+    }
+    return services.getObjType(itemId);
+}
+
+function normalizeActionText(action: string | null | undefined): string | undefined {
+    const text = typeof action === "string" ? action.trim() : "";
+    return text.length > 0 ? text : undefined;
+}
+
+function resolveInventoryAction(
+    actionDef: InventoryActionDef | undefined,
+    opId: number,
+    subOpId?: number,
+): string | undefined {
+    const opIndex = (opId | 0) - 1;
+    if (opIndex < 0) return undefined;
+
+    if (typeof subOpId === "number" && subOpId >= 1) {
+        const subops = actionDef?.subops?.[opIndex];
+        const subop = Array.isArray(subops)
+            ? normalizeActionText(subops[(subOpId | 0) - 1])
+            : undefined;
+        if (subop) return subop;
+    }
+
+    return normalizeActionText(actionDef?.inventoryActions?.[opIndex]);
 }
 
 export function registerBinaryHandlers(
@@ -113,30 +154,20 @@ function createWidgetActionHandler(services: BinaryHandlerExtServices): MessageH
             services.getWidgetDialogHandler().handleDialogOptionClick(ctx.ws, player.id, childId);
         } else {
             if (payload.itemId !== undefined && payload.itemId > 0 && hasValidSlot && opId >= 1) {
-                let actions: (string | null | undefined)[] | undefined;
-                const customItem = CustomItemRegistry.get(payload.itemId);
-                if (customItem?.definition?.objType?.inventoryActions) {
-                    actions = customItem.definition.objType.inventoryActions;
-                }
-                if (!actions) {
-                    const obj = services.getObjType(payload.itemId);
-                    actions = obj?.inventoryActions;
-                }
-                if (actions) {
-                    const resolved = actions[opId - 1];
-                    if (resolved) {
-                        const tick = services.getCurrentTick();
-                        if (
-                            scriptRuntime.queueItemAction({
-                                tick,
-                                player,
-                                itemId: payload.itemId,
-                                slot: slotVal ?? 0,
-                                option: resolved.toLowerCase(),
-                            })
-                        )
-                            return;
-                    }
+                const actionDef = getItemActionDef(payload.itemId, services);
+                const resolved = resolveInventoryAction(actionDef, opId, subOpId);
+                if (resolved) {
+                    const tick = services.getCurrentTick();
+                    if (
+                        scriptRuntime.queueItemAction({
+                            tick,
+                            player,
+                            itemId: payload.itemId,
+                            slot: slotVal ?? 0,
+                            option: resolved.toLowerCase(),
+                        })
+                    )
+                        return;
                 }
                 const tick = services.getCurrentTick();
                 if (

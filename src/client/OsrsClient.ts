@@ -4226,6 +4226,7 @@ export class OsrsClient {
                 "light",
                 "read",
                 "open",
+                "open-all",
                 "empty",
                 "destroy",
                 "rub",
