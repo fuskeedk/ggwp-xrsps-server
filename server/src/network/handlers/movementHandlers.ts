@@ -63,6 +63,11 @@ export function registerMovementHandlers(
                 Math.min(3, Number.isFinite(level) ? (level as number) | 0 : ctx.player.level),
             );
             services.interruptPlayerInput(ctx.player);
+            services.clearAllInteractions(ctx.ws);
+            ctx.player.resetInteractions();
+            ctx.player.clearInteraction();
+            services.clearActionsInGroup(ctx.player.id, "combat.attack");
+            services.clearActionsInGroup(ctx.player.id, "combat.autocast");
             const result = services.requestTeleportAction(ctx.player, {
                 x: to.x,
                 y: to.y,
