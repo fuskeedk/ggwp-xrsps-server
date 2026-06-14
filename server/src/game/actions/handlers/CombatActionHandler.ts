@@ -1054,26 +1054,46 @@ export class CombatActionHandler {
             // so the server sends sounds directly
             if (specialActivated && weaponItemId > 0) {
                 const specDef = getSpecialAttack(weaponItemId);
-                // Use ammo-resolved soundId (e.g., Dark bow dragon vs regular arrows) if available
-                let resolvedSoundId: number | undefined;
-                if (specDef) {
-                    resolvedSoundId = specDef.soundId;
-                }
-                if (data.special && data.special.specSoundId !== undefined) {
-                    resolvedSoundId = data.special.specSoundId;
-                }
-                if (resolvedSoundId && resolvedSoundId > 0) {
-                    this.svc.networkLayer.withDirectSendBypass("special_attack_sound", () =>
-                        this.svc.broadcastService.broadcastSound(
-                            {
-                                soundId: resolvedSoundId,
-                                x: player.tileX,
-                                y: player.tileY,
-                                level: player.level,
-                            },
-                            "special_attack_sound",
-                        ),
-                    );
+                const hitSounds = data.special?.hitSounds;
+                if (hitSounds && Array.isArray(hitSounds) && hitSounds.length > 0) {
+                    for (let i = 0; i < hitSounds.length; i++) {
+                        const soundId = hitSounds[i];
+                        if (!soundId || soundId <= 0) continue;
+                        this.svc.networkLayer.withDirectSendBypass("special_attack_sound", () =>
+                            this.svc.broadcastService.broadcastSound(
+                                {
+                                    soundId,
+                                    x: player.tileX,
+                                    y: player.tileY,
+                                    level: player.level,
+                                    delay: i * COMBAT_SOUND_DELAY_CYCLES,
+                                },
+                                "special_attack_sound",
+                            ),
+                        );
+                    }
+                } else {
+                    // Use ammo-resolved soundId (e.g., Dark bow dragon vs regular arrows) if available
+                    let resolvedSoundId: number | undefined;
+                    if (specDef) {
+                        resolvedSoundId = specDef.soundId;
+                    }
+                    if (data.special && data.special.specSoundId !== undefined) {
+                        resolvedSoundId = data.special.specSoundId;
+                    }
+                    if (resolvedSoundId && resolvedSoundId > 0) {
+                        this.svc.networkLayer.withDirectSendBypass("special_attack_sound", () =>
+                            this.svc.broadcastService.broadcastSound(
+                                {
+                                    soundId: resolvedSoundId,
+                                    x: player.tileX,
+                                    y: player.tileY,
+                                    level: player.level,
+                                },
+                                "special_attack_sound",
+                            ),
+                        );
+                    }
                 }
             } else {
                 // Regular attack - play weapon sound at attack time

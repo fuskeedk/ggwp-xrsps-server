@@ -121,7 +121,6 @@ export class NpcHitHandler {
             landed,
             spellId: explicitSpellIdRaw,
             special,
-            hitIndex: rawHitIndex = 0,
         } = data;
         const damage = Math.max(0, rawDamage);
         const maxHit = Math.max(0, rawMaxHit);
@@ -226,32 +225,11 @@ export class NpcHitHandler {
             );
         }
 
-        // Per-hit sounds for multi-hit specials (e.g., dragon claws)
-        // Sounds are staggered by ~150ms per hit to match OSRS visual timing
-        const hitIndex = Math.max(0, rawHitIndex);
         if (
-            special?.hitSounds &&
-            Array.isArray(special.hitSounds) &&
-            special.hitSounds.length > 0
+            !special?.hitSounds ||
+            !Array.isArray(special.hitSounds) ||
+            special.hitSounds.length === 0
         ) {
-            const hitSoundId = special.hitSounds[Math.min(hitIndex, special.hitSounds.length - 1)];
-            if (hitSoundId && hitSoundId > 0) {
-                // Stagger sounds: hit 0 = 0ms, hit 1 = 150ms, hit 2 = 300ms, hit 3 = 450ms
-                const soundDelay = hitIndex * 8;
-                this.services.withDirectSendBypass("special_hit_sound", () =>
-                    this.services.broadcastSound(
-                        {
-                            soundId: hitSoundId,
-                            x: npc.tileX,
-                            y: npc.tileY,
-                            level: npc.level,
-                            delay: soundDelay,
-                        },
-                        "special_hit_sound",
-                    ),
-                );
-            }
-        } else {
             // Combat sounds (includes ranged impact sound for projectile attacks)
             this.playCombatSounds(player, npc, hitLanded, style, attackTypeHint);
         }
