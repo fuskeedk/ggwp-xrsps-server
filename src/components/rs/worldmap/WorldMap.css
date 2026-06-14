@@ -51,6 +51,38 @@
     cursor: pointer;
 }
 
+.worldmap-plane-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 4px 8px 4px 0;
+}
+
+.worldmap-plane-button {
+    width: 92px;
+    height: 24px;
+    color: #ffcf70;
+    background: #3f2a16;
+    border: 1px solid #8f6b32;
+    font: inherit;
+    font-size: 10px;
+    font-weight: bold;
+    line-height: 20px;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.worldmap-plane-button:hover:not(:disabled) {
+    background: #5a3a1c;
+}
+
+.worldmap-plane-button:disabled {
+    color: #8a785f;
+    cursor: default;
+    opacity: 0.55;
+}
+
 .worldmap-zoom-out {
     background-image: url(./zoom-out.png);
 }

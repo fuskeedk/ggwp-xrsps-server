@@ -322,9 +322,8 @@ export class LoginHandshakeService {
                 const handshakeAppearance = p.appearance;
                 const handshakeName =
                     this.svc.appearanceService.getAppearanceDisplayName(p) || name;
-                const handshakeChatIcons = this.svc.authService.isAdminPlayer(p)
-                    ? [ADMIN_CROWN_ICON]
-                    : undefined;
+                const isAdmin = this.svc.authService.isAdminPlayer(p);
+                const handshakeChatIcons = isAdmin ? [ADMIN_CROWN_ICON] : undefined;
                 this.svc.networkLayer.withDirectSendBypass("handshake_ack", () =>
                     this.svc.networkLayer.sendWithGuard(
                         ws,
@@ -336,6 +335,7 @@ export class LoginHandshakeService {
                                 appearance:
                                     handshakeAppearance as unknown as import("./messages").Appearance,
                                 chatIcons: handshakeChatIcons,
+                                isAdmin,
                             },
                         }),
                         "handshake_ack",

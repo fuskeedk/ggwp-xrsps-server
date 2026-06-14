@@ -750,6 +750,9 @@ const handshakeListeners = new Set<
         id: number;
         appearance?: { gender: number; colors?: number[]; kits?: number[]; equip?: number[] };
         name?: string;
+        chatIcons?: number[];
+        chatPrefix?: string;
+        isAdmin?: boolean;
     }) => void
 >();
 const inventoryListeners = new Set<(update: InventoryServerUpdate) => void>();
@@ -806,6 +809,9 @@ let lastHandshake:
           id: number;
           appearance?: { gender: number; colors?: number[]; kits?: number[]; equip?: number[] };
           name?: string;
+          chatIcons?: number[];
+          chatPrefix?: string;
+          isAdmin?: boolean;
       }
     | undefined;
 let lastInventorySnapshot: InventorySlotMessage[] | undefined;
@@ -3469,6 +3475,7 @@ export function subscribeHandshake(
         name?: string;
         chatIcons?: number[];
         chatPrefix?: string;
+        isAdmin?: boolean;
     }) => void,
 ): () => void {
     handshakeListeners.add(cb);

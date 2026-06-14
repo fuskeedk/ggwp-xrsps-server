@@ -7,6 +7,7 @@ import { WorldMapModal } from "../components/rs/worldmap/WorldMapModal";
 import {
     isServerConnected,
     sendTeleport,
+    subscribeHandshake,
     subscribeChatMessages,
 } from "../network/ServerConnection";
 import { DownloadProgress } from "../rs/cache/CacheFiles";
@@ -103,6 +104,7 @@ export function GameContainer({ osrsClient }: OsrsContainerProps): JSX.Element {
     const [, forceStatsOverlayRefresh] = useState(0);
 
     const [isWorldMapOpen, setWorldMapOpen] = useState<boolean>(false);
+    const [isWorldMapAdmin, setWorldMapAdmin] = useState<boolean>(osrsClient.localPlayerIsAdmin);
 
     const [fishingStatus, setFishingStatus] = useState<{ label: string; detail: string } | null>(
         null,
@@ -249,11 +251,33 @@ export function GameContainer({ osrsClient }: OsrsContainerProps): JSX.Element {
         };
     }, [osrsClient, openWorldMap]);
 
+    useEffect(() => {
+        return subscribeHandshake(({ chatIcons, isAdmin }) => {
+            const nextIsAdmin =
+                typeof isAdmin === "boolean"
+                    ? isAdmin
+                    : Array.isArray(chatIcons) && chatIcons.includes(1);
+            osrsClient.localPlayerIsAdmin = nextIsAdmin;
+            setWorldMapAdmin(nextIsAdmin);
+        });
+    }, [osrsClient]);
+
     const closeWorldMap = useCallback(() => {
         setWorldMapOpen(false);
 
         renderer.canvas.focus();
     }, [renderer]);
+
+    const getLocalPlayerTile = useCallback(() => {
+        const idx = osrsClient.playerEcs.getIndexForServerId(osrsClient.controlledPlayerServerId);
+        if (idx === undefined) return undefined;
+
+        return {
+            x: (osrsClient.playerEcs.getX(idx) >> 7) | 0,
+            y: (osrsClient.playerEcs.getY(idx) >> 7) | 0,
+            level: osrsClient.playerEcs.getLevel(idx) | 0,
+        };
+    }, [osrsClient]);
 
     const onMapClicked = useCallback(
         (x: number, y: number) => {
@@ -279,11 +303,8 @@ export function GameContainer({ osrsClient }: OsrsContainerProps): JSX.Element {
 
             if (isServerConnected()) {
                 try {
-                    const idx = osrsClient.playerEcs.getIndexForServerId(
-                        osrsClient.controlledPlayerServerId,
-                    );
-
-                    const level = idx !== undefined ? osrsClient.playerEcs.getLevel(idx) : 0;
+                    const playerTile = getLocalPlayerTile();
+                    const level = playerTile?.level ?? 0;
 
                     console.log(`[WorldMap] Sending teleport to server: (${tx}, ${ty}, ${level})`);
 
@@ -298,7 +319,27 @@ export function GameContainer({ osrsClient }: OsrsContainerProps): JSX.Element {
             closeWorldMap();
         },
 
-        [allowWorldMapTeleport, closeWorldMap, osrsClient],
+        [allowWorldMapTeleport, closeWorldMap, getLocalPlayerTile],
+    );
+
+    const onWorldMapPlaneStep = useCallback(
+        (delta: number) => {
+            if (!isWorldMapAdmin) return;
+
+            const playerTile = getLocalPlayerTile();
+            if (!playerTile) return;
+
+            const nextLevel = Math.max(0, Math.min(3, playerTile.level + (delta | 0)));
+            if (nextLevel === playerTile.level) return;
+
+            if (isServerConnected()) {
+                console.log(
+                    `[WorldMap] Sending plane teleport: (${playerTile.x}, ${playerTile.y}, ${nextLevel})`,
+                );
+                sendTeleport({ x: playerTile.x, y: playerTile.y }, nextLevel);
+            }
+        },
+        [getLocalPlayerTile, isWorldMapAdmin],
     );
 
     // Camera-based position (tiles). Used for world map and other UI.
@@ -479,6 +520,8 @@ export function GameContainer({ osrsClient }: OsrsContainerProps): JSX.Element {
                             isOpen={isWorldMapOpen}
                             onRequestClose={closeWorldMap}
                             onDoubleClick={onMapClicked}
+                            isAdmin={isWorldMapAdmin && osrsClient.localPlayerIsAdmin}
+                            onPlaneStep={onWorldMapPlaneStep}
                             getPosition={getMapPosition}
                             loadMapImageUrl={loadMapImageUrl}
                         />

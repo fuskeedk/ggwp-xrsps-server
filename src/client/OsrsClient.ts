@@ -485,6 +485,7 @@ export class OsrsClient {
 
     // Local player name (from server handshake)
     localPlayerName: string = "";
+    localPlayerIsAdmin: boolean = false;
     private localChatNameIcons: number[] = [];
     private localChatNamePrefix: string = "";
     private modIconsWidthLoaded: boolean = false;
@@ -2985,7 +2986,7 @@ export class OsrsClient {
                 } catch {}
             });
             // Capture server-assigned ID as soon as handshake arrives
-            subscribeHandshake(({ id, name, appearance, chatIcons, chatPrefix }) => {
+            subscribeHandshake(({ id, name, appearance, chatIcons, chatPrefix, isAdmin }) => {
                 try {
                     // Store the local player name for CS2 scripts (CHAT_PLAYERNAME)
                     if (name) {
@@ -3000,6 +3001,8 @@ export class OsrsClient {
                               .map((icon) => icon | 0)
                         : [];
                     this.localChatNamePrefix = typeof chatPrefix === "string" ? chatPrefix : "";
+                    this.localPlayerIsAdmin =
+                        typeof isAdmin === "boolean" ? isAdmin : this.localChatNameIcons.includes(1);
                     if (this.controlledPlayerServerId === -1) {
                         this.controlledPlayerServerId = id | 0;
                     } else if (this.controlledPlayerServerId !== (id | 0)) {
@@ -11444,6 +11447,7 @@ export class OsrsClient {
         // Reset controlled player ID
         this.controlledPlayerServerId = -1;
         this.lastPlayerSyncLocalIndex = -1;
+        this.localPlayerIsAdmin = false;
 
         // Clear menus
         try {

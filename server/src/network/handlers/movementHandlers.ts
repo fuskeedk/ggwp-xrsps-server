@@ -58,11 +58,15 @@ export function registerMovementHandlers(
                 return;
             }
             const { to, level } = ctx.payload;
+            const targetLevel = Math.max(
+                0,
+                Math.min(3, Number.isFinite(level) ? (level as number) | 0 : ctx.player.level),
+            );
             services.interruptPlayerInput(ctx.player);
             const result = services.requestTeleportAction(ctx.player, {
                 x: to.x,
                 y: to.y,
-                level: level ?? ctx.player.level,
+                level: targetLevel,
                 delayTicks: 0,
                 cooldownTicks: 1,
                 requireCanTeleport: false,

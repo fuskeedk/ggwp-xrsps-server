@@ -289,11 +289,14 @@ export function decodeClientPacket(data: Uint8Array | ArrayBuffer): DecodedClien
         }
 
         case ClientPacketId.TELEPORT:
+            const teleportX = reader.readShort();
+            const teleportY = reader.readShort();
+            const teleportLevel = reader.readByte();
             return {
                 type: "teleport",
                 payload: {
-                    to: { x: reader.readShort(), y: reader.readShort() },
-                    level: reader.readByte() || undefined,
+                    to: { x: teleportX, y: teleportY },
+                    level: teleportLevel,
                 },
             };
 

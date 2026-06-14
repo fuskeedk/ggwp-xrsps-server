@@ -426,6 +426,7 @@ export type ServerToClient =
               name?: string;
               chatIcons?: number[];
               chatPrefix?: string;
+              isAdmin?: boolean;
           };
       }
     | { type: "inventory"; payload: InventoryServerUpdate }
@@ -768,6 +769,7 @@ function encodeMessageToBinaryDirect(msg: ServerToClient): Uint8Array {
                 payload.appearance,
                 payload.chatIcons,
                 payload.chatPrefix,
+                payload.isAdmin,
             );
 
         case "varp":

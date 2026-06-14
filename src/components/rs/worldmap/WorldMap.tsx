@@ -55,6 +55,8 @@ const MAX_Y = 200 * 64;
 
 export interface WorldMapProps {
     onDoubleClick: (x: number, y: number) => void;
+    isAdmin?: boolean;
+    onPlaneStep?: (delta: number) => void;
 
     getPosition: () => Position;
     loadMapImageUrl: (mapX: number, mapY: number) => string | undefined;
@@ -316,6 +318,11 @@ export const WorldMap = memo(function WorldMap(props: WorldMapProps) {
         zoom(1);
     };
 
+    const showPlaneControls = !!props.isAdmin && !!props.onPlaneStep;
+    const changePlane = (delta: number) => {
+        props.onPlaneStep?.(delta);
+    };
+
     const borderWidth = MAX_X * tileSize;
     const borderHeight = MAX_Y * tileSize;
 
@@ -364,6 +371,28 @@ export const WorldMap = memo(function WorldMap(props: WorldMapProps) {
             </div>
             <div className="worldmap-footer rs-border rs-background">
                 <span className="flex hide-mobile"></span>
+                {showPlaneControls && (
+                    <span className="worldmap-plane-controls">
+                        <button
+                            className="worldmap-plane-button"
+                            type="button"
+                            title="Plane down"
+                            aria-label="Plane down"
+                            onClick={() => changePlane(-1)}
+                        >
+                            PLANE DOWN
+                        </button>
+                        <button
+                            className="worldmap-plane-button"
+                            type="button"
+                            title="Plane up"
+                            aria-label="Plane up"
+                            onClick={() => changePlane(1)}
+                        >
+                            PLANE UP
+                        </button>
+                    </span>
+                )}
                 <span className="worldmap-zoom-buttons flex align-right">
                     <div className="worldmap-zoom-button worldmap-zoom-out" onClick={zoomOut}></div>
                     <div className="worldmap-zoom-button worldmap-zoom-in" onClick={zoomIn}></div>

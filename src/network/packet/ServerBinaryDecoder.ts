@@ -589,6 +589,7 @@ export function decodeServerPacket(data: Uint8Array | ArrayBuffer): DecodedServe
             }
             let chatIcons: number[] | undefined = undefined;
             let chatPrefix: string | undefined = undefined;
+            let isAdmin: boolean | undefined = undefined;
             if (reader.remaining > 0) {
                 const iconCount = reader.readByte() | 0;
                 const icons: number[] = [];
@@ -600,10 +601,13 @@ export function decodeServerPacket(data: Uint8Array | ArrayBuffer): DecodedServe
                     const prefix = reader.readString();
                     chatPrefix = prefix || undefined;
                 }
+                if (reader.remaining > 0) {
+                    isAdmin = reader.readBoolean();
+                }
             }
             return {
                 type: "handshake",
-                payload: { id, name: name || undefined, appearance, chatIcons, chatPrefix },
+                payload: { id, name: name || undefined, appearance, chatIcons, chatPrefix, isAdmin },
             };
         }
 

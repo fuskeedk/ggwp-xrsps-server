@@ -223,6 +223,7 @@ export class ServerBinaryEncoder {
         appearance?: { gender?: number; colors?: number[]; kits?: number[]; equip?: number[] },
         chatIcons?: number[],
         chatPrefix?: string,
+        isAdmin?: boolean,
     ): Uint8Array {
         this.buffer.reset();
         this.buffer.writeInt(id);
@@ -253,6 +254,7 @@ export class ServerBinaryEncoder {
             this.buffer.writeByte(icon & 0xff);
         }
         this.buffer.writeString(chatPrefix ?? "");
+        this.buffer.writeBoolean(!!isAdmin);
         return this.buffer.toPacket(ServerPacketId.HANDSHAKE);
     }
 
