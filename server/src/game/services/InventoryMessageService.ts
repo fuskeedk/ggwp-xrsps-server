@@ -105,10 +105,17 @@ export class InventoryMessageService {
         const slotIndex = Math.max(0, Math.min(INVENTORY_SLOT_COUNT - 1, payload.slot));
         const inv = this.deps.getInventory(p);
         const slotEntry = inv[slotIndex];
+        const requestedItemId = Number.isFinite(payload.itemId) ? payload.itemId | 0 : -1;
+        const hasItemInInventory =
+            !!slotEntry &&
+            slotEntry.quantity > 0 &&
+            slotEntry.itemId > 0 &&
+            (requestedItemId <= 0 || slotEntry.itemId === requestedItemId);
+        const itemId = hasItemInInventory ? slotEntry.itemId : requestedItemId;
         let optionLower = payload.option?.toLowerCase() ?? "";
-        const obj = this.deps.getObjType(payload.itemId);
-        const itemDef = getItemDefinition(payload.itemId);
-        const equipSlot = this.deps.resolveEquipSlot(payload.itemId);
+        const obj = itemId > 0 ? this.deps.getObjType(itemId) : undefined;
+        const itemDef = itemId > 0 ? getItemDefinition(itemId) : undefined;
+        const equipSlot = itemId > 0 ? this.deps.resolveEquipSlot(itemId) : undefined;
 
         // Resolve option from cache inventoryActions when client sends op number but no text
         if (!optionLower && obj?.inventoryActions && typeof payload.op === "number") {
@@ -121,12 +128,12 @@ export class InventoryMessageService {
 
         const nowTick = this.deps.getCurrentTick();
         // First, allow scripts to handle item actions (e.g., bury bones, herblore steps)
-        if (optionLower) {
+        if (optionLower && hasItemInInventory) {
             try {
                 const handled = this.deps.queueItemAction({
                     tick: nowTick,
                     player: p,
-                    itemId: payload.itemId,
+                    itemId,
                     slot: slotIndex,
                     option: optionLower,
                 });
@@ -135,9 +142,6 @@ export class InventoryMessageService {
                 logger.warn("[item] script action dispatch failed", err);
             }
         }
-
-        const hasItemInInventory =
-            !!slotEntry && slotEntry.quantity > 0 && slotEntry.itemId === payload.itemId;
 
         if (optionLower === "drop") {
             if (!hasItemInInventory) return;
@@ -157,7 +161,7 @@ export class InventoryMessageService {
                 if (
                     !currentSlot ||
                     currentSlot.quantity <= 0 ||
-                    currentSlot.itemId !== payload.itemId
+                    currentSlot.itemId !== itemId
                 ) {
                     return;
                 }
@@ -166,7 +170,7 @@ export class InventoryMessageService {
                 const dropTile = { x: p.tileX, y: p.tileY, level: p.level };
                 const inWilderness = isInWilderness(dropTile.x, dropTile.y);
                 this.deps.spawnGroundItem(
-                    payload.itemId,
+                    itemId,
                     destroyedQty,
                     dropTile,
                     this.deps.getCurrentTick(),
@@ -182,7 +186,7 @@ export class InventoryMessageService {
                         `[inventory] dropped item player=%d slot=%d item=%d qty=%d tile=(%d,%d,%d)`,
                         p.id,
                         slotIndex,
-                        payload.itemId,
+                        itemId,
                         destroyedQty,
                         dropTile.x,
                         dropTile.y,
@@ -197,7 +201,7 @@ export class InventoryMessageService {
             // Special case: Coins (995) have value=0 in item definitions, but each coin is worth 1 GP
             const COINS_ITEM_ID = 995;
             const perItemValue =
-                payload.itemId === COINS_ITEM_ID
+                itemId === COINS_ITEM_ID
                     ? 1
                     : itemDef
                       ? itemDef.dropValue || itemDef.value
@@ -209,7 +213,7 @@ export class InventoryMessageService {
                 this.deps.openDialog(p, {
                     kind: "sprite",
                     id: "confirm_drop_warning",
-                    itemId: payload.itemId,
+                    itemId,
                     itemQuantity: slotEntry.quantity,
                     lines: [
                         "The item you are trying to put down is considered",
@@ -237,7 +241,7 @@ export class InventoryMessageService {
 
         if (equipSlot !== undefined) {
             const equip = this.deps.ensureEquipArray(p);
-            const hasItemEquipped = equip[equipSlot] === payload.itemId;
+            const hasItemEquipped = equip[equipSlot] === itemId;
             if (!hasItemInInventory && !hasItemEquipped) return;
 
             // Queue equip action to be processed during tick cycle
@@ -248,7 +252,7 @@ export class InventoryMessageService {
                     kind: "inventory.equip",
                     data: {
                         slotIndex,
-                        itemId: payload.itemId,
+                        itemId,
                         option: payload.option,
                         equipSlot,
                     },
@@ -271,7 +275,7 @@ export class InventoryMessageService {
                 p.id,
                 {
                     kind: "inventory.consume",
-                    data: { slotIndex, itemId: payload.itemId, option: payload.option },
+                    data: { slotIndex, itemId, option: payload.option },
                     delayTicks: 0, // Consume happens immediately
                     groups: ["inventory"],
                     cooldownTicks: 3, // 3-tick cooldown between eating/drinking (OSRS standard)

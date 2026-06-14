@@ -33,7 +33,7 @@ export function register(registry: IScriptRegistry, services: ScriptServices): v
             const job = pending[i];
             if (job.at <= tick) {
                 try {
-                    svc?.addSkillXp?.(job.player, SkillId.Prayer, job.xp);
+                    svc.skills.addSkillXp(job.player, SkillId.Prayer, job.xp);
                     const text = job.message ?? formatBuryMessage();
                     svc.messaging.sendGameMessage(job.player, text);
                 } finally {
@@ -50,7 +50,7 @@ export function register(registry: IScriptRegistry, services: ScriptServices): v
                 const slot = source.slot;
                 const itemId = source.itemId;
                 const xp = BURIABLE_BONES_XP.get(itemId) ?? 5;
-                const consume = svc?.consumeItem;
+                const consume = svc.inventory.consumeItem;
                 const pid = player?.id as number;
                 const last = lastBuryTick.get(pid) ?? -Infinity;
                 if (tick <= last + BURY_COOLDOWN_TICKS) return;
@@ -58,15 +58,15 @@ export function register(registry: IScriptRegistry, services: ScriptServices): v
                 if (!consume || !consume(player, slot)) return;
                 lastBuryTick.set(pid, tick);
 
-                svc?.playPlayerSeq?.(player, BURY_BONE_SEQ);
-                svc?.playLocSound?.({
+                svc.animation.playPlayerSeq(player, BURY_BONE_SEQ);
+                svc.sound.playLocSound({
                     soundId: BURY_BONE_SOUND,
                     tile: { x: player.tileX, y: player.tileY },
                     level: player.level,
                 });
                 const name = (() => {
                     try {
-                        const obj = svc?.getObjType?.(itemId);
+                        const obj = svc.data.getObjType(itemId);
                         return (obj?.name as string) || "bones";
                     } catch {
                         return "bones";
@@ -79,9 +79,7 @@ export function register(registry: IScriptRegistry, services: ScriptServices): v
                     xp: xp,
                     message: formatBuryMessage(name),
                 });
-                if (svc) {
-                    svc.inventory.snapshotInventoryImmediate(player);
-                }
+                svc.inventory.snapshotInventoryImmediate(player);
             },
             "bury",
         );
@@ -93,7 +91,7 @@ export function register(registry: IScriptRegistry, services: ScriptServices): v
                 const slot = source.slot;
                 const itemId = source.itemId;
                 const xp = DEMONIC_ASHES_XP.get(itemId) ?? 10;
-                const consume = svc?.consumeItem;
+                const consume = svc.inventory.consumeItem;
                 const pid = player?.id as number;
                 const last = lastScatterTick.get(pid) ?? -Infinity;
                 if (tick <= last + SCATTER_COOLDOWN_TICKS) return;
@@ -101,15 +99,15 @@ export function register(registry: IScriptRegistry, services: ScriptServices): v
                 if (!consume || !consume(player, slot)) return;
                 lastScatterTick.set(pid, tick);
 
-                svc?.playPlayerSeq?.(player, SCATTER_ASHES_SEQ);
-                svc?.playLocSound?.({
+                svc.animation.playPlayerSeq(player, SCATTER_ASHES_SEQ);
+                svc.sound.playLocSound({
                     soundId: SCATTER_ASHES_SOUND,
                     tile: { x: player.tileX, y: player.tileY },
                     level: player.level,
                 });
                 const name = (() => {
                     try {
-                        const obj = svc?.getObjType?.(itemId);
+                        const obj = svc.data.getObjType(itemId);
                         return (obj?.name as string) || "ashes";
                     } catch {
                         return "ashes";
@@ -122,9 +120,7 @@ export function register(registry: IScriptRegistry, services: ScriptServices): v
                     xp: xp,
                     message: formatScatterMessage(name),
                 });
-                if (svc) {
-                    svc.inventory.snapshotInventoryImmediate(player);
-                }
+                svc.inventory.snapshotInventoryImmediate(player);
             },
             "scatter",
         );
