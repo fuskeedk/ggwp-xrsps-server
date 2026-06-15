@@ -1,6 +1,8 @@
 import {
+    QUEST_LIST_COMPLETED_UID,
     QUEST_LIST_ENTRY_EVENT_FLAGS,
     QUEST_LIST_ENTRY_LIST_UID,
+    QUEST_LIST_QUEST_POINTS_UID,
 } from "../../../../src/shared/ui/sideJournal";
 import {
     QUEST_LIST_STATUS_COMPLETE,
@@ -28,12 +30,25 @@ import {
 } from "../quests/QuestRegistry";
 import { getQuestCompletionInfo } from "./questListData";
 
-type QuestListBridge = Pick<GamemodeUiBridge, "queueWidgetEvent">;
+const VARBIT_QUESTS_COMPLETED_COUNT = 6347;
+const VARBIT_QUESTS_TOTAL_COUNT = 11877;
+const VARBIT_QUEST_POINTS_MAX = 1782;
+
+type QuestListBridge = Pick<GamemodeUiBridge, "queueWidgetEvent"> &
+    Partial<Pick<GamemodeUiBridge, "queueVarbit">>;
+type QuestListWidgetQuest = QuestListWidgetGroup["quests"][number];
 
 interface ResolvedQuestListQuest {
     key: string;
     displayName: string;
     definition?: QuestDefinition;
+}
+
+interface QuestListSummary {
+    completed: number;
+    total: number;
+    questPoints: number;
+    maxQuestPoints: number;
 }
 
 function getQuestRefKey(ref: string | GamemodeQuestListQuest): string {
@@ -125,7 +140,7 @@ export function buildPlayerQuestListWidgetGroups(
 export function findPlayerQuestListQuestBySlot(
     player: PlayerState,
     slot: number | undefined,
-): QuestListWidgetGroup["quests"][number] | undefined {
+): QuestListWidgetQuest | undefined {
     if (slot === undefined || slot < 0) return undefined;
 
     const groups = buildPlayerQuestListWidgetGroups(player);
@@ -137,18 +152,86 @@ export function findPlayerQuestListQuestBySlot(
     return undefined;
 }
 
+function getQuestPoints(quest: QuestListWidgetQuest): number {
+    const definition =
+        getQuestDefinitionByKey(quest.key) ?? getQuestDefinitionByName(quest.displayName);
+    const questPoints = definition?.rewards.questPoints ?? 0;
+    if (!Number.isFinite(questPoints)) return 0;
+    return Math.max(0, Math.trunc(questPoints));
+}
+
+function buildQuestListSummary(groups: readonly QuestListWidgetGroup[]): QuestListSummary {
+    let completed = 0;
+    let total = 0;
+    let questPoints = 0;
+    let maxQuestPoints = 0;
+
+    for (const group of groups) {
+        for (const quest of group.quests) {
+            const points = getQuestPoints(quest);
+            total++;
+            maxQuestPoints += points;
+            if (quest.status === QUEST_LIST_STATUS_COMPLETE) {
+                completed++;
+                questPoints += points;
+            }
+        }
+    }
+
+    return { completed, total, questPoints, maxQuestPoints };
+}
+
+function formatQuestListCount(value: number): string {
+    if (!Number.isFinite(value)) return "0";
+    return Math.max(0, Math.trunc(value)).toLocaleString("en-US");
+}
+
+function queueQuestListSummaryVars(
+    player: PlayerState,
+    bridge: QuestListBridge,
+    summary: QuestListSummary,
+): void {
+    bridge.queueVarbit?.(player.id, VARBIT_QUESTS_COMPLETED_COUNT, summary.completed);
+    bridge.queueVarbit?.(player.id, VARBIT_QUESTS_TOTAL_COUNT, summary.total);
+    bridge.queueVarbit?.(player.id, VARBIT_QUEST_POINTS_MAX, summary.maxQuestPoints);
+}
+
+function queueQuestListSummary(
+    player: PlayerState,
+    bridge: QuestListBridge,
+    summary: QuestListSummary,
+): void {
+    bridge.queueWidgetEvent(player.id, {
+        action: "set_text",
+        uid: QUEST_LIST_QUEST_POINTS_UID,
+        text: `Quest Points: ${formatQuestListCount(summary.questPoints)}/${formatQuestListCount(
+            summary.maxQuestPoints,
+        )}`,
+    } satisfies WidgetAction);
+    bridge.queueWidgetEvent(player.id, {
+        action: "set_text",
+        uid: QUEST_LIST_COMPLETED_UID,
+        text: `Completed: ${formatQuestListCount(summary.completed)}/${formatQuestListCount(
+            summary.total,
+        )}`,
+    } satisfies WidgetAction);
+}
+
 export function queuePlayerQuestListUi(
     player: PlayerState,
     bridge: QuestListBridge,
     configuredGroups?: readonly GamemodeQuestListGroup[],
 ): QuestListWidgetGroup[] {
     const groups = buildPlayerQuestListWidgetGroups(player, configuredGroups);
+    const summary = buildQuestListSummary(groups);
     const maxSlot = getQuestListWidgetMaxSlot(groups);
 
+    queueQuestListSummaryVars(player, bridge, summary);
     bridge.queueWidgetEvent(player.id, {
         action: "set_quest_list",
         groups,
     } satisfies WidgetAction);
+    queueQuestListSummary(player, bridge, summary);
 
     if (maxSlot >= 0) {
         bridge.queueWidgetEvent(player.id, {
