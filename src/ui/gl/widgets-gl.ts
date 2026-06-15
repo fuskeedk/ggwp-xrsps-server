@@ -2569,6 +2569,7 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                     const subY = playerFineY & 127;
                     const worldX = playerTileX + (subX - 64) / 128;
                     const worldY = playerTileY + (subY - 64) / 128;
+                    const playerLevel = Math.max(0, Math.min(3, playerState.level | 0));
 
                     const cameraYaw = osrsClient.camera.yaw ?? 0;
                     const minimapZoom = osrsClient.minimapZoom ?? 4;
@@ -2600,10 +2601,6 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                     // Begin WebGL minimap rendering
                     minimapRenderer.begin(centerX, centerY, radius, cameraYaw, adjustedZoom);
 
-                    // Get the base path for map images
-                    const cacheName = osrsClient.loadedCache?.info?.name;
-                    const mapImageBasePath = cacheName ? `/map-images/${cacheName}` : "/map-images";
-
                     // Draw 3x3 grid of map tiles
                     // Each tile is 64 tiles = 256 minimap pixels at 4px/tile
                     const TILE_SIZE = 256;
@@ -2614,9 +2611,14 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                         for (let my = 0; my < 3; my++) {
                             const mapX = cameraMapX - 1 + mx;
                             const mapY = cameraMapY - 1 + my;
-                            const url = `${mapImageBasePath}/${mapX}_${mapY}.png`;
+                            const url = osrsClient.getMinimapImageUrl?.(
+                                mapX,
+                                mapY,
+                                playerLevel,
+                            );
+                            if (!url) continue;
 
-                            // Get or trigger load of map tile texture
+                            // Get or trigger load of minimap tile texture
                             const tileTex = tc.getTextureFromUrl(url);
                             if (!tileTex) continue;
 
@@ -2627,6 +2629,47 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                             const relY = -my * TILE_SIZE + playerOffsetY;
 
                             minimapRenderer.drawTile(tileTex, relX, relY, TILE_SIZE);
+                        }
+                    }
+
+                    const minimapIconProvider = osrsClient.renderer as
+                        | {
+                              getMinimapIcons?: (
+                                  mapX: number,
+                                  mapY: number,
+                                  level: number,
+                              ) => Array<{ localX: number; localY: number; spriteId: number }>;
+                          }
+                        | undefined;
+                    for (let mx = 0; mx < 3; mx++) {
+                        for (let my = 0; my < 3; my++) {
+                            const mapX = cameraMapX - 1 + mx;
+                            const mapY = cameraMapY - 1 + my;
+                            const icons = minimapIconProvider?.getMinimapIcons?.(
+                                mapX,
+                                mapY,
+                                playerLevel,
+                            );
+                            if (!icons || icons.length === 0) continue;
+
+                            for (const icon of icons) {
+                                const iconTex = tc.getBySpriteId(icon.spriteId | 0);
+                                if (!iconTex) continue;
+
+                                const iconWorldX = mapX * 64 + (icon.localX | 0) + 0.5;
+                                const iconWorldY = mapY * 64 + (icon.localY | 0) + 0.5;
+                                const iconScreen = minimapRenderer.relativeToScreen(
+                                    (iconWorldX - worldX) * 4,
+                                    (worldY - iconWorldY) * 4,
+                                );
+                                minimapRenderer.drawOverlay(
+                                    iconTex,
+                                    iconScreen.x,
+                                    iconScreen.y,
+                                    iconTex.w * minimapRenderScale,
+                                    iconTex.h * minimapRenderScale,
+                                );
+                            }
                         }
                     }
 
@@ -2665,6 +2708,12 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                             const ecsIdx = otherPlayerEcs.getIndexForServerId?.(otherId);
                             if (ecsIdx === undefined || ecsIdx < 0) continue;
                             if (otherPlayerEcs.getIsHidden?.(ecsIdx)) continue;
+                            if (
+                                ((otherPlayerEcs.getLevel?.(ecsIdx) ?? playerLevel) | 0) !==
+                                playerLevel
+                            ) {
+                                continue;
+                            }
 
                             const fineX = otherPlayerEcs.getX(ecsIdx) | 0;
                             const fineY = otherPlayerEcs.getY(ecsIdx) | 0;
@@ -2683,6 +2732,11 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                     if (npcEcs?.getAllActiveIds && npcDot) {
                         for (const ecsIdx of npcEcs.getAllActiveIds()) {
                             if (!npcEcs.isActive?.(ecsIdx)) continue;
+                            if (
+                                ((npcEcs.getLevel?.(ecsIdx) ?? playerLevel) | 0) !== playerLevel
+                            ) {
+                                continue;
+                            }
 
                             const mapId = npcEcs.getMapId(ecsIdx) | 0;
                             const mapSquareX = mapId >> 8;
@@ -2703,7 +2757,6 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                     // Draw ground items as red dots
                     const groundItems = osrsClient.groundItems;
                     if (groundItems && itemDot) {
-                        const playerLevel = playerState.level | 0;
                         const allStacks = groundItems.getAllStacks?.() ?? [];
                         for (const stack of allStacks) {
                             if (!stack || !stack.tile) continue;
@@ -2764,21 +2817,27 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                         // Get flag texture
                         const flagTex = tc.getByNameToken("mapmarker,0");
                         if (flagTex) {
-                            minimapRenderer.drawOverlay(flagTex, flagScreen.x, flagScreen.y);
+                            minimapRenderer.drawOverlay(
+                                flagTex,
+                                flagScreen.x,
+                                flagScreen.y,
+                                flagTex.w * minimapRenderScale,
+                                flagTex.h * minimapRenderScale,
+                            );
                         } else {
                             // Fallback: draw simple flag
                             minimapRenderer.drawSolidRect(
                                 flagScreen.x,
                                 flagScreen.y - 5,
-                                2,
-                                10,
+                                2 * minimapRenderScale,
+                                10 * minimapRenderScale,
                                 [1, 0, 0, 1],
                             );
                             minimapRenderer.drawSolidRect(
-                                flagScreen.x + 4,
-                                flagScreen.y - 3,
-                                6,
-                                4,
+                                flagScreen.x + 4 * minimapRenderScale,
+                                flagScreen.y - 3 * minimapRenderScale,
+                                6 * minimapRenderScale,
+                                4 * minimapRenderScale,
                                 [1, 1, 0, 1],
                             );
                         }

@@ -1,24 +1,14 @@
-import { CacheInfo } from "../../rs/cache/CacheInfo";
-import { MapImageRenderer } from "../../rs/map/MapImageRenderer";
+import { MinimapImageRenderer } from "../../rs/map/MinimapImageRenderer";
 import { Scene } from "../../rs/scene/Scene";
 
-export type MinimapData = {
-    mapX: number;
-    mapY: number;
-    level: number;
-    cacheInfo: CacheInfo;
-
-    minimapBlob: Blob;
-};
-
 export async function loadMinimapBlob(
-    mapImageRenderer: MapImageRenderer,
+    minimapImageRenderer: MinimapImageRenderer,
     scene: Scene,
     level: number,
     borderSize: number,
     drawMapFunctions: boolean,
 ): Promise<Blob> {
-    const minimapPixels = mapImageRenderer.renderMinimapHd(scene, level, drawMapFunctions);
+    const minimapPixels = minimapImageRenderer.renderMinimapHd(scene, level, drawMapFunctions);
 
     const minimapView = new DataView(minimapPixels.buffer);
     for (let i = 0; i < minimapPixels.length; i++) {

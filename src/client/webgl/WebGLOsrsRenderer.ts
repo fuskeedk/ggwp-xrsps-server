@@ -40,7 +40,7 @@ import { NpcDrawPriority, NpcType } from "../../rs/config/npctype/NpcType";
 import { PlayerAppearance } from "../../rs/config/player/PlayerAppearance";
 import { PlayerModelLoader } from "../../rs/config/player/PlayerModelLoader";
 import { decodeInteractionIndex } from "../../rs/interaction/InteractionIndex";
-import { getMapIndexFromTile, getMapSquareId } from "../../rs/map/MapFileIndex";
+import { getMapIndexFromTile, getMapPlaneId, getMapSquareId } from "../../rs/map/MapFileIndex";
 import { Model } from "../../rs/model/Model";
 import { ModelData } from "../../rs/model/ModelData";
 import { Scene } from "../../rs/scene/Scene";
@@ -661,7 +661,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
     private groundItemStacks: Map<number, ClientGroundItemStack[]> = new Map();
     private groundItemStackHashes: Map<number, string> = new Map();
 
-    /** Minimap icons keyed by mapId (mapX << 8 | mapY) */
+    /** Minimap icons keyed by map square and plane. */
     private minimapIcons: Map<number, Array<{ localX: number; localY: number; spriteId: number }>> =
         new Map();
 
@@ -1002,7 +1002,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             this.getWorldEntityTransformForMap(map);
         const previousOnMapRemoved = this.mapManager.onMapRemoved;
         this.mapManager.onMapRemoved = (mapX: number, mapY: number) => {
-            this.minimapIcons.delete(getMapSquareId(mapX | 0, mapY | 0));
+            this.clearMinimapIconsForMap(mapX | 0, mapY | 0);
             if (!previousOnMapRemoved) return;
             try {
                 previousOnMapRemoved(mapX | 0, mapY | 0);
@@ -1014,6 +1014,36 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                 });
             }
         };
+    }
+
+    private clearMinimapIconsForMap(mapX: number, mapY: number): void {
+        for (let level = 0; level < Scene.MAX_LEVELS; level++) {
+            this.minimapIcons.delete(getMapPlaneId(mapX | 0, mapY | 0, level));
+        }
+    }
+
+    private registerMinimapData(mapData: SdMapData): void {
+        const mapX = mapData.mapX | 0;
+        const mapY = mapData.mapY | 0;
+        for (let level = 0; level < Scene.MAX_LEVELS; level++) {
+            const blob = mapData.minimapBlobs?.[level];
+            if (blob) {
+                this.osrsClient.setMinimapImageUrl(
+                    mapX,
+                    mapY,
+                    URL.createObjectURL(blob),
+                    level,
+                );
+            }
+
+            const key = getMapPlaneId(mapX, mapY, level);
+            const icons = mapData.minimapIcons?.[level] ?? [];
+            if (icons.length > 0) {
+                this.minimapIcons.set(key, icons);
+            } else {
+                this.minimapIcons.delete(key);
+            }
+        }
     }
 
     private shouldUseMobileLoginInput(): boolean {
@@ -6169,19 +6199,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                 existing.timeLoaded,
             );
 
-            this.osrsClient.setMapImageUrl(
-                mapX,
-                mapY,
-                URL.createObjectURL(mapData.minimapBlob),
-                true,
-                false,
-            );
-
-            if (mapData.minimapIcons && mapData.minimapIcons.length > 0) {
-                this.minimapIcons.set(mapId, mapData.minimapIcons);
-            } else {
-                this.minimapIcons.delete(mapId);
-            }
+            this.registerMinimapData(mapData);
 
             this.mapManager.addMap(mapX, mapY, existing);
             this.rebuildGroundItemsForMap(existing, this.groundItemStacks.get(mapId));
@@ -6190,20 +6208,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             return;
         }
 
-        this.osrsClient.setMapImageUrl(
-            mapX,
-            mapY,
-            URL.createObjectURL(mapData.minimapBlob),
-            true,
-            false,
-        );
-
-        // Store minimap icons for dynamic rendering
-        if (mapData.minimapIcons && mapData.minimapIcons.length > 0) {
-            this.minimapIcons.set(mapId, mapData.minimapIcons);
-        } else {
-            this.minimapIcons.delete(mapId);
-        }
+        this.registerMinimapData(mapData);
 
         const frameCount = this.stats.frameCount;
         // -1.0 makes loadAlpha = 1.0 immediately in the vertex shader,
@@ -6292,9 +6297,9 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
     getMinimapIcons(
         mapX: number,
         mapY: number,
+        level: number = 0,
     ): Array<{ localX: number; localY: number; spriteId: number }> | undefined {
-        const mapId = (mapX << 8) | mapY;
-        return this.minimapIcons.get(mapId);
+        return this.minimapIcons.get(getMapPlaneId(mapX | 0, mapY | 0, level | 0));
     }
 
     setMaxLevel(maxLevel: number): void {

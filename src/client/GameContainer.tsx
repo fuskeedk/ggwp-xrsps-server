@@ -352,14 +352,6 @@ export function GameContainer({ osrsClient }: OsrsContainerProps): JSX.Element {
         return { x, y };
     }, [osrsClient]);
 
-    const loadMapImageUrl = useCallback(
-        (mapX: number, mapY: number) => {
-            return osrsClient.getMapImageUrl(mapX, mapY, false);
-        },
-
-        [osrsClient],
-    );
-
     const updateFishingStatus = useCallback((detail?: string) => {
         if (fishingStatusTimer.current) {
             window.clearTimeout(fishingStatusTimer.current);
@@ -523,7 +515,6 @@ export function GameContainer({ osrsClient }: OsrsContainerProps): JSX.Element {
                             isAdmin={isWorldMapAdmin && osrsClient.localPlayerIsAdmin}
                             onPlaneStep={onWorldMapPlaneStep}
                             getPosition={getMapPosition}
-                            loadMapImageUrl={loadMapImageUrl}
                         />
 
                         {/* Bottom-left performance/optimization overlay (F3 toggles) */}

@@ -11,10 +11,6 @@
     overflow: hidden;
 }
 
-.worldmap-image {
-    position: absolute;
-}
-
 .worldmap-drag {
     position: absolute;
     left: 0;
@@ -91,30 +87,11 @@
     background-image: url(./zoom-in.png);
 }
 
-.worldmap-location-select {
-    display: flex;
-    align-items: center;
-    height: 100%;
-}
-
-.osrs-select-container {
-    margin: 0 4px 0 4px;
-}
-
 @media (max-width: 340px) {
     .hide-mobile {
         display: none;
     }
-    .worldmap-location-select {
-        flex: 1;
-        padding-right: 8px;
-    }
     .worldmap-zoom-buttons {
         flex: inherit;
-    }
-    .osrs-select-container {
-        /* display: none; */
-        /* width: 100px !important; */
-        min-width: 100% !important;
     }
 }

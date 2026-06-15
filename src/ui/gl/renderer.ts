@@ -909,6 +909,19 @@ void main(){
         return this.textures.get(key);
     }
 
+    deleteTexture(key: string): boolean {
+        const existing = this.textures.get(key);
+        if (!existing) return false;
+
+        if (this.textureBatchTex === existing) {
+            this.flushTextureBatch();
+        }
+        if (existing.tex) {
+            this.gl.deleteTexture(existing.tex);
+        }
+        return this.textures.delete(key);
+    }
+
     /**
      * Update an existing texture from a canvas, or create if it doesn't exist.
      * Unlike createTextureFromCanvas, this will re-upload the canvas data every call.

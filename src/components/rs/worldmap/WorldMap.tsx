@@ -4,40 +4,13 @@ import {
     WheelEvent,
     memo,
     useCallback,
-    useLayoutEffect,
     useRef,
     useState,
 } from "react";
 import { useResizeObserver } from "usehooks-ts";
 
-import { getMapSquareId } from "../../../rs/map/MapFileIndex";
 import { clamp } from "../../../util/MathUtil";
 import "./WorldMap.css";
-import locationsImport from "./locations.json";
-
-interface Location {
-    name: string;
-    coords: number[];
-    size?: string;
-}
-
-interface LocationOption {
-    value: string;
-    label: string;
-}
-
-const locations: Location[] = locationsImport.locations;
-const locationsMap: Record<string, Location> = {};
-const locationOptions: LocationOption[] = [];
-
-for (const location of locations) {
-    const key = `${location.name} ${location.coords.join(",")}`;
-    locationsMap[key] = location;
-    locationOptions.push({
-        value: key,
-        label: location.name,
-    });
-}
 
 interface Position {
     x: number;
@@ -51,19 +24,16 @@ const DEFAULT_TILE_SIZE = 3;
 const MAX_X = 100 * 64;
 const MAX_Y = 200 * 64;
 
-// TODO: Optimize by writing to 1 image
-
 export interface WorldMapProps {
     onDoubleClick: (x: number, y: number) => void;
     isAdmin?: boolean;
     onPlaneStep?: (delta: number) => void;
 
     getPosition: () => Position;
-    loadMapImageUrl: (mapX: number, mapY: number) => string | undefined;
 }
 
 export const WorldMap = memo(function WorldMap(props: WorldMapProps) {
-    const { getPosition, loadMapImageUrl } = props;
+    const { getPosition } = props;
 
     const ref = useRef<HTMLDivElement>(null);
     const { width = 0, height = 0 } = useResizeObserver<HTMLDivElement>({
@@ -80,10 +50,6 @@ export const WorldMap = memo(function WorldMap(props: WorldMapProps) {
     const [pos, setPos] = useState(getPosition);
     const [tileSizeIndex, setTileSizeIndex] = useState(TILE_SIZES.indexOf(DEFAULT_TILE_SIZE));
 
-    const [images, setImages] = useState<JSX.Element[]>([]);
-
-    const requestRef = useRef<number | undefined>(undefined);
-
     const tileSize = TILE_SIZES[tileSizeIndex];
 
     const cameraX = pos.x | 0;
@@ -91,73 +57,6 @@ export const WorldMap = memo(function WorldMap(props: WorldMapProps) {
 
     const halfWidth = (width / 2) | 0;
     const halfHeight = (height / 2) | 0;
-
-    const animate = useCallback(
-        (time: DOMHighResTimeStamp) => {
-            const halfTileSize = tileSize / 2;
-            const imageSize = 64 * tileSize;
-
-            const mapX = pos.x >> 6;
-            const mapY = pos.y >> 6;
-
-            const x = halfWidth - (cameraX % 64) * tileSize - halfTileSize;
-            const y = halfHeight - (cameraY % 64) * tileSize - halfTileSize;
-
-            const renderStartX = -Math.ceil(x / imageSize) - 1;
-            const renderStartY = -Math.ceil(y / imageSize) - 1;
-
-            const renderEndX = Math.ceil((width - x) / imageSize) + 1;
-            const renderEndY = Math.ceil((height - y) / imageSize) + 1;
-
-            const images: JSX.Element[] = [];
-
-            for (let rx = renderStartX; rx < renderEndX; rx++) {
-                for (let ry = renderStartY; ry < renderEndY; ry++) {
-                    const imageMapX = mapX + rx;
-                    const imageMapY = mapY + ry;
-                    const mapId = getMapSquareId(imageMapX, imageMapY);
-                    const mapUrl = loadMapImageUrl(imageMapX, imageMapY);
-                    if (mapUrl) {
-                        images.push(
-                            <img
-                                key={mapId}
-                                className={`worldmap-image ${imageMapX}_${imageMapY}`}
-                                src={mapUrl}
-                                alt=""
-                                style={{
-                                    left: x + rx * imageSize,
-                                    bottom: y + ry * imageSize,
-                                    width: imageSize,
-                                    height: imageSize,
-                                }}
-                            />,
-                        );
-                    }
-                }
-            }
-
-            setImages(images);
-
-            requestRef.current = requestAnimationFrame(animate);
-        },
-        [
-            cameraX,
-            cameraY,
-            halfHeight,
-            halfWidth,
-            height,
-            loadMapImageUrl,
-            pos.x,
-            pos.y,
-            tileSize,
-            width,
-        ],
-    );
-
-    useLayoutEffect(() => {
-        requestRef.current = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(requestRef.current!);
-    }, [animate]);
 
     const teleportAtPointer = (offsetX: number, offsetY: number) => {
         const deltaX = (offsetX - halfWidth) / tileSize + 0.5;
@@ -332,7 +231,6 @@ export const WorldMap = memo(function WorldMap(props: WorldMapProps) {
     return (
         <div className="worldmap-container">
             <div className="worldmap" ref={ref}>
-                {images}
                 {/* <div className=""
                 style={{
                     position: "absolute",

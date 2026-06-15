@@ -104,7 +104,12 @@ import { BitmapFont } from "../rs/font/BitmapFont";
 import { encodeInteractionIndex } from "../rs/interaction/InteractionIndex";
 import { Inventory, InventorySlotInput } from "../rs/inventory/Inventory";
 import type { InventorySlot } from "../rs/inventory/Inventory";
-import { MapFileIndex, getMapIndexFromTile, getMapSquareId } from "../rs/map/MapFileIndex";
+import {
+    MapFileIndex,
+    getMapIndexFromTile,
+    getMapPlaneId,
+    getMapSquareId,
+} from "../rs/map/MapFileIndex";
 import { SeqFrameLoader } from "../rs/model/seq/SeqFrameLoader";
 import type { SkeletalSeqLoader } from "../rs/model/skeletal/SkeletalSeqLoader";
 import {
@@ -344,7 +349,6 @@ function clampRenderDistance(value: number): number {
 const DEFAULT_MAP_RADIUS = deriveMapRadiusFromRenderDistance(DEFAULT_RENDER_DISTANCE);
 const DEFAULT_LOD_DISTANCE = deriveLodDistanceFromRenderDistance(DEFAULT_RENDER_DISTANCE);
 
-const MAP_IMAGE_BASE_PATH = "/map-images";
 const VARBIT_ACCOUNT_TYPE = 1777;
 const VARBIT_POPOUT_OPEN = 13090;
 const VARBIT_POPOUT_PANEL_DESKTOP_DISABLED = 13982;
@@ -824,20 +828,12 @@ export class OsrsClient {
     private _lastLayoutRootInterface: number = -1;
 
     // Cap how many object URLs we retain in-memory to prevent growth over time.
-    // World map tiles can add up quickly; keep a practical upper bound.
-    static readonly MAX_MAP_URLS = 512;
+    // Cap how many generated minimap object URLs we retain in-memory to prevent growth over time.
     static readonly MAX_MINIMAP_URLS = 128;
-    static readonly MAX_PENDING_MAP_IMAGE_LOADS = 64;
-    static readonly MAX_MAP_URLS_MOBILE = 128;
     static readonly MAX_MINIMAP_URLS_MOBILE = 64;
-    static readonly MAX_PENDING_MAP_IMAGE_LOADS_MOBILE = 16;
 
-    mapImageUrls: Map<number, string> = new Map();
     minimapImageUrls: Map<number, string> = new Map();
-    private mapImageAccess: Map<number, number> = new Map();
     private minimapImageAccess: Map<number, number> = new Map();
-    loadingMapImageIds: Set<number> = new Set();
-    private failedMapImageIds: Set<number> = new Set();
 
     cameraSpeed: number = 1;
 
@@ -1073,7 +1069,6 @@ export class OsrsClient {
     constructor(
         readonly workerPool: RenderDataWorkerPool,
         readonly cacheList: CacheList,
-        readonly mapImageCache: Cache,
         rendererType: OsrsRendererType,
         cache?: LoadedCache,
     ) {
@@ -8881,20 +8876,6 @@ export class OsrsClient {
                 }
             } catch {}
         }
-
-        this.workerPool.loadCachedMapImages().then((mapImageUrls) => {
-            const now = performance.now();
-            mapImageUrls.forEach((value, key) => {
-                this.mapImageUrls.set(key, value);
-                this.mapImageAccess.set(key, now);
-            });
-            // Avoid starting with too many blob URLs retained
-            this.pruneUrlMapLRU(
-                this.mapImageUrls,
-                this.mapImageAccess,
-                this.getMapImageUrlLimit(false),
-            );
-        });
     }
 
     // ========== Login Screen Methods ==========
@@ -9711,7 +9692,7 @@ export class OsrsClient {
         this.workerPool.initCache(cache, []);
 
         this.clearNpcInstancesLocal();
-        this.clearMapImageUrls();
+        this.clearMinimapImageUrls();
 
         // ========== Load Login/Title Screen Assets ==========
         // Authentic phased loading with incremental index loading
@@ -11136,159 +11117,84 @@ export class OsrsClient {
         this.workerPool.setVars(this.varManager.values);
     }
 
-    private getMapImageBasePath(): string {
-        const cacheName = this.loadedCache?.info?.name;
-        return cacheName ? `${MAP_IMAGE_BASE_PATH}/${cacheName}` : MAP_IMAGE_BASE_PATH;
+    private getMinimapImageKey(mapX: number, mapY: number, level: number = 0): number {
+        return getMapPlaneId(mapX | 0, mapY | 0, level | 0);
     }
 
-    private getCachedMapImageUrl(mapX: number, mapY: number): string {
-        return `${this.getMapImageBasePath()}/${mapX}_${mapY}.png`;
+    private getMinimapImageUrlLimit(): number {
+        return isTouchDevice ? OsrsClient.MAX_MINIMAP_URLS_MOBILE : OsrsClient.MAX_MINIMAP_URLS;
     }
 
-    private getMapImageUrlLimit(minimap: boolean): number {
-        if (isTouchDevice) {
-            return minimap ? OsrsClient.MAX_MINIMAP_URLS_MOBILE : OsrsClient.MAX_MAP_URLS_MOBILE;
-        }
-        return minimap ? OsrsClient.MAX_MINIMAP_URLS : OsrsClient.MAX_MAP_URLS;
-    }
-
-    private getPendingMapImageLimit(): number {
-        return isTouchDevice
-            ? OsrsClient.MAX_PENDING_MAP_IMAGE_LOADS_MOBILE
-            : OsrsClient.MAX_PENDING_MAP_IMAGE_LOADS;
-    }
-
-    async queueLoadMapImage(mapX: number, mapY: number) {
-        // Only use pre-generated /map-images tiles.
-        const mapId = getMapSquareId(mapX, mapY);
-        if (
-            this.mapImageUrls.has(mapId) ||
-            this.loadingMapImageIds.has(mapId) ||
-            this.failedMapImageIds.has(mapId)
-        ) {
-            return;
-        }
-        if (this.loadingMapImageIds.size >= this.getPendingMapImageLimit()) {
-            return;
-        }
-        this.loadingMapImageIds.add(mapId);
-        const cachedUrl = this.getCachedMapImageUrl(mapX, mapY);
-        try {
-            const response = await fetch(cachedUrl, { method: "HEAD" });
-            const contentType = response.headers.get("Content-Type")?.toLowerCase();
-            if (response.ok && contentType && contentType.startsWith("image/")) {
-                this.setMapImageUrl(mapX, mapY, cachedUrl, false, false);
-                this.loadingMapImageIds.delete(mapId);
-                return;
-            }
-        } catch (err) {
-            console.log("[OsrsClient] cached map image check failed", err);
-        }
-        this.failedMapImageIds.add(mapId);
-        this.loadingMapImageIds.delete(mapId);
-    }
-
-    getMapImageUrl(mapX: number, mapY: number, minimap: boolean): string | undefined {
+    getMinimapImageUrl(
+        mapX: number,
+        mapY: number,
+        level: number = 0,
+    ): string | undefined {
         if (mapX < 0 || mapY < 0 || mapX >= MapManager.MAX_MAP_X || mapY >= MapManager.MAX_MAP_Y) {
             return undefined;
         }
-        const urls = minimap ? this.minimapImageUrls : this.mapImageUrls;
-        // Only queue lightweight map image loading, not full geometry
-        this.queueLoadMapImage(mapX, mapY);
-        const mapId = getMapSquareId(mapX, mapY);
-        const url = urls.get(mapId);
+        const mapId = this.getMinimapImageKey(mapX, mapY, level);
+        const url = this.minimapImageUrls.get(mapId);
         if (url) {
-            const access = minimap ? this.minimapImageAccess : this.mapImageAccess;
-            access.set(mapId, performance.now());
+            this.minimapImageAccess.set(mapId, performance.now());
         }
         return url;
     }
 
-    setMapImageUrl(
+    setMinimapImageUrl(
         mapX: number,
         mapY: number,
         url: string,
-        minimap: boolean,
-        cache: boolean = true,
+        level: number = 0,
     ): void {
-        const mapId = getMapSquareId(mapX, mapY);
-        const urls = minimap ? this.minimapImageUrls : this.mapImageUrls;
-        const access = minimap ? this.minimapImageAccess : this.mapImageAccess;
-        const old = urls.get(mapId);
+        const mapId = this.getMinimapImageKey(mapX, mapY, level);
+        const old = this.minimapImageUrls.get(mapId);
         if (old) {
-            URL.revokeObjectURL(old);
-            urls.delete(mapId);
-            access.delete(mapId);
+            this.releaseMinimapImageUrl(old);
+            this.minimapImageUrls.delete(mapId);
+            this.minimapImageAccess.delete(mapId);
         }
-        if (cache) {
-            fetch(url)
-                .then((resp) => {
-                    const contentType = resp.headers.get("Content-Type")?.toLowerCase();
-                    if (!resp.ok || !contentType || !contentType.startsWith("image/")) {
-                        return;
-                    }
-                    const cacheName = this.loadedCache?.info?.name;
-                    if (!cacheName) return;
-                    const request = new Request(this.getCachedMapImageUrl(mapX, mapY), {
-                        headers: {
-                            "RS-Cache-Name": cacheName,
-                        },
-                    });
-                    return this.mapImageCache.put(request, resp);
-                })
-                .catch((err) => {
-                    console.log("[OsrsClient] map image cache fetch failed", err);
-                });
-        }
-        urls.set(mapId, url);
-        access.set(mapId, performance.now());
-        // Enforce memory cap for object URLs
-        if (minimap) {
-            this.pruneUrlMapLRU(
-                this.minimapImageUrls,
-                this.minimapImageAccess,
-                this.getMapImageUrlLimit(true),
-            );
-        } else {
-            this.pruneUrlMapLRU(
-                this.mapImageUrls,
-                this.mapImageAccess,
-                this.getMapImageUrlLimit(false),
-            );
-        }
+        this.minimapImageUrls.set(mapId, url);
+        this.minimapImageAccess.set(mapId, performance.now());
+        this.pruneMinimapImageUrls();
     }
 
-    clearMapImageUrls(): void {
-        for (const url of this.mapImageUrls.values()) {
-            URL.revokeObjectURL(url);
-        }
+    clearMinimapImageUrls(): void {
         for (const url of this.minimapImageUrls.values()) {
-            URL.revokeObjectURL(url);
+            this.releaseMinimapImageUrl(url);
         }
-        this.mapImageUrls.clear();
         this.minimapImageUrls.clear();
-        this.mapImageAccess.clear();
         this.minimapImageAccess.clear();
-        this.loadingMapImageIds.clear();
-        this.failedMapImageIds.clear();
     }
 
-    private pruneUrlMapLRU(
-        urls: Map<number, string>,
-        access: Map<number, number>,
-        limit: number,
-    ): void {
-        if (urls.size <= limit) return;
-        const now = performance.now();
+    private releaseMinimapImageUrl(url: string): void {
+        const textureCache = (this.renderer?.canvas as any)?.__textureCache;
+        if (textureCache && typeof textureCache.evictUrl === "function") {
+            try {
+                textureCache.evictUrl(url);
+            } catch {}
+        }
+        URL.revokeObjectURL(url);
+    }
+
+    private pruneMinimapImageUrls(): void {
+        const limit = this.getMinimapImageUrlLimit();
+        if (this.minimapImageUrls.size <= limit) return;
         // Build list sorted by last access (oldest first)
-        const ids = Array.from(urls.keys());
-        ids.sort((a, b) => (access.get(a) ?? -Infinity) - (access.get(b) ?? -Infinity));
-        const toRemove = ids.slice(0, urls.size - limit);
+        const ids = Array.from(this.minimapImageUrls.keys());
+        ids.sort(
+            (a, b) =>
+                (this.minimapImageAccess.get(a) ?? -Infinity) -
+                (this.minimapImageAccess.get(b) ?? -Infinity),
+        );
+        const toRemove = ids.slice(0, this.minimapImageUrls.size - limit);
         for (const id of toRemove) {
-            const u = urls.get(id);
-            if (u) URL.revokeObjectURL(u);
-            urls.delete(id);
-            access.delete(id);
+            const url = this.minimapImageUrls.get(id);
+            if (url) {
+                this.releaseMinimapImageUrl(url);
+            }
+            this.minimapImageUrls.delete(id);
+            this.minimapImageAccess.delete(id);
         }
     }
 
@@ -11582,18 +11488,7 @@ export class OsrsClient {
             this.soundEffectSystem = undefined;
         }
 
-        // Revoke any cached map image URLs
-        for (const url of this.mapImageUrls.values()) {
-            URL.revokeObjectURL(url);
-        }
-        this.mapImageUrls.clear();
-        this.mapImageAccess.clear();
-
-        for (const url of this.minimapImageUrls.values()) {
-            URL.revokeObjectURL(url);
-        }
-        this.minimapImageUrls.clear();
-        this.minimapImageAccess.clear();
+        this.clearMinimapImageUrls();
 
         console.log("[OsrsClient] Disposed");
     }

@@ -374,18 +374,18 @@ function transparentPng1x1(): Blob {
 /**
  * Extract minimap icons from floor decorations in the scene.
  * Icons are objects (floor decorations) with a mapFunctionId set.
- * @param mapFunctionToSpriteId Function to resolve mapFunctionId -> spriteId (from MapElementType)
+ * @param mapFunctionToSprite Function to resolve mapFunctionId -> sprite metadata
  */
 function extractMinimapIcons(
     scene: Scene,
     locTypeLoader: LocTypeLoader,
     borderSize: number,
-    mapFunctionToSpriteId: (mapFunctionId: number) => number,
+    level: number,
+    mapFunctionToSprite: (
+        mapFunctionId: number,
+    ) => { spriteId: number; minimapVisible: boolean } | undefined,
 ): MinimapIcon[] {
     const icons: MinimapIcon[] = [];
-
-    // Only extract from level 0 (ground level) - same as OSRS minimap
-    const level = 0;
 
     for (let tx = borderSize; tx < scene.sizeX - borderSize; tx++) {
         for (let ty = borderSize; ty < scene.sizeY - borderSize; ty++) {
@@ -399,8 +399,8 @@ function extractMinimapIcons(
             const locType = locTypeLoader.load(locId);
 
             if (locType.mapFunctionId !== -1) {
-                const spriteId = mapFunctionToSpriteId(locType.mapFunctionId);
-                if (spriteId === -1) continue;
+                const sprite = mapFunctionToSprite(locType.mapFunctionId);
+                if (!sprite || sprite.spriteId === -1 || !sprite.minimapVisible) continue;
 
                 // Convert from scene coords to local map square coords
                 const localX = tx - borderSize;
@@ -409,7 +409,7 @@ function extractMinimapIcons(
                 icons.push({
                     localX,
                     localY,
-                    spriteId,
+                    spriteId: sprite.spriteId,
                 });
             }
         }
@@ -1670,24 +1670,28 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
         const npcVertices = npcSceneBuf.vertexBuf.byteArray();
         const npcIndices = new Int32Array(npcSceneBuf.indices);
 
-        // Generate minimap image; fall back to a tiny transparent PNG when OffscreenCanvas
-        // is unavailable in worker contexts (e.g., some iOS Safari versions)
-        let minimapBlob: Blob;
+        const minimapBlobs: Blob[] = new Array(Scene.MAX_LEVELS);
         if (typeof OffscreenCanvas !== "undefined") {
-            minimapBlob = await loadMinimapBlob(
-                state.mapImageRenderer,
-                scene,
-                0,
-                usedBorderSize,
-                false,
-            );
+            for (let level = 0; level < Scene.MAX_LEVELS; level++) {
+                minimapBlobs[level] = await loadMinimapBlob(
+                    state.minimapImageRenderer,
+                    scene,
+                    level,
+                    usedBorderSize,
+                    false,
+                );
+            }
         } else {
-            minimapBlob = transparentPng1x1();
+            const transparent = transparentPng1x1();
+            for (let level = 0; level < Scene.MAX_LEVELS; level++) {
+                minimapBlobs[level] = transparent;
+            }
         }
 
         // Extract minimap icons for dynamic rendering
-        // Create MapElementType loader to resolve mapFunctionId -> spriteId
-        let mapFunctionToSpriteId: (id: number) => number = () => -1;
+        let mapFunctionToSprite: (
+            id: number,
+        ) => { spriteId: number; minimapVisible: boolean } | undefined = () => undefined;
         try {
             const configIndex = state.cacheSystem.getIndex(IndexType.DAT2.configs);
             const cacheInfo = state.cache.info;
@@ -1697,31 +1701,42 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
             ) {
                 const mapElementArchive = configIndex.getArchive(ConfigType.OSRS.mapFunctions);
                 const melLoader = new ArchiveMapElementTypeLoader(cacheInfo, mapElementArchive);
-                // Cache resolved spriteIds to avoid repeated loads
-                const spriteIdCache = new Map<number, number>();
-                mapFunctionToSpriteId = (mapFuncId: number) => {
-                    let spriteId = spriteIdCache.get(mapFuncId);
-                    if (spriteId === undefined) {
+                const spriteCache = new Map<
+                    number,
+                    { spriteId: number; minimapVisible: boolean } | undefined
+                >();
+                mapFunctionToSprite = (mapFuncId: number) => {
+                    if (!spriteCache.has(mapFuncId)) {
+                        let sprite:
+                            | { spriteId: number; minimapVisible: boolean }
+                            | undefined = undefined;
                         try {
                             const mel = melLoader.load(mapFuncId);
-                            spriteId = mel.spriteId;
+                            sprite = {
+                                spriteId: mel.spriteId,
+                                minimapVisible: mel.minimapVisible,
+                            };
                         } catch {
-                            spriteId = -1;
+                            sprite = undefined;
                         }
-                        spriteIdCache.set(mapFuncId, spriteId);
+                        spriteCache.set(mapFuncId, sprite);
                     }
-                    return spriteId;
+                    return spriteCache.get(mapFuncId);
                 };
             }
         } catch (e) {
             console.warn("Failed to load MapElementTypeLoader for minimap icons", e);
         }
-        const minimapIcons = extractMinimapIcons(
-            scene,
-            state.locTypeLoader,
-            usedBorderSize,
-            mapFunctionToSpriteId,
-        );
+        const minimapIcons: MinimapIcon[][] = new Array(Scene.MAX_LEVELS);
+        for (let level = 0; level < Scene.MAX_LEVELS; level++) {
+            minimapIcons[level] = extractMinimapIcons(
+                scene,
+                state.locTypeLoader,
+                usedBorderSize,
+                level,
+                mapFunctionToSprite,
+            );
+        }
 
         const loadedTextures = new Map<number, Int32Array>();
         const usedTextureIds = new Set<number>();
@@ -1851,7 +1866,7 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
                 tileRenderFlags: scene.tileRenderFlags,
                 collisionDatas: scene.collisionMaps,
 
-                minimapBlob,
+                minimapBlobs,
                 minimapIcons,
 
                 vertices,
