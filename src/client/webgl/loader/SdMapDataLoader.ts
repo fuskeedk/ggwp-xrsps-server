@@ -515,6 +515,49 @@ function extractWorldMapIcons(
     return icons;
 }
 
+function createMapFunctionResolver(
+    state: WorkerState,
+): (id: number) => MapElementMetadata | undefined {
+    try {
+        const configIndex = state.cacheSystem.getIndex(IndexType.DAT2.configs);
+        const cacheInfo = state.cache.info;
+        if (
+            cacheInfo.game === "oldschool" &&
+            configIndex.archiveExists(ConfigType.OSRS.mapFunctions)
+        ) {
+            const mapElementArchive = configIndex.getArchive(ConfigType.OSRS.mapFunctions);
+            const melLoader = new ArchiveMapElementTypeLoader(cacheInfo, mapElementArchive);
+            const spriteCache = new Map<number, MapElementMetadata | undefined>();
+            return (mapFuncId: number) => {
+                if (!spriteCache.has(mapFuncId)) {
+                    let sprite: MapElementMetadata | undefined = undefined;
+                    try {
+                        const mel = melLoader.load(mapFuncId);
+                        sprite = {
+                            spriteId: mel.spriteId,
+                            minimapVisible: mel.minimapVisible,
+                            worldMapVisible: mel.worldMapVisible,
+                            category: mel.category,
+                            name: mel.name,
+                            textColor: mel.textColor,
+                            textSize: mel.textSize,
+                            horizontalAlignment: mel.horizontalAlignment,
+                            verticalAlignment: mel.verticalAlignment,
+                        };
+                    } catch {
+                        sprite = undefined;
+                    }
+                    spriteCache.set(mapFuncId, sprite);
+                }
+                return spriteCache.get(mapFuncId);
+            };
+        }
+    } catch (e) {
+        console.log("Failed to load MapElementTypeLoader for minimap icons", e);
+    }
+    return () => undefined;
+}
+
 function createModelGroups(
     modelGroupMap: Map<number, ModelMergeGroup>,
     sceneModels: SceneModel[],
@@ -1132,10 +1175,13 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
             extraLocs: extraLocsInput,
             extraNpcs: extraNpcsInput,
             overrideRenderPos,
+            worldMapTileOnly,
         }: SdMapLoaderInput,
     ): Promise<RenderDataResult<SdMapData | undefined>> {
         console.time(`load map ${mapX},${mapY}`);
-        this.init();
+        if (!worldMapTileOnly) {
+            this.init();
+        }
 
         const locTypeLoader = state.locTypeLoader;
         const npcTypeLoader = state.npcTypeLoader;
@@ -1147,11 +1193,14 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
 
         const varManager = state.varManager;
 
-        let textureIds = textureLoader.getTextureIds().filter((id) => textureLoader.isSd(id));
-        textureIds = textureIds.slice(0, 2047);
+        let textureIds: number[] = [];
         const textureIdIndexMap = new Map<number, number>();
-        for (let i = 0; i < textureIds.length; i++) {
-            textureIdIndexMap.set(textureIds[i], i);
+        if (!worldMapTileOnly) {
+            textureIds = textureLoader.getTextureIds().filter((id) => textureLoader.isSd(id));
+            textureIds = textureIds.slice(0, 2047);
+            for (let i = 0; i < textureIds.length; i++) {
+                textureIdIndexMap.set(textureIds[i], i);
+            }
         }
 
         const borderSize = 6;
@@ -1298,6 +1347,7 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
 
         console.time(`build scene ${mapX},${mapY}`);
         let scene: Scene;
+        const locLoadType = worldMapTileOnly ? LocLoadType.NO_MODELS : LocLoadType.MODELS;
         if (instanceInput) {
             scene = state.sceneBuilder.buildInstanceScene(
                 instanceInput.templateChunks,
@@ -1306,10 +1356,17 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
                 INSTANCE_SIZE,
                 INSTANCE_SIZE,
                 smoothTerrain,
-                LocLoadType.MODELS,
+                locLoadType,
             );
         } else {
-            scene = state.sceneBuilder.buildScene(baseX, baseY, mapSize, mapSize, smoothTerrain);
+            scene = state.sceneBuilder.buildScene(
+                baseX,
+                baseY,
+                mapSize,
+                mapSize,
+                smoothTerrain,
+                locLoadType,
+            );
         }
         // Inject extra locs (from LOC_ADD_CHANGE) into the built scene
         if (extraLocsInput && extraLocsInput.length > 0) {
@@ -1331,12 +1388,59 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
                         loc.shape,
                         loc.rotation,
                         scene.collisionMaps[loc.level],
-                        LocLoadType.MODELS,
+                        locLoadType,
                     );
                 }
             }
         }
         console.timeEnd(`build scene ${mapX},${mapY}`);
+
+        if (worldMapTileOnly) {
+            const level = Math.max(0, Math.min(Scene.MAX_LEVELS - 1, worldMapTileOnly.level | 0));
+            const minimapBlobs: Blob[] = new Array(Scene.MAX_LEVELS);
+            minimapBlobs[level] =
+                typeof OffscreenCanvas !== "undefined"
+                    ? await loadMinimapBlob(
+                          state.minimapImageRenderer,
+                          scene,
+                          level,
+                          usedBorderSize,
+                          false,
+                      )
+                    : transparentPng1x1();
+
+            const mapFunctionToSprite = createMapFunctionResolver(state);
+            const minimapIcons: MinimapIcon[][] = new Array(Scene.MAX_LEVELS);
+            const worldMapIcons: MinimapIcon[][] = new Array(Scene.MAX_LEVELS);
+            minimapIcons[level] = [];
+            worldMapIcons[level] = extractWorldMapIcons(
+                scene,
+                state.locTypeLoader,
+                usedBorderSize,
+                level,
+                mapFunctionToSprite,
+            );
+
+            console.timeEnd(`load map ${mapX},${mapY}`);
+            return {
+                data: {
+                    mapX,
+                    mapY,
+                    cacheName: state.cache.info.name,
+                    maxLevel,
+                    loadNpcs,
+                    smoothTerrain,
+                    borderSize: usedBorderSize,
+                    heightMapSize: mapSize,
+                    renderPosX,
+                    renderPosY,
+                    minimapBlobs,
+                    minimapIcons,
+                    worldMapIcons,
+                } as SdMapData,
+                transferables: [],
+            };
+        }
 
         const sceneBuf = new SceneBuffer(textureLoader, textureIdIndexMap, 100000);
         const doorSceneBuf = new SceneBuffer(textureLoader, textureIdIndexMap, 20000);
@@ -1786,44 +1890,7 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
         }
 
         // Extract minimap icons for dynamic rendering
-        let mapFunctionToSprite: (id: number) => MapElementMetadata | undefined = () => undefined;
-        try {
-            const configIndex = state.cacheSystem.getIndex(IndexType.DAT2.configs);
-            const cacheInfo = state.cache.info;
-            if (
-                cacheInfo.game === "oldschool" &&
-                configIndex.archiveExists(ConfigType.OSRS.mapFunctions)
-            ) {
-                const mapElementArchive = configIndex.getArchive(ConfigType.OSRS.mapFunctions);
-                const melLoader = new ArchiveMapElementTypeLoader(cacheInfo, mapElementArchive);
-                const spriteCache = new Map<number, MapElementMetadata | undefined>();
-                mapFunctionToSprite = (mapFuncId: number) => {
-                    if (!spriteCache.has(mapFuncId)) {
-                        let sprite: MapElementMetadata | undefined = undefined;
-                        try {
-                            const mel = melLoader.load(mapFuncId);
-                            sprite = {
-                                spriteId: mel.spriteId,
-                                minimapVisible: mel.minimapVisible,
-                                worldMapVisible: mel.worldMapVisible,
-                                category: mel.category,
-                                name: mel.name,
-                                textColor: mel.textColor,
-                                textSize: mel.textSize,
-                                horizontalAlignment: mel.horizontalAlignment,
-                                verticalAlignment: mel.verticalAlignment,
-                            };
-                        } catch {
-                            sprite = undefined;
-                        }
-                        spriteCache.set(mapFuncId, sprite);
-                    }
-                    return spriteCache.get(mapFuncId);
-                };
-            }
-        } catch (e) {
-            console.warn("Failed to load MapElementTypeLoader for minimap icons", e);
-        }
+        const mapFunctionToSprite = createMapFunctionResolver(state);
         const minimapIcons: MinimapIcon[][] = new Array(Scene.MAX_LEVELS);
         const worldMapIcons: MinimapIcon[][] = new Array(Scene.MAX_LEVELS);
         for (let level = 0; level < Scene.MAX_LEVELS; level++) {

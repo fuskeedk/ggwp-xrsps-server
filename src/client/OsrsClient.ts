@@ -720,6 +720,12 @@ export class OsrsClient {
     private draggedOnWidget: any = null; // Widget under cursor that can receive drag (OSRS: Client.draggedOnWidget)
     private if1ScrollbarDragging: boolean = false;
     private if1AlternativeScrollbarWidth: number = 0;
+    private worldMapDragStartMouseX: number = -1;
+    private worldMapDragStartMouseY: number = -1;
+    private worldMapDragStartDisplayX: number = 0;
+    private worldMapDragStartDisplayY: number = 0;
+    private worldMapDragPixelsPerTileX: number = 1;
+    private worldMapDragPixelsPerTileY: number = 1;
 
     // PERF: Cache drag hit test - only recompute when mouse moves
     private _lastDragHitX: number = -1;
@@ -837,18 +843,22 @@ export class OsrsClient {
     // Cap how many generated minimap object URLs we retain in-memory to prevent growth over time.
     static readonly MAX_MINIMAP_URLS = 128;
     static readonly MAX_MINIMAP_URLS_MOBILE = 64;
-    static readonly MAX_WORLDMAP_URLS = 384;
-    static readonly MAX_WORLDMAP_URLS_MOBILE = 160;
-    static readonly MAX_PENDING_WORLDMAP_TILE_LOADS = 24;
+    static readonly MAX_WORLDMAP_URLS = 96;
+    static readonly MAX_WORLDMAP_URLS_MOBILE = 32;
+    static readonly MAX_PENDING_WORLDMAP_TILE_LOADS = 4;
+    static readonly MAX_PENDING_WORLDMAP_TILE_LOADS_MOBILE = 2;
+    static readonly MAX_FAILED_WORLDMAP_IDS = 256;
+    static readonly MAX_FAILED_WORLDMAP_IDS_MOBILE = 64;
 
     minimapImageUrls: Map<number, string> = new Map();
     private minimapImageAccess: Map<number, number> = new Map();
     worldMapState: WorldMapState = WorldMapState.empty();
     worldMapImageUrls: Map<number, string> = new Map();
     private worldMapImageAccess: Map<number, number> = new Map();
-    private worldMapIcons: Map<number, MinimapIcon[]> = new Map();
     private pendingWorldMapImageIds: Set<number> = new Set();
     private failedWorldMapImageIds: Set<number> = new Set();
+    private worldMapImageRequestViewportKey: string = "";
+    private worldMapImageRequestEpoch: number = 0;
 
     cameraSpeed: number = 1;
 
@@ -3486,6 +3496,106 @@ export class OsrsClient {
         if (w.eventHandlers?.onDrag || w.onDrag) return true;
 
         return false;
+    }
+
+    private setWorldMapState(state: WorldMapState): void {
+        this.worldMapState = state;
+        this.resetWorldMapDrag();
+        if (this.cs2Vm?.context) {
+            this.cs2Vm.context.worldMapState = state;
+        }
+    }
+
+    private findWorldMapHit(hits: any[]): any | null {
+        for (let i = hits.length - 1; i >= 0; i--) {
+            const w = hits[i];
+            if (!w) continue;
+            const uid = (w.uid ?? 0) | 0;
+            if (uid !== 0 && this.widgetManager?.isEffectivelyHidden(uid)) continue;
+            if (w.hidden || w.hide) continue;
+            if (((w.contentType ?? 0) | 0) === 1400) return w;
+        }
+        return null;
+    }
+
+    private resetWorldMapDrag(): void {
+        this.worldMapDragStartMouseX = -1;
+        this.worldMapDragStartMouseY = -1;
+        this.worldMapDragStartDisplayX = 0;
+        this.worldMapDragStartDisplayY = 0;
+        this.worldMapDragPixelsPerTileX = 1;
+        this.worldMapDragPixelsPerTileY = 1;
+    }
+
+    private getWorldMapWidgetPixelsPerTile(widget: any): { x: number; y: number } {
+        const logicalPixelsPerTile = this.worldMapState.getZoomScale();
+        const logicalWidth = Math.max(
+            1,
+            (widget?.width ?? this.worldMapState.getDisplayPixelWidth() ?? 1) | 0,
+        );
+        const logicalHeight = Math.max(
+            1,
+            (widget?.height ?? this.worldMapState.getDisplayPixelHeight() ?? 1) | 0,
+        );
+        const pixelWidth =
+            typeof widget?._absWidth === "number" && Number.isFinite(widget._absWidth)
+                ? Math.max(1, widget._absWidth | 0)
+                : logicalWidth;
+        const pixelHeight =
+            typeof widget?._absHeight === "number" && Number.isFinite(widget._absHeight)
+                ? Math.max(1, widget._absHeight | 0)
+                : logicalHeight;
+        return {
+            x: logicalPixelsPerTile * (pixelWidth / logicalWidth),
+            y: logicalPixelsPerTile * (pixelHeight / logicalHeight),
+        };
+    }
+
+    private handleWorldMapDragInput(
+        hits: any[],
+        mouseX: number,
+        mouseY: number,
+        isNewClick: boolean,
+        isHolding: boolean,
+    ): boolean {
+        if (!isHolding) {
+            this.resetWorldMapDrag();
+            return false;
+        }
+
+        if (isNewClick) {
+            const worldMapHit = this.findWorldMapHit(hits);
+            if (!worldMapHit) {
+                this.resetWorldMapDrag();
+                return false;
+            }
+            this.worldMapDragStartMouseX = mouseX | 0;
+            this.worldMapDragStartMouseY = mouseY | 0;
+            this.worldMapDragStartDisplayX = this.worldMapState.displayX | 0;
+            this.worldMapDragStartDisplayY = this.worldMapState.displayY | 0;
+            const pixelsPerTile = this.getWorldMapWidgetPixelsPerTile(worldMapHit);
+            this.worldMapDragPixelsPerTileX = pixelsPerTile.x;
+            this.worldMapDragPixelsPerTileY = pixelsPerTile.y;
+        }
+
+        if (this.worldMapDragStartMouseX < 0 || this.worldMapDragStartMouseY < 0) {
+            return false;
+        }
+
+        const deltaX = (mouseX | 0) - this.worldMapDragStartMouseX;
+        const deltaY = (mouseY | 0) - this.worldMapDragStartMouseY;
+        const nextX =
+            this.worldMapDragStartDisplayX - Math.trunc(deltaX / this.worldMapDragPixelsPerTileX);
+        const nextY =
+            this.worldMapDragStartDisplayY + Math.trunc(deltaY / this.worldMapDragPixelsPerTileY);
+        if (
+            nextX !== (this.worldMapState.displayX | 0) ||
+            nextY !== (this.worldMapState.displayY | 0)
+        ) {
+            this.worldMapState.setDisplayPosition(nextX, nextY);
+            this.widgetManager?.invalidateAll();
+        }
+        return true;
     }
 
     private getOrInitPlayerDesignAppearance(): PlayerAppearance | undefined {
@@ -6371,6 +6481,7 @@ export class OsrsClient {
 
         const isNewClick = input.leftClickX !== -1 && input.leftClickY !== -1;
         const isHolding = input.isDragging(); // Left button held
+        this.handleWorldMapDragInput(hits, mx, my, isNewClick, isHolding);
 
         if (isNewClick) {
             // New click - reset drag state
@@ -9696,7 +9807,7 @@ export class OsrsClient {
         this.clearNpcInstancesLocal();
         this.clearMinimapImageUrls();
         this.clearWorldMapImageUrls();
-        this.worldMapState = WorldMapState.empty();
+        this.setWorldMapState(WorldMapState.empty());
 
         // ========== Load Login/Title Screen Assets ==========
         // Authentic phased loading with incremental index loading
@@ -9927,7 +10038,7 @@ export class OsrsClient {
             const mapFileLoader = this.loaderFactory.getMapFileLoader();
             this.mapFileIndex = mapFileLoader.mapFileIndex;
             this.isNewTextureAnim = cache.info.game === "runescape" && cache.info.revision >= 681;
-            this.worldMapState = WorldMapState.load(this.cacheSystem);
+            this.setWorldMapState(WorldMapState.load(this.cacheSystem));
 
             // Phase 9: Preparing interface
             await showPhase(90, "Preparing interface...");
@@ -11152,6 +11263,47 @@ export class OsrsClient {
         return isTouchDevice ? OsrsClient.MAX_WORLDMAP_URLS_MOBILE : OsrsClient.MAX_WORLDMAP_URLS;
     }
 
+    private getWorldMapImagePendingLimit(): number {
+        return isTouchDevice
+            ? OsrsClient.MAX_PENDING_WORLDMAP_TILE_LOADS_MOBILE
+            : OsrsClient.MAX_PENDING_WORLDMAP_TILE_LOADS;
+    }
+
+    private getFailedWorldMapIdLimit(): number {
+        return isTouchDevice
+            ? OsrsClient.MAX_FAILED_WORLDMAP_IDS_MOBILE
+            : OsrsClient.MAX_FAILED_WORLDMAP_IDS;
+    }
+
+    private updateWorldMapImageRequestEpoch(): number {
+        const zoomBucket = Math.max(1, Math.round((this.worldMapState.zoomPercentage || 100) / 25));
+        const viewportKey = [
+            this.worldMapState.getCurrentMapAreaId(),
+            (this.worldMapState.displayX | 0) >> 6,
+            (this.worldMapState.displayY | 0) >> 6,
+            zoomBucket,
+            (this.worldMapState.displayWidth | 0) >> 6,
+            (this.worldMapState.displayHeight | 0) >> 6,
+        ].join(":");
+        if (viewportKey !== this.worldMapImageRequestViewportKey) {
+            this.worldMapImageRequestViewportKey = viewportKey;
+            this.worldMapImageRequestEpoch = (this.worldMapImageRequestEpoch + 1) | 0;
+            this.failedWorldMapImageIds.clear();
+        }
+        return this.worldMapImageRequestEpoch;
+    }
+
+    private rememberFailedWorldMapImage(mapId: number): void {
+        if (this.failedWorldMapImageIds.has(mapId)) return;
+        const limit = this.getFailedWorldMapIdLimit();
+        while (this.failedWorldMapImageIds.size >= limit) {
+            const first = this.failedWorldMapImageIds.values().next().value;
+            if (first === undefined) break;
+            this.failedWorldMapImageIds.delete(first);
+        }
+        this.failedWorldMapImageIds.add(mapId);
+    }
+
     getMinimapImageUrl(mapX: number, mapY: number, level: number = 0): string | undefined {
         if (mapX < 0 || mapY < 0 || mapX >= MapManager.MAX_MAP_X || mapY >= MapManager.MAX_MAP_Y) {
             return undefined;
@@ -11220,27 +11372,24 @@ export class OsrsClient {
         if (mapX < 0 || mapY < 0 || mapX >= MapManager.MAX_MAP_X || mapY >= MapManager.MAX_MAP_Y) {
             return undefined;
         }
+        const requestEpoch = this.updateWorldMapImageRequestEpoch();
         const mapId = this.getMinimapImageKey(mapX, mapY, level);
         const url = this.worldMapImageUrls.get(mapId);
         if (url) {
             this.worldMapImageAccess.set(mapId, performance.now());
             return url;
         }
-        this.queueLoadWorldMapImage(mapX, mapY, level);
+        this.queueLoadWorldMapImage(mapX, mapY, level, requestEpoch);
         return undefined;
     }
 
     getWorldMapIcons(mapX: number, mapY: number, level: number = 0): MinimapIcon[] | undefined {
-        const dynamicIcons = this.worldMapIcons.get(this.getMinimapImageKey(mapX, mapY, level));
-        const staticIcons = this.worldMapState.getStaticIconsForTile(mapX, mapY, level);
-        if (staticIcons.length === 0) return dynamicIcons;
+        const sourceIcons = this.worldMapState.getIconsForTile(mapX, mapY, level);
+        if (sourceIcons.length === 0) return undefined;
 
-        const icons = dynamicIcons ? dynamicIcons.slice() : [];
-        const seen = new Set(
-            icons.map((icon) => `${icon.elementId | 0}:${icon.localX | 0}:${icon.localY | 0}`),
-        );
-
-        for (const icon of staticIcons) {
+        const icons: MinimapIcon[] = [];
+        const seen = new Set<string>();
+        for (const icon of sourceIcons) {
             const coord = unpackWorldMapCoord(icon.coord);
             const localX = coord.x - ((mapX | 0) << 6);
             const localY = coord.y - ((mapY | 0) << 6);
@@ -11250,32 +11399,24 @@ export class OsrsClient {
             if (seen.has(key)) continue;
             seen.add(key);
 
-            let element;
-            try {
-                element = this.mapElementTypeLoader?.load(icon.element | 0);
-            } catch {
-                element = undefined;
-            }
-
             icons.push({
                 localX,
                 localY,
                 elementId: icon.element | 0,
-                category: element?.category ?? icon.category,
-                spriteId: element?.spriteId ?? icon.spriteId,
-                worldMapVisible: element?.worldMapVisible ?? true,
-                name: element?.name,
-                textColor: element?.textColor ?? 0,
-                textSize: element?.textSize ?? 0,
-                horizontalAlignment: element?.horizontalAlignment ?? 0,
-                verticalAlignment: element?.verticalAlignment ?? 1,
+                category: icon.category | 0,
+                spriteId: icon.spriteId | 0,
             });
         }
 
         return icons.length > 0 ? icons : undefined;
     }
 
-    private queueLoadWorldMapImage(mapX: number, mapY: number, level: number): void {
+    private queueLoadWorldMapImage(
+        mapX: number,
+        mapY: number,
+        level: number,
+        requestEpoch: number,
+    ): void {
         const mapId = this.getMinimapImageKey(mapX, mapY, level);
         if (
             this.pendingWorldMapImageIds.has(mapId) ||
@@ -11284,7 +11425,7 @@ export class OsrsClient {
         ) {
             return;
         }
-        if (this.pendingWorldMapImageIds.size >= OsrsClient.MAX_PENDING_WORLDMAP_TILE_LOADS) {
+        if (this.pendingWorldMapImageIds.size >= this.getWorldMapImagePendingLimit()) {
             return;
         }
 
@@ -11296,7 +11437,7 @@ export class OsrsClient {
             ) => Promise<{ blob: Blob; icons: MinimapIcon[] } | undefined>;
         };
         if (typeof renderer.loadWorldMapTile !== "function") {
-            this.failedWorldMapImageIds.add(mapId);
+            this.rememberFailedWorldMapImage(mapId);
             return;
         }
 
@@ -11305,7 +11446,10 @@ export class OsrsClient {
             .loadWorldMapTile(mapX | 0, mapY | 0, level | 0)
             .then((tile) => {
                 if (!tile?.blob) {
-                    this.failedWorldMapImageIds.add(mapId);
+                    this.rememberFailedWorldMapImage(mapId);
+                    return;
+                }
+                if (requestEpoch !== this.worldMapImageRequestEpoch) {
                     return;
                 }
                 this.setWorldMapImageUrl(
@@ -11318,7 +11462,7 @@ export class OsrsClient {
                 this.widgetManager?.invalidateAll?.();
             })
             .catch(() => {
-                this.failedWorldMapImageIds.add(mapId);
+                this.rememberFailedWorldMapImage(mapId);
             })
             .finally(() => {
                 this.pendingWorldMapImageIds.delete(mapId);
@@ -11341,8 +11485,6 @@ export class OsrsClient {
         }
         this.worldMapImageUrls.set(mapId, url);
         this.worldMapImageAccess.set(mapId, performance.now());
-        if (icons.length > 0) this.worldMapIcons.set(mapId, icons);
-        else this.worldMapIcons.delete(mapId);
         this.worldMapState.setTileIcons(mapX | 0, mapY | 0, level | 0, icons);
         this.pruneWorldMapImageUrls();
     }
@@ -11353,17 +11495,17 @@ export class OsrsClient {
         }
         this.worldMapImageUrls.clear();
         this.worldMapImageAccess.clear();
-        this.worldMapIcons.clear();
         this.worldMapState.clearTileIcons();
         this.pendingWorldMapImageIds.clear();
         this.failedWorldMapImageIds.clear();
+        this.worldMapImageRequestViewportKey = "";
+        this.worldMapImageRequestEpoch = 0;
     }
 
     private clearWorldMapIconsForImageKey(mapId: number): void {
         const level = (mapId >>> 16) & 0x3;
         const mapSquare = mapId & 0xffff;
         this.worldMapState.removeTileIcons((mapSquare >>> 8) & 0xff, mapSquare & 0xff, level);
-        this.worldMapIcons.delete(mapId);
     }
 
     private releaseWorldMapImageUrl(url: string): void {

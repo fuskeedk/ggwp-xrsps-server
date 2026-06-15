@@ -20,6 +20,40 @@ export type WorldMapIconEntry = {
     coord: number;
 };
 
+export function getWorldMapZoomScale(zoomPercentage: number): number {
+    switch (zoomPercentage | 0) {
+        case 25:
+            return 1;
+        case 37:
+            return 1.5;
+        case 50:
+            return 2;
+        case 75:
+            return 3;
+        case 100:
+            return 4;
+        default:
+            return 8;
+    }
+}
+
+function normalizeWorldMapZoomPercentage(zoomPercentage: number): number {
+    switch (zoomPercentage | 0) {
+        case 25:
+            return 25;
+        case 37:
+            return 37;
+        case 50:
+            return 50;
+        case 75:
+            return 75;
+        case 100:
+            return 100;
+        default:
+            return 200;
+    }
+}
+
 type BoundsTarget = {
     regionLowX: number;
     regionHighX: number;
@@ -554,6 +588,8 @@ export class WorldMapState {
     readonly disabledElements = new Set<number>();
     readonly disabledCategories = new Set<number>();
     private loaded = false;
+    private displayPixelWidth = 0;
+    private displayPixelHeight = 0;
     private readonly tileIcons = new Map<number, WorldMapIconEntry[]>();
     private readonly staticIconsByTile = new Map<number, WorldMapIconEntry[]>();
     private iconIterator: WorldMapIconEntry[] = [];
@@ -606,7 +642,7 @@ export class WorldMapState {
         state.loaded = state.areasById.size > 0;
         state.currentArea = state.mainArea ?? state.areasById.values().next().value ?? undefined;
         if (state.currentArea) {
-            state.zoomPercentage = state.currentArea.zoom > 0 ? state.currentArea.zoom : 100;
+            if (state.currentArea.zoom > 0) state.setZoomPercentage(state.currentArea.zoom);
             state.jumpToSourceCoordInstant(
                 state.currentArea.origin.plane,
                 state.currentArea.origin.x,
@@ -628,16 +664,29 @@ export class WorldMapState {
         return this.areasById.get(id | 0);
     }
 
+    getZoomScale(): number {
+        return getWorldMapZoomScale(this.zoomPercentage);
+    }
+
+    getDisplayPixelWidth(): number {
+        return this.displayPixelWidth > 0 ? this.displayPixelWidth : this.displayWidth;
+    }
+
+    getDisplayPixelHeight(): number {
+        return this.displayPixelHeight > 0 ? this.displayPixelHeight : this.displayHeight;
+    }
+
     setDisplaySize(width: number, height: number): void {
-        this.displayWidth = Math.max(0, width | 0);
-        this.displayHeight = Math.max(0, height | 0);
+        this.displayPixelWidth = Math.max(0, width | 0);
+        this.displayPixelHeight = Math.max(0, height | 0);
+        this.recomputeDisplaySize();
     }
 
     setCurrentMapAreaId(id: number): void {
         const area = this.getMapArea(id);
         if (!area) return;
         this.currentArea = area;
-        this.zoomPercentage = area.zoom > 0 ? area.zoom : this.zoomPercentage;
+        if (area.zoom > 0) this.setZoomPercentage(area.zoom);
         this.jumpToSourceCoordInstant(area.origin.plane, area.origin.x, area.origin.y);
     }
 
@@ -645,7 +694,7 @@ export class WorldMapState {
         const area = this.mapAreaAtCoord(plane, x, y) ?? this.currentArea ?? this.mainArea;
         if (!area) return;
         this.currentArea = area;
-        if (area.zoom > 0) this.zoomPercentage = area.zoom;
+        if (area.zoom > 0) this.setZoomPercentage(area.zoom);
         this.jumpToSourceCoordInstant(plane, x, y);
     }
 
@@ -657,11 +706,25 @@ export class WorldMapState {
     }
 
     setZoomPercentage(zoom: number): void {
-        this.zoomPercentage = Math.max(25, Math.min(400, zoom | 0));
+        this.zoomPercentage = normalizeWorldMapZoomPercentage(zoom);
+        if (this.displayPixelWidth > 0 || this.displayPixelHeight > 0) {
+            this.recomputeDisplaySize();
+        }
+    }
+
+    private recomputeDisplaySize(): void {
+        const pixelsPerTile = this.getZoomScale();
+        this.displayWidth = Math.max(0, Math.ceil(this.displayPixelWidth / pixelsPerTile));
+        this.displayHeight = Math.max(0, Math.ceil(this.displayPixelHeight / pixelsPerTile));
     }
 
     setWorldMapPositionTarget(x: number, y: number): void {
         if (this.currentArea && !this.currentArea.containsPosition(x | 0, y | 0)) return;
+        this.displayX = x | 0;
+        this.displayY = y | 0;
+    }
+
+    setDisplayPosition(x: number, y: number): void {
         this.displayX = x | 0;
         this.displayY = y | 0;
     }
@@ -750,6 +813,15 @@ export class WorldMapState {
 
     getStaticIconsForTile(mapX: number, mapY: number, level: number): WorldMapIconEntry[] {
         return this.staticIconsByTile.get(WorldMapState.getTileKey(mapX, mapY, level)) ?? [];
+    }
+
+    getIconsForTile(mapX: number, mapY: number, level: number): WorldMapIconEntry[] {
+        const key = WorldMapState.getTileKey(mapX, mapY, level);
+        const staticIcons = this.staticIconsByTile.get(key);
+        const tileIcons = this.tileIcons.get(key);
+        if (!staticIcons || staticIcons.length === 0) return tileIcons ?? [];
+        if (!tileIcons || tileIcons.length === 0) return staticIcons;
+        return staticIcons.concat(tileIcons);
     }
 
     getNearestIconCoord(elementId: number, sourcePackedCoord: number): number {

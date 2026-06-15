@@ -6265,6 +6265,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
     ): Promise<{ blob: Blob; icons: MinimapIcon[] } | undefined> {
         if (!this.osrsClient.loadedCache) return undefined;
 
+        const clampedLevel = Math.max(0, Math.min(Scene.MAX_LEVELS - 1, level | 0));
         const input: SdMapLoaderInput = {
             mapX: mapX | 0,
             mapY: mapY | 0,
@@ -6273,6 +6274,9 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             smoothTerrain: this.smoothTerrain,
             minimizeDrawCalls: true,
             loadedTextureIds: new Set<number>(),
+            worldMapTileOnly: {
+                level: clampedLevel,
+            },
         };
 
         const mapData = await this.osrsClient.workerPool.queueLoad<
@@ -6288,7 +6292,6 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             return undefined;
         }
 
-        const clampedLevel = Math.max(0, Math.min(Scene.MAX_LEVELS - 1, level | 0));
         const blob = mapData.minimapBlobs?.[clampedLevel];
         if (!blob) return undefined;
         return {
