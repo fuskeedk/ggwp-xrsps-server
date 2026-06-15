@@ -128,6 +128,12 @@ export abstract class BaseGamemode implements GamemodeDefinition {
         return new DefaultUiController();
     }
 
+    // === Content Data ===
+
+    shouldLoadDefaultNpcSpawns(): boolean {
+        return true;
+    }
+
     // === Server Lifecycle ===
 
     initialize(_context: GamemodeInitContext): void {}

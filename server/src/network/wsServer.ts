@@ -1251,6 +1251,7 @@ export class WSServer {
                     gamemodeTickCallbacks: this.gamemodeTickCallbacks,
                     interfaceService: this.interfaceService,
                     eventBus: this.eventBus,
+                    npcManager: this.npcManager,
                 }),
             });
             logger.info(`Boot: gamemode "${this.gamemode.id}" initialized`);

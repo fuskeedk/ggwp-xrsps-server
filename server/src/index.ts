@@ -40,6 +40,14 @@ async function main() {
     const npcTypeLoader = cacheFactory.getNpcTypeLoader();
     const basTypeLoader = cacheFactory.getBasTypeLoader();
 
+    logger.info(`Boot: creating gamemode "${config.gamemode}"...`);
+    const gamemode = createGamemode(config.gamemode);
+    if (gamemode.getLootDistributionConfig) {
+        damageTracker.lootConfigResolver = (npcTypeId) =>
+            gamemode.getLootDistributionConfig!(npcTypeId);
+    }
+    logger.info(`Boot: gamemode "${gamemode.name}" created`);
+
     // Initialize viewport enum service for display mode component mapping
     const enumTypeLoader = cacheFactory.getEnumTypeLoader();
     if (enumTypeLoader) {
@@ -51,16 +59,12 @@ async function main() {
     }
 
     const npcManager = new NpcManager(mapService, pathService, npcTypeLoader, basTypeLoader);
-    npcManager.loadFromFile(path.resolve("server/data/npc-spawns.json"));
-    logger.info("Boot: NPC manager ready (spawns loaded)");
-
-    logger.info(`Boot: creating gamemode "${config.gamemode}"...`);
-    const gamemode = createGamemode(config.gamemode);
-    if (gamemode.getLootDistributionConfig) {
-        damageTracker.lootConfigResolver = (npcTypeId) =>
-            gamemode.getLootDistributionConfig!(npcTypeId);
+    if (gamemode.shouldLoadDefaultNpcSpawns()) {
+        npcManager.loadFromFile(path.resolve("server/data/npc-spawns.json"));
+        logger.info("Boot: NPC manager ready (default spawns loaded)");
+    } else {
+        logger.info(`Boot: NPC manager ready (default spawns disabled by ${gamemode.id})`);
     }
-    logger.info(`Boot: gamemode "${gamemode.name}" created`);
 
     logger.info("Boot: constructing WebSocket server...");
     const server = new WSServer({

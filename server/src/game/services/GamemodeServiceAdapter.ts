@@ -5,6 +5,7 @@ import type { InterfaceService } from "../../widgets/InterfaceService";
 import type { GameEventBus } from "../events/GameEventBus";
 import type { GamemodeServerServices } from "../gamemodes/GamemodeDefinition";
 import type { PlayerState } from "../player";
+import type { NpcManager } from "../npcManager";
 import type { AppearanceService } from "./AppearanceService";
 import type { DataLoaderService } from "./DataLoaderService";
 import type { EquipmentService } from "./EquipmentService";
@@ -48,6 +49,7 @@ export interface GamemodeServiceAdapterDeps {
     gamemodeTickCallbacks: Array<(tick: number) => void>;
     interfaceService: InterfaceService | undefined;
     eventBus: GameEventBus;
+    npcManager?: NpcManager;
 }
 
 /**
@@ -100,6 +102,8 @@ export function buildGamemodeServices(deps: GamemodeServiceAdapterDeps): Gamemod
         registerSnapshotEncoder: (key, encoder, onSent) =>
             deps.registerSnapshotEncoder(key, encoder, onSent),
         getObjType: (itemId) => deps.dataLoaders.getObjType(itemId),
+        spawnNpc: (config) => deps.npcManager?.spawnTransientNpc(config),
+        removeNpc: (npcId) => deps.npcManager?.removeNpc(npcId) ?? false,
         getInterfaceService: () => deps.interfaceService,
         getCurrentTick: () => deps.getCurrentTick(),
         registerTickCallback: (callback) => deps.gamemodeTickCallbacks.push(callback),
