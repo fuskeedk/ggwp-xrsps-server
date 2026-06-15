@@ -27,10 +27,21 @@ export const ACCOUNT_SUMMARY_COLLECTION_ACTION_FLAGS = 0x6;
 export const ACCOUNT_SUMMARY_PLAYTIME_ACTION_FLAGS = 0x2;
 
 export const SCRIPT_ACCOUNT_SUMMARY_SET_TIME_ID = 3970;
+export const SCRIPT_ACCOUNT_SUMMARY_SET_COMBAT_LEVEL_ID = 3954;
 
 export function buildAccountSummarySetTimeScriptArgs(
     totalMinutes: number,
 ): [number, number, number] {
     const safeMinutes = Math.max(0, Number.isFinite(totalMinutes) ? Math.floor(totalMinutes) : 0);
     return [ACCOUNT_SUMMARY_CONTENTS_UID, ACCOUNT_SUMMARY_CLICK_LAYER_UID, safeMinutes];
+}
+
+export function buildAccountSummarySetCombatLevelScriptArgs(
+    combatLevel: number,
+): [number, number, number] {
+    const safeCombatLevel = Math.max(
+        3,
+        Math.min(126, Number.isFinite(combatLevel) ? Math.floor(combatLevel) : 3),
+    );
+    return [ACCOUNT_SUMMARY_CONTENTS_UID, ACCOUNT_SUMMARY_CLICK_LAYER_UID, safeCombatLevel];
 }

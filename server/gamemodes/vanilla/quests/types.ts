@@ -46,6 +46,8 @@ export interface QuestDefinition {
     rewards: QuestRewards;
     /** Item model shown on the completion scroll (153:5) */
     rewardItemId?: number;
+    /** Start text fragment shown by the quest overview. */
+    overviewStartText?: string;
     /** Build the quest journal lines for the player's current stage */
     buildJournal(player: PlayerState, services: ScriptServices): string[];
     /** Register the quest's interaction handlers (NPCs, locs, items) */

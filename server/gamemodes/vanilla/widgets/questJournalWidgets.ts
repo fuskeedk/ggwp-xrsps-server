@@ -4,6 +4,7 @@ import {
     BaseComponentUids,
     type IScriptRegistry,
     ScriptServices,
+    type WidgetActionHandler,
 } from "../../../src/game/scripts/types";
 import { getQuestDefinition } from "../quests/QuestRegistry";
 
@@ -27,6 +28,20 @@ const QJ_SWITCH_VIEW_CHILD = 9;
 /** First journal line component: questjournal:qj1 */
 const QJ_FIRST_LINE_CHILD = 11;
 
+/** Quest journal overview overlay interface */
+const QUEST_JOURNAL_OVERVIEW_GROUP_ID = 782;
+const QJO_CONTENT_OUTER_CHILD = 1;
+const QJO_LAYOUT_CONTAINER_CHILD = 2;
+const QJO_DECOR_MODEL_CHILD = 3;
+const QJO_CONTENT_HOST_CHILD = 4;
+const QJO_TITLE_CHILD = 5;
+const QJO_SCROLLBAR_CHILD = 6;
+const QJO_CONTENT_INNER_CHILD = 7;
+const QJO_SCROLL_CHILD = 8;
+const QJO_CLOSE_CHILD = 9;
+const QJO_BACK_CHILD = 10;
+const QJO_SWITCH_VIEW_CHILD = 11;
+
 /** Varp: currently viewed quest (stores dbrow ID) */
 const VARP_LATEST_QUEST_JOURNAL = 3679;
 /** Varp: number of journal text lines */
@@ -36,9 +51,13 @@ const VARP_QJ_LINES = 4398;
 const SCRIPT_QUEST_JOURNAL_RESET = 5240;
 /** CS2 script that sets up quest journal scrollbar */
 const SCRIPT_QUEST_JOURNAL_SCROLL = 2523;
+/** CS2 script that builds the quest overview contents */
+const SCRIPT_QUEST_JOURNAL_OVERVIEW_SETUP = 6821;
 
 /** OP ID for "Read journal:" right-click option */
 const OP_READ_JOURNAL = 2;
+
+const OP1_TRANSMIT = 1 << 1;
 
 // Quest DB table ID in the cache
 const QUEST_DB_TABLE_ID = 0;
@@ -251,6 +270,13 @@ export function registerQuestJournalWidgetHandlers(
         return questMap;
     };
 
+    const findQuestByDbrowId = (dbrowId: number): QuestEntry | undefined => {
+        for (const entry of getQuestMap().values()) {
+            if (entry.dbrowId === dbrowId) return entry;
+        }
+        return undefined;
+    };
+
     // Handle quest list clicks (399:7)
     // Dynamic children use the quest ID as their child index.
     // The slot value in the widget action corresponds to this quest ID.
@@ -284,46 +310,40 @@ export function registerQuestJournalWidgetHandlers(
         const dbrowId = player.varps.getVarpValue(VARP_LATEST_QUEST_JOURNAL);
         if (dbrowId <= 0) return;
 
-        // Look up quest name from the map for the overview title
-        const map = getQuestMap();
-        let questName = "Quest";
-        for (const entry of map.values()) {
-            if (entry.dbrowId === dbrowId) {
-                questName = entry.displayName;
-                break;
-            }
-        }
+        const quest = findQuestByDbrowId(dbrowId);
+        if (!quest) return;
 
-        // Re-open journal with overview text
-        const floaterUid = BaseComponentUids.FLOATER_OVERLAY;
-        services.dialog.openSubInterface(player, floaterUid, QUEST_JOURNAL_GROUP_ID, 0);
-
-        services.dialog.queueWidgetEvent(player.id, {
-            action: "run_script",
-            scriptId: SCRIPT_QUEST_JOURNAL_RESET,
-            args: [],
-        });
-
-        const titleUid = (QUEST_JOURNAL_GROUP_ID << 16) | QJ_TITLE_CHILD;
-        services.dialog.queueWidgetEvent(player.id, {
-            action: "set_text",
-            uid: titleUid,
-            text: `<col=7f0000>${questName}</col>`,
-        });
-
-        const lineUid = (QUEST_JOURNAL_GROUP_ID << 16) | QJ_FIRST_LINE_CHILD;
-        services.dialog.queueWidgetEvent(player.id, {
-            action: "set_text",
-            uid: lineUid,
-            text: "Quest overview not yet available.",
-        });
-
-        services.dialog.queueWidgetEvent(player.id, {
-            action: "run_script",
-            scriptId: SCRIPT_QUEST_JOURNAL_SCROLL,
-            args: [0, 1],
-        });
+        openQuestOverview(player, quest, services);
     });
+
+    // Handle quest overview Close button (782:9)
+    registry.onButton(QUEST_JOURNAL_OVERVIEW_GROUP_ID, QJO_CLOSE_CHILD, (event) => {
+        const floaterUid = BaseComponentUids.FLOATER_OVERLAY;
+        services.dialog.closeSubInterface(
+            event.player,
+            floaterUid,
+            QUEST_JOURNAL_OVERVIEW_GROUP_ID,
+        );
+    });
+
+    const handleOverviewSwitchView: WidgetActionHandler = (event) => {
+        const { player } = event;
+        const dbrowId = player.varps.getVarpValue(VARP_LATEST_QUEST_JOURNAL);
+        if (dbrowId <= 0) return;
+
+        const quest = findQuestByDbrowId(dbrowId);
+        if (!quest) return;
+
+        openQuestJournal(player, quest, services);
+    };
+
+    // Handle quest overview navigation buttons (782:10/11)
+    registry.onButton(QUEST_JOURNAL_OVERVIEW_GROUP_ID, QJO_BACK_CHILD, handleOverviewSwitchView);
+    registry.onButton(
+        QUEST_JOURNAL_OVERVIEW_GROUP_ID,
+        QJO_SWITCH_VIEW_CHILD,
+        handleOverviewSwitchView,
+    );
 }
 
 // ============================================================================
@@ -359,11 +379,15 @@ function openQuestJournal(player: PlayerState, quest: QuestEntry, services: Scri
     // Use type=0 (modal) so PlayerWidgetManager tracks it and closeInterruptibleInterfaces
     // closes it on walk/interaction, matching OSRS behavior where the journal dismisses on move.
     const floaterUid = BaseComponentUids.FLOATER_OVERLAY;
-    services.dialog.openSubInterface(player, floaterUid, QUEST_JOURNAL_GROUP_ID, 0);
+    services.dialog.openSubInterface(player, floaterUid, QUEST_JOURNAL_GROUP_ID, 0, {
+        varps: {
+            [VARP_LATEST_QUEST_JOURNAL]: quest.dbrowId,
+            [VARP_QJ_LINES]: lineCount,
+        },
+    });
 
     // 2b. Enable transmit flags on Close (119:8) and Switch View (119:9) buttons.
     // Static widgets use fromSlot=-1, toSlot=-1.
-    const OP1_TRANSMIT = 1 << 1; // transmit op1
     for (const childId of [QJ_CLOSE_CHILD, QJ_SWITCH_VIEW_CHILD]) {
         services.dialog.queueWidgetEvent(playerId, {
             action: "set_flags_range",
@@ -408,5 +432,73 @@ function openQuestJournal(player: PlayerState, quest: QuestEntry, services: Scri
 
     services.system.logger.info?.(
         `[quest-journal] Opened journal for player=${playerId} quest="${quest.displayName}" (id=${quest.questId}, dbrow=${quest.dbrowId}) lines=${lineCount}`,
+    );
+}
+
+function openQuestOverview(player: PlayerState, quest: QuestEntry, services: ScriptServices): void {
+    const playerId = player.id;
+    const definition = getQuestDefinition(quest.displayName);
+    if (!definition?.overviewStartText) {
+        services.system.logger.info?.(
+            `[quest-journal] No overview start text for quest="${quest.displayName}" (dbrow=${quest.dbrowId})`,
+        );
+        return;
+    }
+    const overviewStartText = definition.overviewStartText;
+
+    player.varps.setVarpValue(VARP_LATEST_QUEST_JOURNAL, quest.dbrowId);
+    services.variables.sendVarp?.(player, VARP_LATEST_QUEST_JOURNAL, quest.dbrowId);
+
+    const floaterUid = BaseComponentUids.FLOATER_OVERLAY;
+    services.dialog.openSubInterface(player, floaterUid, QUEST_JOURNAL_OVERVIEW_GROUP_ID, 0, {
+        varps: {
+            [VARP_LATEST_QUEST_JOURNAL]: quest.dbrowId,
+            [definition.varpId]: player.varps.getVarpValue(definition.varpId),
+        },
+    });
+
+    for (const childId of [QJO_CLOSE_CHILD, QJO_BACK_CHILD, QJO_SWITCH_VIEW_CHILD]) {
+        services.dialog.queueWidgetEvent(playerId, {
+            action: "set_flags_range",
+            uid: (QUEST_JOURNAL_OVERVIEW_GROUP_ID << 16) | childId,
+            fromSlot: -1,
+            toSlot: -1,
+            flags: OP1_TRANSMIT,
+        });
+    }
+
+    services.dialog.queueWidgetEvent(playerId, {
+        action: "set_text",
+        uid: (QUEST_JOURNAL_OVERVIEW_GROUP_ID << 16) | QJO_TITLE_CHILD,
+        text: `<col=7f0000>${quest.displayName}</col>`,
+    });
+
+    services.dialog.queueWidgetEvent(playerId, {
+        action: "run_script",
+        scriptId: SCRIPT_QUEST_JOURNAL_OVERVIEW_SETUP,
+        args: [
+            quest.dbrowId,
+            overviewStartText,
+            (QUEST_JOURNAL_OVERVIEW_GROUP_ID << 16) | QJO_CONTENT_OUTER_CHILD,
+            (QUEST_JOURNAL_OVERVIEW_GROUP_ID << 16) | QJO_CONTENT_INNER_CHILD,
+            (QUEST_JOURNAL_OVERVIEW_GROUP_ID << 16) | QJO_SCROLLBAR_CHILD,
+            (QUEST_JOURNAL_OVERVIEW_GROUP_ID << 16) | QJO_SCROLL_CHILD,
+            (QUEST_JOURNAL_OVERVIEW_GROUP_ID << 16) | QJO_LAYOUT_CONTAINER_CHILD,
+            (QUEST_JOURNAL_OVERVIEW_GROUP_ID << 16) | QJO_CONTENT_HOST_CHILD,
+            (QUEST_JOURNAL_OVERVIEW_GROUP_ID << 16) | QJO_DECOR_MODEL_CHILD,
+            player.skillSystem.combatLevel,
+        ],
+    });
+
+    services.dialog.queueWidgetEvent(playerId, {
+        action: "set_flags_range",
+        uid: (QUEST_JOURNAL_OVERVIEW_GROUP_ID << 16) | QJO_CONTENT_INNER_CHILD,
+        fromSlot: 1,
+        toSlot: 1,
+        flags: OP1_TRANSMIT,
+    });
+
+    services.system.logger.info?.(
+        `[quest-journal] Opened overview for player=${playerId} quest="${quest.displayName}" (id=${quest.questId}, dbrow=${quest.dbrowId})`,
     );
 }

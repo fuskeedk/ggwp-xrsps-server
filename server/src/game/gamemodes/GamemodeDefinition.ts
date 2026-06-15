@@ -212,6 +212,7 @@ export interface GamemodeDefinition {
     createUiController?(bridge: GamemodeUiBridge): GamemodeUiController;
 
     // === Content Data ===
+    /** Controls boot-time loading of server/data/npc-spawns.json. */
     shouldLoadDefaultNpcSpawns(): boolean;
     getContentDataPacket?(): Uint8Array | null;
 

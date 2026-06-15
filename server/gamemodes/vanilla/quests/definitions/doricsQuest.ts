@@ -263,6 +263,8 @@ export const doricsQuest: QuestDefinition = {
         other: ["Use of Doric's anvils"],
     },
     rewardItemId: STEEL_PICKAXE_ITEM_ID,
+    overviewStartText:
+        "talking to <col=800000>Doric<col=000080> at his home north of <col=800000>Falador<col=000080>.",
 
     buildJournal(player: PlayerState, services: ScriptServices): string[] {
         const stage = getQuestStage(player, doricsQuest);
