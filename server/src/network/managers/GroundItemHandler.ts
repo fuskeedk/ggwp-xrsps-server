@@ -60,13 +60,6 @@ export type GroundItemsServerPayload =
           removes: number[];
       };
 
-/** Debug configuration */
-interface DebugConfig {
-    logTile: { x: number; y: number; level: number };
-    logItemId: number;
-    logStackQty: number;
-}
-
 /**
  * Handler for ground item operations.
  */
@@ -273,30 +266,6 @@ export class GroundItemHandler {
         playerGroundSerial.set(playerId, currentSerial);
         playerGroundChunk.set(playerId, chunkKey);
         this.lastVisibleStacksByPlayer.set(playerId, currentById);
-    }
-
-    /**
-     * Spawn debug ground item stack.
-     */
-    spawnDebugGroundItemStack(config: DebugConfig): void {
-        const groundItems = this.svc.groundItems;
-        if (!groundItems) return;
-
-        try {
-            const nowTick = this.svc.ticker.currentTick();
-            const tile = config.logTile;
-            const stack = groundItems.spawn(config.logItemId, config.logStackQty, tile, nowTick, {
-                durationTicks: 0,
-                privateTicks: 0,
-            });
-            if (stack) {
-                logger.info(
-                    `[ground] spawned debug log stack item=${stack.itemId} qty=${stack.quantity} tile=(${tile.x},${tile.y},${tile.level})`,
-                );
-            }
-        } catch (err) {
-            logger.warn("[ground] failed to spawn debug log stack");
-        }
     }
 
     /**

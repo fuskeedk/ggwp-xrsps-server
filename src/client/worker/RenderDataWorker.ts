@@ -19,7 +19,6 @@ import { LocModelLoader } from "../../rs/config/loctype/LocModelLoader";
 import { LocTypeLoader } from "../../rs/config/loctype/LocTypeLoader";
 import { NpcModelLoader } from "../../rs/config/npctype/NpcModelLoader";
 import { NpcTypeLoader } from "../../rs/config/npctype/NpcTypeLoader";
-import { ObjModelLoader } from "../../rs/config/objtype/ObjModelLoader";
 import { ObjTypeLoader } from "../../rs/config/objtype/ObjTypeLoader";
 import { PlayerModelLoader } from "../../rs/config/player/PlayerModelLoader";
 import { SeqTypeLoader } from "../../rs/config/seqtype/SeqTypeLoader";
@@ -65,7 +64,6 @@ export type WorkerState = {
     skeletalSeqLoader: SkeletalSeqLoader | undefined;
 
     locModelLoader: LocModelLoader;
-    objModelLoader: ObjModelLoader;
     npcModelLoader: NpcModelLoader;
     playerModelLoader: PlayerModelLoader;
 
@@ -149,8 +147,6 @@ async function initWorker(cache: LoadedCache, npcInstances: NpcInstance[]): Prom
         skeletalSeqLoader,
     );
 
-    const objModelLoader = new ObjModelLoader(objTypeLoader, modelLoader, textureLoader);
-
     const npcModelLoader = new NpcModelLoader(
         npcTypeLoader,
         modelLoader,
@@ -205,7 +201,6 @@ async function initWorker(cache: LoadedCache, npcInstances: NpcInstance[]): Prom
         skeletalSeqLoader,
 
         locModelLoader,
-        objModelLoader,
         npcModelLoader,
         playerModelLoader,
 
@@ -222,7 +217,6 @@ async function initWorker(cache: LoadedCache, npcInstances: NpcInstance[]): Prom
 
 function clearCache(workerState: WorkerState): void {
     workerState.locModelLoader.clearCache();
-    workerState.objModelLoader.clearCache();
     workerState.npcModelLoader.clearCache();
     workerState.seqFrameLoader.clearCache();
     workerState.skeletalSeqLoader?.clearCache();

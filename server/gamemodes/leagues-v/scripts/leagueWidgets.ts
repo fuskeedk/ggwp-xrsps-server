@@ -1,8 +1,10 @@
 import { VARBIT_MASTERY_POINT_UNLOCK_BASE } from "../../../../src/shared/gamemode/GamemodeDataTypes";
 import {
+    ACCOUNT_SUMMARY_COLLECTION_ACTION_FLAGS,
     ACCOUNT_SUMMARY_COLLECTION_LOG_CHILD_INDEX,
     ACCOUNT_SUMMARY_ENTRY_LIST_UID,
     ACCOUNT_SUMMARY_GROUP_ID,
+    ACCOUNT_SUMMARY_PLAYTIME_ACTION_FLAGS,
     ACCOUNT_SUMMARY_PLAYTIME_CHILD_INDEX,
 } from "../../../../src/shared/ui/accountSummary";
 import { LEAGUE_SUMMARY_GROUP_ID } from "../../../../src/shared/ui/leagueSummary";
@@ -150,11 +152,6 @@ const COMP_SELECT_BACK = 83; // Back button
 // CS2 script IDs
 const SCRIPT_LEAGUE_AREAS_SHOW_DETAILED = 3668; // [clientscript,league_areas_show_detailed]
 const SCRIPT_LEAGUE_RELIC_EXPANDED_VIEW = 3193; // [clientscript,league_relic_expanded_view]
-
-const FLAG_TRANSMIT_OP1 = 1 << 1;
-const FLAG_TRANSMIT_OP2 = 1 << 2;
-const ACCOUNT_SUMMARY_COLLECTION_ACTION_FLAGS = FLAG_TRANSMIT_OP1 | FLAG_TRANSMIT_OP2;
-const ACCOUNT_SUMMARY_PLAYTIME_ACTION_FLAGS = FLAG_TRANSMIT_OP1;
 
 const SYNTH_TRAILBLAZER_UNLOCK_MAP = 2353; // trailblazer_unlock_map - area unlock
 const SYNTH_TRAILBLAZER_UNLOCK_POWER = 2344; // trailblazer_unlock_power - relic unlock (L2)

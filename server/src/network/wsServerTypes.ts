@@ -229,7 +229,3 @@ export const PLAYER_ZERO_DAMAGE_SOUND = 511;
 export const GROUND_ITEM_PRIVATE_TICKS = 100;
 // OSRS: Items despawn after 3 minutes total (300 ticks = 180 seconds)
 export const GROUND_ITEM_DESPAWN_TICKS = 300;
-
-export const DEBUG_LOG_ITEM_ID = 1511;
-export const DEBUG_LOG_TILE = Object.freeze({ x: 3167, y: 3472, level: 0 });
-export const DEBUG_LOG_STACK_QTY = 28;

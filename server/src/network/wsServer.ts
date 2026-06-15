@@ -157,9 +157,6 @@ import { encodeMessage } from "./messages";
 import { REPORT_GAME_TIME_GROUP_ID, ReportGameTimeTracker } from "./reportGameTime";
 import type { NpcUpdatePayload, NpcViewSnapshot, TickFrame } from "./wsServerTypes";
 import {
-    DEBUG_LOG_ITEM_ID,
-    DEBUG_LOG_STACK_QTY,
-    DEBUG_LOG_TILE,
     DEFAULT_AUTOSAVE_SECONDS,
     GROUND_ITEM_DESPAWN_TICKS,
     GROUND_ITEM_PRIVATE_TICKS,
@@ -783,28 +780,6 @@ export class WSServer {
             defaultDurationTicks: GROUND_ITEM_DESPAWN_TICKS,
             defaultPrivateTicks: GROUND_ITEM_PRIVATE_TICKS,
         });
-        try {
-            const nowTick = this.options.ticker.currentTick();
-            const stack = this.groundItems.spawn(
-                DEBUG_LOG_ITEM_ID,
-                DEBUG_LOG_STACK_QTY,
-                DEBUG_LOG_TILE,
-                nowTick,
-                { durationTicks: 0, privateTicks: 0 },
-            );
-            if (stack) {
-                logger.info(
-                    `[ground] spawned debug log stack item=%d qty=%d tile=(%d,%d,%d)`,
-                    stack.itemId,
-                    stack.quantity,
-                    DEBUG_LOG_TILE.x,
-                    DEBUG_LOG_TILE.y,
-                    DEBUG_LOG_TILE.level,
-                );
-            }
-        } catch (err) {
-            logger.warn("[ground] failed to spawn debug log stack", err);
-        }
         this.scriptAdapterDeps = {
             dataLoaders: this.dataLoaderService,
             variableService: this.variableService,
@@ -1411,21 +1386,6 @@ export class WSServer {
 
     getScriptScheduler(): ScriptScheduler {
         return this.scriptScheduler;
-    }
-
-    private normalizeSideJournalState(
-        player: PlayerState,
-        incomingStateVarp?: number,
-    ): { tab: number; stateVarp: number } {
-        return this.gamemodeUi.normalizeSideJournalState(player, incomingStateVarp);
-    }
-
-    private queueSideJournalGamemodeUi(player: PlayerState): void {
-        this.gamemodeUi.applySideJournalUi(player);
-    }
-
-    private queueActivateQuestSideTab(playerId: number): void {
-        this.gamemodeUi.activateQuestTab(playerId);
     }
 
     private syncPostWidgetOpenState(playerId: number, action: WidgetAction): void {

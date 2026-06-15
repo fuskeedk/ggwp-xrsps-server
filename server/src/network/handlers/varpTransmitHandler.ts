@@ -103,9 +103,6 @@ function handleSideJournalVarp(
     }
     const previousSideJournalTab = decodeSideJournalTabFromStateVarp(previousVarpValue);
     const sideJournalSelectionChanged = previousSideJournalTab !== sideJournalTab;
-    if (sideJournalSelectionChanged) {
-        services.queueSideJournalGamemodeUi(p);
-    }
     services.getGamemode()?.onVarpTransmit?.(p, VARP_SIDE_JOURNAL_STATE, value, previousVarpValue);
     if (sideJournalSelectionChanged) {
         services.getGamemodeUi().applySideJournalUi(p);

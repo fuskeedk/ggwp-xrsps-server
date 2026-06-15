@@ -6,6 +6,8 @@ import type {
     GamemodeDefinition,
     GamemodeInitContext,
     GamemodeServerServices,
+    GamemodeUiBridge,
+    GamemodeUiController,
 } from "../../src/game/gamemodes/GamemodeDefinition";
 import type { PlayerState } from "../../src/game/player";
 import {
@@ -71,10 +73,11 @@ import { registerQuestJournalWidgetHandlers } from "./widgets/questJournalWidget
 import { registerSettingsWidgetHandlers } from "./widgets/settingsWidgets";
 import { registerSkillGuideWidgetHandlers } from "./widgets/skillGuideWidgets";
 import { registerSpellbookWidgetHandlers } from "./widgets/spellbookWidgets";
+import { VanillaUiController } from "./VanillaUiController";
 
 export class VanillaGamemode extends BaseGamemode {
-    override readonly id = "vanilla";
-    override readonly name = "Vanilla";
+    override readonly id: string = "vanilla";
+    override readonly name: string = "Vanilla";
 
     private bankingManager: BankingManager | undefined;
     private shopService: ShopService | undefined;
@@ -105,6 +108,10 @@ export class VanillaGamemode extends BaseGamemode {
             banking: this.bankingManager,
             weaponDataProvider: getWeaponDataProvider(),
         };
+    }
+
+    override createUiController(bridge: GamemodeUiBridge): GamemodeUiController {
+        return new VanillaUiController(bridge);
     }
 
     private registerProviders(): void {
