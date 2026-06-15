@@ -11,6 +11,7 @@ import { NpcType } from "../../../rs/config/npctype/NpcType";
 import { SeqTypeLoader } from "../../../rs/config/seqtype/SeqTypeLoader";
 import { VarManager } from "../../../rs/config/vartype/VarManager";
 import { getMapIndexFromTile, getMapSquareId } from "../../../rs/map/MapFileIndex";
+import { Model } from "../../../rs/model/Model";
 import { Scene } from "../../../rs/scene/Scene";
 import { LocLoadType } from "../../../rs/scene/SceneBuilder";
 import { SceneTile } from "../../../rs/scene/SceneTile";
@@ -1321,6 +1322,7 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
         const tileLocOffsetsByLevel: Uint32Array[] = new Array(Scene.MAX_LEVELS);
         const tileLocIdsByLevel: Int32Array[] = new Array(Scene.MAX_LEVELS);
         const tileLocTypeRotByLevel: Uint8Array[] = new Array(Scene.MAX_LEVELS);
+        const itemLayerHeightsByLevel: Uint16Array[] = new Array(Scene.MAX_LEVELS);
         const bridgeSurfaceFlags: Uint8Array[][] = new Array(Scene.MAX_LEVELS);
 
         for (let lvl = 0; lvl < Scene.MAX_LEVELS; lvl++) {
@@ -1328,6 +1330,7 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
             // Each entry keeps ID + packed modelType/rotation from SceneLoc.flags.
             const perTileIds: number[][] = new Array(TILE_SIZE * TILE_SIZE);
             const perTileTypeRots: number[][] = new Array(TILE_SIZE * TILE_SIZE);
+            const itemLayerHeights = new Uint16Array(TILE_SIZE * TILE_SIZE);
             for (let ty = 0; ty < TILE_SIZE; ty++) {
                 for (let tx = 0; tx < TILE_SIZE; tx++) {
                     const sceneX = interiorMin + tx;
@@ -1379,6 +1382,14 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
                                     pushLoc(lid, loc.flags | 0);
                                 } catch {}
                             }
+                            if (((loc.flags | 0) & 256) === 256 && loc.entity instanceof Model) {
+                                loc.entity.calculateBoundsCylinder();
+                                const height = Math.max(0, loc.entity.height | 0);
+                                const idx = ty * TILE_SIZE + tx;
+                                if (height > itemLayerHeights[idx]) {
+                                    itemLayerHeights[idx] = Math.min(0xffff, height);
+                                }
+                            }
                         }
                     }
                     const idx = ty * TILE_SIZE + tx;
@@ -1409,6 +1420,7 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
             tileLocOffsetsByLevel[lvl] = offsets;
             tileLocIdsByLevel[lvl] = ids;
             tileLocTypeRotByLevel[lvl] = typeRots;
+            itemLayerHeightsByLevel[lvl] = itemLayerHeights;
 
             const levelBridgeFlags: Uint8Array[] = new Array(scene.sizeX);
             for (let x = 0; x < scene.sizeX; x++) {
@@ -1787,6 +1799,7 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
             ...tileLocOffsetsByLevel.map((a) => a.buffer),
             ...tileLocIdsByLevel.map((a) => a.buffer),
             ...tileLocTypeRotByLevel.map((a) => a.buffer),
+            ...itemLayerHeightsByLevel.map((a) => a.buffer),
         ];
 
         const totalBytes = transferables.reduce((sum, buf) => sum + buf.byteLength, 0);
@@ -1906,6 +1919,7 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
                 tileLocOffsetsByLevel,
                 tileLocIdsByLevel,
                 tileLocTypeRotByLevel,
+                itemLayerHeightsByLevel,
             },
             transferables,
         };

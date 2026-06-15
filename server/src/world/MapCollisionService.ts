@@ -37,6 +37,13 @@ type MapCollisionOptions = {
     usePrecomputed?: boolean;
 };
 
+type ItemLayerSupportSquare = {
+    baseX: number;
+    baseY: number;
+    size: number;
+    supportByLevel: Uint8Array[];
+};
+
 export class MapCollisionService {
     private env: CacheEnv;
     private mapFileLoader: MapFileLoader;
@@ -45,6 +52,7 @@ export class MapCollisionService {
     private includeModels: boolean;
     private precomputedRoot: string | undefined;
     private usePrecomputed: boolean;
+    private itemLayerSupportCache: Map<number, ItemLayerSupportSquare | null> = new Map();
 
     constructor(env: CacheEnv, includeModels: boolean = false, opts: MapCollisionOptions = {}) {
         this.env = env;
@@ -274,6 +282,66 @@ export class MapCollisionService {
         }
     }
 
+    private buildItemLayerSupportSquare(
+        mapX: number,
+        mapY: number,
+    ): ItemLayerSupportSquare | undefined {
+        const borderSize = 6;
+        const baseX = mapX * Scene.MAP_SQUARE_SIZE - borderSize;
+        const baseY = mapY * Scene.MAP_SQUARE_SIZE - borderSize;
+        const size = Scene.MAP_SQUARE_SIZE + borderSize * 2;
+
+        try {
+            const sceneBuilder = this.ensureSceneBuilder();
+            if (!sceneBuilder) return undefined;
+            const scene = sceneBuilder.buildScene(
+                baseX,
+                baseY,
+                size,
+                size,
+                false,
+                LocLoadType.NO_MODELS,
+            );
+            const supportByLevel: Uint8Array[] = [];
+            for (let level = 0; level < Scene.MAX_LEVELS; level++) {
+                const support = new Uint8Array(size * size);
+                for (let x = 0; x < size; x++) {
+                    for (let y = 0; y < size; y++) {
+                        const tile = scene.tiles[level]?.[x]?.[y];
+                        if (!tile || tile.locs.length === 0) continue;
+                        for (const loc of tile.locs) {
+                            if ((loc.flags & 256) === 256) {
+                                support[x * size + y] = 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+                supportByLevel[level] = support;
+            }
+            return { baseX, baseY, size, supportByLevel };
+        } catch (err) {
+            logger.warn(
+                `[MapCollisionService] failed to build item-layer support for ${mapX}_${mapY}:`,
+                err,
+            );
+            return undefined;
+        }
+    }
+
+    private getItemLayerSupportSquare(
+        mapX: number,
+        mapY: number,
+    ): ItemLayerSupportSquare | undefined {
+        const k = this.key(mapX, mapY);
+        if (this.itemLayerSupportCache.has(k)) {
+            return this.itemLayerSupportCache.get(k) ?? undefined;
+        }
+        const support = this.buildItemLayerSupportSquare(mapX, mapY);
+        this.itemLayerSupportCache.set(k, support ?? null);
+        return support;
+    }
+
     private upgradeMapSquare(mapX: number, mapY: number): ServerMapSquare | undefined {
         const full = this.buildSceneSquare(mapX, mapY);
         if (!full) return undefined;
@@ -330,6 +398,7 @@ export class MapCollisionService {
      */
     clearCache(): void {
         this.cache.clear();
+        this.itemLayerSupportCache.clear();
     }
 
     /**
@@ -417,6 +486,21 @@ export class MapCollisionService {
         const hx = Math.max(0, Math.min(lx, ms.size));
         const hy = Math.max(0, Math.min(ly, ms.size));
         return ms.tileHeights[l][hx][hy];
+    }
+
+    hasItemLayerSupportAt(worldX: number, worldY: number, plane: number): boolean {
+        const mapX = this.mapSquareCoord(worldX);
+        const mapY = this.mapSquareCoord(worldY);
+        if (mapX < 0 || mapY < 0) return false;
+        const supportSquare = this.getItemLayerSupportSquare(mapX, mapY);
+        if (!supportSquare) return false;
+        const lx = worldX - supportSquare.baseX;
+        const ly = worldY - supportSquare.baseY;
+        if (lx < 0 || ly < 0 || lx >= supportSquare.size || ly >= supportSquare.size) {
+            return false;
+        }
+        const level = Math.max(0, Math.min(plane, Scene.MAX_LEVELS - 1));
+        return supportSquare.supportByLevel[level]?.[lx * supportSquare.size + ly] === 1;
     }
 
     sampleHeight(worldXUnits: number, worldYUnits: number, plane: number): number | undefined {

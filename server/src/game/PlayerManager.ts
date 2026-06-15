@@ -787,6 +787,7 @@ export class PlayerManager implements PlayerRepository {
             tileLevel: number;
             option: string;
             modifierFlags?: number;
+            pickupFromTable?: boolean;
         },
     ): void {
         this.interactionSystem.startGroundItemInteraction(ws, data);

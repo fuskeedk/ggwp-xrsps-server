@@ -16,6 +16,8 @@ import { encodeMessage } from "../messages";
 
 /** Pickup radius in tiles */
 const GROUND_ITEM_PICKUP_RADIUS_TILES = 2;
+const GROUND_ITEM_PICKUP_FLOOR_SEQ = 827;
+const GROUND_ITEM_PICKUP_TABLE_SEQ = 832;
 
 /** Stream radius for ground items */
 const GROUND_ITEM_STREAM_RADIUS_TILES = 20;
@@ -186,6 +188,17 @@ export class GroundItemHandler {
         }
         return freeSlots;
     }
+
+    private isTablePickupTile(tile: { x: number; y: number; level: number }): boolean {
+        return this.svc.mapService?.hasItemLayerSupportAt(tile.x, tile.y, tile.level) === true;
+    }
+
+    private getPickupSequence(tile: { x: number; y: number; level: number }): number {
+        return this.isTablePickupTile(tile)
+            ? GROUND_ITEM_PICKUP_TABLE_SEQ
+            : GROUND_ITEM_PICKUP_FLOOR_SEQ;
+    }
+
     /**
      * Maybe send ground item snapshot to player if changed.
      */
@@ -356,6 +369,7 @@ export class GroundItemHandler {
                 tileLevel: tile.level,
                 option,
                 modifierFlags: payload.modifierFlags,
+                pickupFromTable: this.isTablePickupTile(tile),
             });
             return;
         }
@@ -474,6 +488,11 @@ export class GroundItemHandler {
             }
             return;
         }
+
+        if (player.tileX !== tile.x || player.tileY !== tile.y) {
+            player.faceTile(tile.x, tile.y);
+        }
+        player.queueOneShotSeq(this.getPickupSequence(tile), 0);
 
         this.svc.networkLayer.withDirectSendBypass("pickup_sound", () =>
             this.svc.soundService.sendSound(player, 2582),

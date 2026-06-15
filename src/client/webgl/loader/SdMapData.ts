@@ -137,4 +137,7 @@ export type SdMapData = {
     tileLocOffsetsByLevel: Uint32Array[];
     tileLocIdsByLevel: Int32Array[];
     tileLocTypeRotByLevel: Uint8Array[];
+
+    // Per-level item-layer lift height for each interior 64x64 tile.
+    itemLayerHeightsByLevel: Uint16Array[];
 };

@@ -7480,11 +7480,13 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             // Spot animations were previously collected from SpotAnimationManager; no-op now.
 
             if (playerWorldX != null && playerWorldZ != null) {
-                const overlayEntries = this.osrsClient.getGroundItemOverlayEntries(
-                    Math.floor(playerWorldX),
-                    Math.floor(playerWorldZ),
-                    playerLevel,
-                    { radius: groundOverlayRadius, maxEntries: groundOverlayMaxEntries },
+                const overlayEntries = this.withGroundItemOverlayHeights(
+                    this.osrsClient.getGroundItemOverlayEntries(
+                        Math.floor(playerWorldX),
+                        Math.floor(playerWorldZ),
+                        playerLevel,
+                        { radius: groundOverlayRadius, maxEntries: groundOverlayMaxEntries },
+                    ),
                 );
                 if (overlayEntries.length > 0) {
                     groundOverlayEntries = overlayEntries;
@@ -7493,11 +7495,11 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                         const camX = Math.floor(this.osrsClient.camera.getPosX());
                         const camY = Math.floor(this.osrsClient.camera.getPosZ());
                         const camLevel = resolveGroundItemStackPlane(this.getPlayerRawPlane() | 0);
-                        const camEntries = this.osrsClient.getGroundItemOverlayEntries(
-                            camX,
-                            camY,
-                            camLevel,
-                            { radius: groundOverlayRadius, maxEntries: groundOverlayMaxEntries },
+                        const camEntries = this.withGroundItemOverlayHeights(
+                            this.osrsClient.getGroundItemOverlayEntries(camX, camY, camLevel, {
+                                radius: groundOverlayRadius,
+                                maxEntries: groundOverlayMaxEntries,
+                            }),
                         );
                         if (camEntries.length > 0) {
                             groundOverlayEntries = camEntries;
@@ -7512,11 +7514,13 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                         const fallbackX = (peHs.getX(idx) / 128.0) | 0;
                         const fallbackY = (peHs.getY(idx) / 128.0) | 0;
                         const fallbackLevel = peHs.getLevel(idx) | 0;
-                        const overlayEntries = this.osrsClient.getGroundItemOverlayEntries(
-                            fallbackX,
-                            fallbackY,
-                            fallbackLevel,
-                            { radius: groundOverlayRadius, maxEntries: groundOverlayMaxEntries },
+                        const overlayEntries = this.withGroundItemOverlayHeights(
+                            this.osrsClient.getGroundItemOverlayEntries(
+                                fallbackX,
+                                fallbackY,
+                                fallbackLevel,
+                                { radius: groundOverlayRadius, maxEntries: groundOverlayMaxEntries },
+                            ),
                         );
                         if (overlayEntries.length > 0) {
                             groundOverlayEntries = overlayEntries;
@@ -10272,6 +10276,38 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             return undefined;
         }
         return { x: localX | 0, y: localY | 0 };
+    }
+
+    private getGroundItemLayerHeightTiles(tileX: number, tileY: number, level: number): number {
+        const map = this.getPreferredMapForWorldTile(tileX, tileY);
+        if (!map) return 0;
+        const local = this.getMapLocalTile(map, tileX, tileY);
+        if (!local) return 0;
+        return Math.max(0, map.getItemLayerHeightAtLocal(level | 0, local.x, local.y)) / 128;
+    }
+
+    private withGroundItemOverlayHeights(
+        entries: GroundItemOverlayEntry[],
+    ): GroundItemOverlayEntry[] {
+        if (entries.length === 0) return entries;
+        let output: GroundItemOverlayEntry[] | undefined;
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
+            const heightOffsetTiles = this.getGroundItemLayerHeightTiles(
+                entry.tileX | 0,
+                entry.tileY | 0,
+                entry.level | 0,
+            );
+            if (heightOffsetTiles <= 0) {
+                if (output) output.push(entry);
+                continue;
+            }
+            if (!output) {
+                output = entries.slice(0, i);
+            }
+            output.push({ ...entry, heightOffsetTiles });
+        }
+        return output ?? entries;
     }
 
     // Derive the effective surface plane for a given world tile based on basePlane and bridge flag.

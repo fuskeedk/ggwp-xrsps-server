@@ -470,8 +470,11 @@ export class SceneRaycaster {
             const maxZ = worldTileY + 1;
 
             const groundY = this.sampleHeightAt(worldTileX + 0.5, worldTileY + 0.5, level | 0);
-            const minY = groundY - 0.2;
-            const maxY = groundY + 0.1;
+            const itemLayerHeight =
+                Math.max(0, map.getItemLayerHeightAtLocal(level | 0, localX, localY)) / 128.0;
+            const itemY = groundY - itemLayerHeight;
+            const minY = itemY - 0.2;
+            const maxY = itemY + 0.1;
 
             const boxHit = rayIntersectsBox(ray, [minX, minY, minZ], [maxX, maxY, maxZ]);
             if (!boxHit) continue;

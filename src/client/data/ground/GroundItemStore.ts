@@ -19,6 +19,7 @@ export type GroundItemOverlayEntry = {
     timerLabel?: string;
     timerColor?: number;
     line?: number;
+    heightOffsetTiles?: number;
 };
 
 export type GroundItemMetadata = {

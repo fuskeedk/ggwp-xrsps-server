@@ -132,8 +132,9 @@ export class GroundItemOverlay implements Overlay {
                 entry.level,
             );
             const line = Math.max(0, entry.line ?? 0);
+            const heightOffset = Math.max(0, entry.heightOffsetTiles ?? 0);
             this.centerWorld[0] = entry.tileX + 0.5;
-            this.centerWorld[1] = h - 0.05 - line * 0.22;
+            this.centerWorld[1] = h - heightOffset - 0.05 - line * 0.22;
             this.centerWorld[2] = entry.tileY + 0.5;
             const screenPos = args.helpers.worldToScreen?.(
                 this.centerWorld[0],

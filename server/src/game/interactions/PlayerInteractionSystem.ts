@@ -11,6 +11,7 @@ import { PathService } from "../../pathfinding/PathService";
 import {
     ExactRouteStrategy,
     RectAdjacentRouteStrategy,
+    RouteStrategy,
 } from "../../pathfinding/legacy/pathfinder/RouteStrategy";
 import { CollisionFlag } from "../../pathfinding/legacy/pathfinder/flag/CollisionFlag";
 import { logger } from "../../utils/logger";
@@ -504,6 +505,7 @@ export class PlayerInteractionSystem {
             tileLevel: number;
             option: string;
             modifierFlags?: number;
+            pickupFromTable?: boolean;
         },
     ): void {
         const me = this.players.get(ws);
@@ -528,19 +530,16 @@ export class PlayerInteractionSystem {
             tileLevel: data.tileLevel,
             option: data.option,
             lastRouteTick: Number.MIN_SAFE_INTEGER,
+            pickupFromTable: data.pickupFromTable === true,
         };
 
         this.interactions.set(ws, state);
 
-        if (me.tileX === state.tileX && me.tileY === state.tileY && me.level === state.tileLevel) {
+        if (this.hasArrivedAtGroundItem(me, state)) {
             return;
         }
 
-        this.routePlayerToTile(
-            me,
-            { x: state.tileX, y: state.tileY },
-            this.resolveRunMode(me, state.modifierFlags),
-        );
+        this.routePlayerToGroundItem(me, state, this.resolveRunMode(me, state.modifierFlags));
     }
 
     handleManualMovement(ws: WebSocket, destination?: { x: number; y: number }): void {
@@ -851,7 +850,7 @@ export class PlayerInteractionSystem {
                 return;
             }
 
-            const arrived = me.tileX === st.tileX && me.tileY === st.tileY;
+            const arrived = this.hasArrivedAtGroundItem(me, st);
 
             if (arrived) {
                 if (this.onGroundItemInteraction) {
@@ -866,9 +865,9 @@ export class PlayerInteractionSystem {
             const shouldRoute = !me.hasPath() || tick - st.lastRouteTick >= 2 || me.wasTeleported();
 
             if (shouldRoute) {
-                const routed = this.routePlayerToTile(
+                const routed = this.routePlayerToGroundItem(
                     me,
-                    { x: st.tileX, y: st.tileY },
+                    st,
                     this.resolveRunMode(me, st.modifierFlags),
                 );
                 if (routed) {
@@ -876,6 +875,60 @@ export class PlayerInteractionSystem {
                 }
             }
         });
+    }
+
+    private createGroundItemRouteStrategy(state: GroundItemInteractionState): RouteStrategy {
+        if (state.pickupFromTable === true) {
+            const strategy = new RectAdjacentRouteStrategy(state.tileX, state.tileY, 1, 1);
+            strategy.setCollisionGetter(
+                (x, y, p) => this.pathService.getCollisionFlagAt(x, y, p),
+                state.tileLevel,
+            );
+            return strategy;
+        }
+
+        const strategy = new ExactRouteStrategy();
+        strategy.approxDestX = state.tileX;
+        strategy.approxDestY = state.tileY;
+        strategy.destSizeX = 1;
+        strategy.destSizeY = 1;
+        return strategy;
+    }
+
+    private hasArrivedAtGroundItem(
+        player: PlayerState,
+        state: GroundItemInteractionState,
+    ): boolean {
+        if (player.level !== state.tileLevel) return false;
+        return this.createGroundItemRouteStrategy(state).hasArrived(
+            player.tileX,
+            player.tileY,
+            player.level,
+        );
+    }
+
+    private routePlayerToGroundItem(
+        player: PlayerState,
+        state: GroundItemInteractionState,
+        run: boolean,
+    ): boolean {
+        const strategy = this.createGroundItemRouteStrategy(state);
+        const res = this.pathService.findPathSteps(
+            {
+                from: { x: player.tileX, y: player.tileY, plane: player.level },
+                to: { x: state.tileX, y: state.tileY },
+                size: 1,
+            },
+            { maxSteps: 128, routeStrategy: strategy },
+        );
+        const steps = this.extractValidatedStrategyPathSteps(player, res, strategy);
+        if (!steps) {
+            return false;
+        }
+        if (steps.length === 0) {
+            return true;
+        }
+        return this.applyPathSteps(player, steps, run);
     }
 
     private applyPathSteps(actor: Actor, steps: { x: number; y: number }[], run: boolean): boolean {

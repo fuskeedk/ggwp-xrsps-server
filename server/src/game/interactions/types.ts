@@ -61,6 +61,7 @@ export interface GroundItemInteractionState {
     tileLevel: number;
     option: string;
     lastRouteTick: number;
+    pickupFromTable?: boolean;
 }
 
 export interface PlayerCombatInteractionState {
