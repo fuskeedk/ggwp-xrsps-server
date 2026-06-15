@@ -11,7 +11,7 @@ import { PathService } from "../../pathfinding/PathService";
 import {
     ExactRouteStrategy,
     RectAdjacentRouteStrategy,
-    RouteStrategy,
+    type RouteStrategy,
 } from "../../pathfinding/legacy/pathfinder/RouteStrategy";
 import { CollisionFlag } from "../../pathfinding/legacy/pathfinder/flag/CollisionFlag";
 import { logger } from "../../utils/logger";
