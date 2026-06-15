@@ -765,6 +765,15 @@ export function buildScriptServices(deps: ScriptServiceAdapterDeps): ScriptServi
         npc: {
             spawnNpc: (config) => deps.npcManager?.spawnTransientNpc(config),
             removeNpc: (npcId) => deps.npcManager?.removeNpc(npcId) ?? false,
+            stopNpcMovement: (npc, holdTicks) => {
+                const ticks = Math.max(0, Math.trunc(holdTicks ?? 0));
+                if (ticks > 0) {
+                    npc.holdMovementUntil(deps.getCurrentTick() + ticks);
+                } else {
+                    npc.clearPath();
+                    npc.running = false;
+                }
+            },
             queueNpcForcedChat: (npc, text) => {
                 npc.pendingSay = text;
             },

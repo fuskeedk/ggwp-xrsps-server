@@ -535,6 +535,10 @@ export class SceneBuilder {
                         const seqId = override?.seqId;
                         const seqRandomStart = override?.seqRandomStart;
 
+                        if ((finalId | 0) <= 0) {
+                            continue;
+                        }
+
                         if (
                             typeof moveToX === "number" &&
                             Number.isFinite(moveToX) &&
@@ -651,6 +655,10 @@ export class SceneBuilder {
         seqOverride?: number,
         seqRandomStartOverride?: boolean,
     ): void {
+        if ((id | 0) <= 0) {
+            return;
+        }
+
         const locType = this.locTypeLoader.load(id);
 
         let sizeX = locType.sizeX;

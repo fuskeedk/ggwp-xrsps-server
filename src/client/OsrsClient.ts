@@ -6378,7 +6378,12 @@ export class OsrsClient {
                 const clickHits = collectFromAllRoots(input.leftClickX, input.leftClickY);
                 for (let i = clickHits.length - 1; i >= 0; i--) {
                     const w = clickHits[i];
-                    const hasItem = typeof (w as any).itemId === "number" && (w as any).itemId > 0;
+                    const hitWidgetGroupId =
+                        (w.groupId ?? (typeof w.uid === "number" ? w.uid >>> 16 : 0)) | 0;
+                    const hasInventoryItem =
+                        hitWidgetGroupId === 149 &&
+                        typeof (w as any).itemId === "number" &&
+                        (w as any).itemId > 0;
                     // Check for actual handlers, not just empty arrays
                     // Empty arrays are truthy but shouldn't count as having handlers
                     const hasActions = Array.isArray(w.actions) && w.actions.length > 0;
@@ -6413,7 +6418,7 @@ export class OsrsClient {
                         w.onRelease ||
                         w.onOp ||
                         hasActions ||
-                        hasItem ||
+                        hasInventoryItem ||
                         // OSRS: any widget can be a drag source if it has drag listener or implicit drag
                         w.eventHandlers?.onDrag ||
                         w.onDrag ||

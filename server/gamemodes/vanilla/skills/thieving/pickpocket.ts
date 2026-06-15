@@ -823,6 +823,9 @@ function executePickpocketAction(ctx: ScriptActionHandlerContext): ActionExecuti
 
         // The pickpocket animation plays on the attempt itself, before the
         // outcome is known, and the player is held in place until it resolves.
+        if (npc) {
+            services.npc.stopNpcMovement(npc, 2);
+        }
         services.animation.playPlayerSeq(player, PICKPOCKET_ANIM);
         player.lock = LockState.FULL_WITH_ITEM_INTERACTION;
         effects.push(
@@ -874,7 +877,9 @@ function executePickpocketAction(ctx: ScriptActionHandlerContext): ActionExecuti
         services.variables.sendVarbit?.(player, PICKPOCKET_BUSY_VARBIT, 1);
 
         if (npc) {
+            services.npc.stopNpcMovement(npc, 2);
             services.npc.queueNpcForcedChat(npc, "What do you think you're doing?");
+            services.npc.faceNpcToPlayer(npc, player);
         }
         services.combat.clearPlayerFaceTarget(player);
 
@@ -893,6 +898,7 @@ function executePickpocketAction(ctx: ScriptActionHandlerContext): ActionExecuti
         services.sound.sendSound(player, PICKPOCKET_STUN_SOUND);
 
         if (npc) {
+            services.npc.stopNpcMovement(npc, 2);
             services.npc.queueNpcSeq(npc, PICKPOCKET_NPC_ATTACK_ANIM);
             services.npc.faceNpcToPlayer(npc, player);
         }

@@ -768,6 +768,7 @@ export interface CombatFacade {
 export interface NpcFacade {
     spawnNpc(config: NpcSpawnConfig): NpcState | undefined;
     removeNpc(npcId: number): boolean;
+    stopNpcMovement(npc: NpcState, holdTicks?: number): void;
     queueNpcForcedChat(npc: NpcState, text: string): void;
     queueNpcSeq(npc: NpcState, seqId: number): void;
     faceNpcToPlayer(npc: NpcState, player: PlayerState): void;
