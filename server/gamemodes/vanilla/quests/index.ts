@@ -5,7 +5,7 @@ import {
     registerQuestCompletedWidgetHandlers,
     setQuestStage,
 } from "./QuestService";
-import { doricsQuest } from "./definitions/doricsQuest";
+import { doricsQuest } from "./definitions/dorics";
 import type { QuestDefinition } from "./types";
 
 const QUEST_DEFINITIONS: QuestDefinition[] = [doricsQuest];
