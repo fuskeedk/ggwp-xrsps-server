@@ -2519,6 +2519,130 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
             // But still need to traverse children, so don't return here
         }
 
+        if (contentType === 1400) {
+            const osrsClient = (opts.game as any)?.osrsClient;
+            const worldMapState = osrsClient?.worldMapState;
+            worldMapState?.setDisplaySize?.(logicalWidth | 0, logicalHeight | 0);
+
+            const backgroundColor = worldMapState?.currentArea?.backgroundColor ?? 0x000000;
+            glr.drawRect(x, y, width, height, [
+                ((backgroundColor >>> 16) & 0xff) / 255,
+                ((backgroundColor >>> 8) & 0xff) / 255,
+                (backgroundColor & 0xff) / 255,
+                1,
+            ]);
+
+            const currentArea = worldMapState?.currentArea;
+            if (worldMapState?.isLoaded?.() && currentArea) {
+                const renderScale =
+                    logicalWidth > 0 && logicalHeight > 0
+                        ? (width / logicalWidth + height / logicalHeight) / 2
+                        : 1;
+                const pixelsPerTile = Math.max(
+                    1,
+                    4 * ((worldMapState.zoomPercentage ?? 100) / 100) * renderScale,
+                );
+                const centerX = x + width / 2;
+                const centerY = y + height / 2;
+                const displayX = worldMapState.displayX | 0;
+                const displayY = worldMapState.displayY | 0;
+                const bounds = currentArea.getBounds();
+                const minVisibleTileX = displayX - width / (2 * pixelsPerTile) - 64;
+                const maxVisibleTileX = displayX + width / (2 * pixelsPerTile) + 64;
+                const minVisibleTileY = displayY - height / (2 * pixelsPerTile) - 64;
+                const maxVisibleTileY = displayY + height / (2 * pixelsPerTile) + 64;
+                const minMapX = Math.max(
+                    bounds.minX >> 6,
+                    Math.floor(minVisibleTileX / 64),
+                );
+                const maxMapX = Math.min(
+                    bounds.maxX >> 6,
+                    Math.floor(maxVisibleTileX / 64),
+                );
+                const minMapY = Math.max(
+                    bounds.minY >> 6,
+                    Math.floor(minVisibleTileY / 64),
+                );
+                const maxMapY = Math.min(
+                    bounds.maxY >> 6,
+                    Math.floor(maxVisibleTileY / 64),
+                );
+                const tileDrawSize = 64 * pixelsPerTile;
+                const worldMapLevel = Math.max(0, Math.min(3, currentArea.origin.plane | 0));
+
+                for (let mapY = minMapY; mapY <= maxMapY; mapY++) {
+                    for (let mapX = minMapX; mapX <= maxMapX; mapX++) {
+                        const url = osrsClient?.getWorldMapImageUrl?.(
+                            mapX,
+                            mapY,
+                            worldMapLevel,
+                        );
+                        if (!url) continue;
+                        const tileTex = tc.getTextureFromUrl(url);
+                        if (!tileTex) continue;
+
+                        const drawX = centerX + (mapX * 64 - displayX) * pixelsPerTile;
+                        const drawY =
+                            centerY - ((mapY * 64 + 64) - displayY) * pixelsPerTile;
+                        glr.drawTexture(tileTex, drawX, drawY, tileDrawSize, tileDrawSize, 1, 1);
+                    }
+                }
+
+                for (let mapY = minMapY; mapY <= maxMapY; mapY++) {
+                    for (let mapX = minMapX; mapX <= maxMapX; mapX++) {
+                        const icons = osrsClient?.getWorldMapIcons?.(
+                            mapX,
+                            mapY,
+                            worldMapLevel,
+                        );
+                        if (!icons || icons.length === 0) continue;
+
+                        for (const icon of icons) {
+                            const iconTex = tc.getBySpriteId(icon.spriteId | 0);
+                            if (!iconTex) continue;
+                            const worldX = mapX * 64 + (icon.localX | 0) + 0.5;
+                            const worldY = mapY * 64 + (icon.localY | 0) + 0.5;
+                            const iconX = centerX + (worldX - displayX) * pixelsPerTile;
+                            const iconY = centerY - (worldY - displayY) * pixelsPerTile;
+                            const iconW = iconTex.w * renderScale;
+                            const iconH = iconTex.h * renderScale;
+                            glr.drawTexture(
+                                iconTex,
+                                iconX - iconW / 2,
+                                iconY - iconH / 2,
+                                iconW,
+                                iconH,
+                                1,
+                                1,
+                            );
+                        }
+                    }
+                }
+
+                const localPlayerId = osrsClient?.controlledPlayerServerId | 0;
+                const playerState = osrsClient?.playerMovementSync?.getState?.(localPlayerId);
+                if (playerState) {
+                    const playerPos = currentArea.position(
+                        playerState.level | 0,
+                        playerState.tileX | 0,
+                        playerState.tileY | 0,
+                    );
+                    if (playerPos) {
+                        const markerX = centerX + (playerPos.x - displayX) * pixelsPerTile;
+                        const markerY = centerY - (playerPos.y - displayY) * pixelsPerTile;
+                        const markerSize = Math.max(3, Math.round(4 * renderScale));
+                        glr.drawRect(
+                            markerX - markerSize / 2,
+                            markerY - markerSize / 2,
+                            markerSize,
+                            markerSize,
+                            [1, 1, 1, 1],
+                        );
+                    }
+                }
+            }
+        }
+
         // Special handling for minimap widget (contentType 1338)
         // Uses localPlayer position, NOT camera
         // WebGL-based rendering for better mobile performance

@@ -1,0 +1,770 @@
+import { CacheSystem } from "../cache/CacheSystem";
+import { IndexType } from "../cache/IndexType";
+import { ByteBuffer } from "../io/ByteBuffer";
+
+export type WorldMapCoord = {
+    plane: number;
+    x: number;
+    y: number;
+};
+
+export type WorldMapPosition = {
+    x: number;
+    y: number;
+};
+
+export type WorldMapIconEntry = {
+    element: number;
+    category: number;
+    spriteId: number;
+    coord: number;
+};
+
+type BoundsTarget = {
+    regionLowX: number;
+    regionHighX: number;
+    regionLowY: number;
+    regionHighY: number;
+};
+
+interface WorldMapSection {
+    containsPosition(x: number, y: number): boolean;
+    containsCoord(plane: number, x: number, y: number): boolean;
+    coord(x: number, y: number): WorldMapCoord | undefined;
+    position(plane: number, x: number, y: number): WorldMapPosition | undefined;
+    expandBounds(target: BoundsTarget): void;
+}
+
+export function packWorldMapCoord(coord: WorldMapCoord): number {
+    return (
+        ((coord.plane & 0x3) << 28) |
+        ((coord.x & 0x3fff) << 14) |
+        (coord.y & 0x3fff)
+    );
+}
+
+export function unpackWorldMapCoord(packed: number): WorldMapCoord {
+    return {
+        plane: (packed >>> 28) & 0x3,
+        x: (packed >>> 14) & 0x3fff,
+        y: packed & 0x3fff,
+    };
+}
+
+function readCoord(buffer: ByteBuffer): WorldMapCoord {
+    return unpackWorldMapCoord(buffer.readInt());
+}
+
+class WorldMapSection0 implements WorldMapSection {
+    oldZ = 0;
+    newZ = 0;
+    oldX = 0;
+    oldChunkXLow = 0;
+    oldChunkXHigh = 0;
+    oldY = 0;
+    oldChunkYLow = 0;
+    oldChunkYHigh = 0;
+    newX = 0;
+    newChunkXLow = 0;
+    newChunkXHigh = 0;
+    newY = 0;
+    newChunkYLow = 0;
+    newChunkYHigh = 0;
+
+    read(buffer: ByteBuffer): void {
+        this.oldZ = buffer.readUnsignedByte();
+        this.newZ = buffer.readUnsignedByte();
+        this.oldX = buffer.readUnsignedShort();
+        this.oldChunkXLow = buffer.readUnsignedByte();
+        this.oldChunkXHigh = buffer.readUnsignedByte();
+        this.oldY = buffer.readUnsignedShort();
+        this.oldChunkYLow = buffer.readUnsignedByte();
+        this.oldChunkYHigh = buffer.readUnsignedByte();
+        this.newX = buffer.readUnsignedShort();
+        this.newChunkXLow = buffer.readUnsignedByte();
+        this.newChunkXHigh = buffer.readUnsignedByte();
+        this.newY = buffer.readUnsignedShort();
+        this.newChunkYLow = buffer.readUnsignedByte();
+        this.newChunkYHigh = buffer.readUnsignedByte();
+    }
+
+    containsPosition(x: number, y: number): boolean {
+        return (
+            x >= (this.newX << 6) + (this.newChunkXLow << 3) &&
+            x <= (this.newX << 6) + (this.newChunkXHigh << 3) + 7 &&
+            y >= (this.newY << 6) + (this.newChunkYLow << 3) &&
+            y <= (this.newY << 6) + (this.newChunkYHigh << 3) + 7
+        );
+    }
+
+    containsCoord(plane: number, x: number, y: number): boolean {
+        if (plane < this.oldZ || plane >= this.oldZ + this.newZ) return false;
+        return (
+            x >= (this.oldX << 6) + (this.oldChunkXLow << 3) &&
+            x <= (this.oldX << 6) + (this.oldChunkXHigh << 3) + 7 &&
+            y >= (this.oldY << 6) + (this.oldChunkYLow << 3) &&
+            y <= (this.oldY << 6) + (this.oldChunkYHigh << 3) + 7
+        );
+    }
+
+    coord(x: number, y: number): WorldMapCoord | undefined {
+        if (!this.containsPosition(x, y)) return undefined;
+        return {
+            plane: this.oldZ,
+            x:
+                this.oldX * 64 -
+                this.newX * 64 +
+                (this.oldChunkXLow * 8 - this.newChunkXLow * 8) +
+                x,
+            y:
+                this.oldY * 64 -
+                this.newY * 64 +
+                y +
+                (this.oldChunkYLow * 8 - this.newChunkYLow * 8),
+        };
+    }
+
+    position(plane: number, x: number, y: number): WorldMapPosition | undefined {
+        if (!this.containsCoord(plane, x, y)) return undefined;
+        return {
+            x:
+                this.newX * 64 -
+                this.oldX * 64 +
+                x +
+                (this.newChunkXLow * 8 - this.oldChunkXLow * 8),
+            y:
+                y +
+                (this.newY * 64 - this.oldY * 64) +
+                (this.newChunkYLow * 8 - this.oldChunkYLow * 8),
+        };
+    }
+
+    expandBounds(target: BoundsTarget): void {
+        target.regionLowX = Math.min(target.regionLowX, this.newX);
+        target.regionHighX = Math.max(target.regionHighX, this.newX);
+        target.regionLowY = Math.min(target.regionLowY, this.newY);
+        target.regionHighY = Math.max(target.regionHighY, this.newY);
+    }
+}
+
+class WorldMapSection1 implements WorldMapSection {
+    minPlane = 0;
+    planes = 0;
+    regionStartX = 0;
+    regionStartY = 0;
+    regionEndX = 0;
+    regionEndY = 0;
+
+    read(buffer: ByteBuffer): void {
+        this.minPlane = buffer.readUnsignedByte();
+        this.planes = buffer.readUnsignedByte();
+        this.regionStartX = buffer.readUnsignedShort();
+        this.regionStartY = buffer.readUnsignedShort();
+        this.regionEndX = buffer.readUnsignedShort();
+        this.regionEndY = buffer.readUnsignedShort();
+    }
+
+    containsPosition(x: number, y: number): boolean {
+        return x >> 6 === this.regionEndX && y >> 6 === this.regionEndY;
+    }
+
+    containsCoord(plane: number, x: number, y: number): boolean {
+        return (
+            plane >= this.minPlane &&
+            plane < this.minPlane + this.planes &&
+            x >> 6 === this.regionStartX &&
+            y >> 6 === this.regionStartY
+        );
+    }
+
+    coord(x: number, y: number): WorldMapCoord | undefined {
+        if (!this.containsPosition(x, y)) return undefined;
+        return {
+            plane: this.minPlane,
+            x: this.regionStartX * 64 - this.regionEndX * 64 + x,
+            y: this.regionStartY * 64 - this.regionEndY * 64 + y,
+        };
+    }
+
+    position(plane: number, x: number, y: number): WorldMapPosition | undefined {
+        if (!this.containsCoord(plane, x, y)) return undefined;
+        return {
+            x: this.regionEndX * 64 - this.regionStartX * 64 + x,
+            y: y + (this.regionEndY * 64 - this.regionStartY * 64),
+        };
+    }
+
+    expandBounds(target: BoundsTarget): void {
+        target.regionLowX = Math.min(target.regionLowX, this.regionEndX);
+        target.regionHighX = Math.max(target.regionHighX, this.regionEndX);
+        target.regionLowY = Math.min(target.regionLowY, this.regionEndY);
+        target.regionHighY = Math.max(target.regionHighY, this.regionEndY);
+    }
+}
+
+class WorldMapSection2 implements WorldMapSection {
+    minPlane = 0;
+    planes = 0;
+    regionStartX = 0;
+    regionStartY = 0;
+    regionEndX = 0;
+    regionEndY = 0;
+    regionLowX = 0;
+    regionLowY = 0;
+    regionHighX = 0;
+    regionHighY = 0;
+
+    read(buffer: ByteBuffer): void {
+        this.minPlane = buffer.readUnsignedByte();
+        this.planes = buffer.readUnsignedByte();
+        this.regionStartX = buffer.readUnsignedShort();
+        this.regionStartY = buffer.readUnsignedShort();
+        this.regionEndX = buffer.readUnsignedShort();
+        this.regionEndY = buffer.readUnsignedShort();
+        this.regionLowX = buffer.readUnsignedShort();
+        this.regionLowY = buffer.readUnsignedShort();
+        this.regionHighX = buffer.readUnsignedShort();
+        this.regionHighY = buffer.readUnsignedShort();
+    }
+
+    containsPosition(x: number, y: number): boolean {
+        return (
+            x >> 6 >= this.regionLowX &&
+            x >> 6 <= this.regionHighX &&
+            y >> 6 >= this.regionLowY &&
+            y >> 6 <= this.regionHighY
+        );
+    }
+
+    containsCoord(plane: number, x: number, y: number): boolean {
+        return (
+            plane >= this.minPlane &&
+            plane < this.minPlane + this.planes &&
+            x >> 6 >= this.regionStartX &&
+            x >> 6 <= this.regionEndX &&
+            y >> 6 >= this.regionStartY &&
+            y >> 6 <= this.regionEndY
+        );
+    }
+
+    coord(x: number, y: number): WorldMapCoord | undefined {
+        if (!this.containsPosition(x, y)) return undefined;
+        return {
+            plane: this.minPlane,
+            x: this.regionStartX * 64 - this.regionLowX * 64 + x,
+            y: this.regionStartY * 64 - this.regionLowY * 64 + y,
+        };
+    }
+
+    position(plane: number, x: number, y: number): WorldMapPosition | undefined {
+        if (!this.containsCoord(plane, x, y)) return undefined;
+        return {
+            x: this.regionLowX * 64 - this.regionStartX * 64 + x,
+            y: y + (this.regionLowY * 64 - this.regionStartY * 64),
+        };
+    }
+
+    expandBounds(target: BoundsTarget): void {
+        target.regionLowX = Math.min(target.regionLowX, this.regionLowX);
+        target.regionHighX = Math.max(target.regionHighX, this.regionHighX);
+        target.regionLowY = Math.min(target.regionLowY, this.regionLowY);
+        target.regionHighY = Math.max(target.regionHighY, this.regionHighY);
+    }
+}
+
+class WorldMapSectionChunk implements WorldMapSection {
+    minPlane = 0;
+    planes = 0;
+    regionStartX = 0;
+    regionStartChunkX = 0;
+    regionStartY = 0;
+    regionStartChunkY = 0;
+    regionEndX = 0;
+    regionEndChunkX = 0;
+    regionEndY = 0;
+    regionEndChunkY = 0;
+
+    read(buffer: ByteBuffer): void {
+        this.minPlane = buffer.readUnsignedByte();
+        this.planes = buffer.readUnsignedByte();
+        this.regionStartX = buffer.readUnsignedShort();
+        this.regionStartChunkX = buffer.readUnsignedByte();
+        this.regionStartY = buffer.readUnsignedShort();
+        this.regionStartChunkY = buffer.readUnsignedByte();
+        this.regionEndX = buffer.readUnsignedShort();
+        this.regionEndChunkX = buffer.readUnsignedByte();
+        this.regionEndY = buffer.readUnsignedShort();
+        this.regionEndChunkY = buffer.readUnsignedByte();
+    }
+
+    containsPosition(x: number, y: number): boolean {
+        return (
+            x >= (this.regionEndX << 6) + (this.regionEndChunkX << 3) &&
+            x <= (this.regionEndX << 6) + (this.regionEndChunkX << 3) + 7 &&
+            y >= (this.regionEndY << 6) + (this.regionEndChunkY << 3) &&
+            y <= (this.regionEndY << 6) + (this.regionEndChunkY << 3) + 7
+        );
+    }
+
+    containsCoord(plane: number, x: number, y: number): boolean {
+        return (
+            plane >= this.minPlane &&
+            plane < this.minPlane + this.planes &&
+            x >= (this.regionStartX << 6) + (this.regionStartChunkX << 3) &&
+            x <= (this.regionStartX << 6) + (this.regionStartChunkX << 3) + 7 &&
+            y >= (this.regionStartY << 6) + (this.regionStartChunkY << 3) &&
+            y <= (this.regionStartY << 6) + (this.regionStartChunkY << 3) + 7
+        );
+    }
+
+    coord(x: number, y: number): WorldMapCoord | undefined {
+        if (!this.containsPosition(x, y)) return undefined;
+        return {
+            plane: this.minPlane,
+            x:
+                this.regionStartX * 64 -
+                this.regionEndX * 64 +
+                (this.regionStartChunkX * 8 - this.regionEndChunkX * 8) +
+                x,
+            y:
+                this.regionStartY * 64 -
+                this.regionEndY * 64 +
+                y +
+                (this.regionStartChunkY * 8 - this.regionEndChunkY * 8),
+        };
+    }
+
+    position(plane: number, x: number, y: number): WorldMapPosition | undefined {
+        if (!this.containsCoord(plane, x, y)) return undefined;
+        return {
+            x:
+                this.regionEndX * 64 -
+                this.regionStartX * 64 +
+                x +
+                (this.regionEndChunkX * 8 - this.regionStartChunkX * 8),
+            y:
+                y +
+                (this.regionEndY * 64 - this.regionStartY * 64) +
+                (this.regionEndChunkY * 8 - this.regionStartChunkY * 8),
+        };
+    }
+
+    expandBounds(target: BoundsTarget): void {
+        target.regionLowX = Math.min(target.regionLowX, this.regionEndX);
+        target.regionHighX = Math.max(target.regionHighX, this.regionEndX);
+        target.regionLowY = Math.min(target.regionLowY, this.regionEndY);
+        target.regionHighY = Math.max(target.regionHighY, this.regionEndY);
+    }
+}
+
+function readWorldMapSection(buffer: ByteBuffer): WorldMapSection {
+    const type = buffer.readUnsignedByte();
+    let section:
+        | WorldMapSection0
+        | WorldMapSection1
+        | WorldMapSection2
+        | WorldMapSectionChunk;
+    switch (type) {
+        case 0:
+            section = new WorldMapSection2();
+            break;
+        case 1:
+            section = new WorldMapSection1();
+            break;
+        case 2:
+            section = new WorldMapSection0();
+            break;
+        case 3:
+            section = new WorldMapSectionChunk();
+            break;
+        default:
+            throw new Error(`Unsupported world map section type ${type}`);
+    }
+    section.read(buffer);
+    return section;
+}
+
+export class WorldMapArea {
+    id = -1;
+    internalName = "";
+    externalName = "";
+    origin: WorldMapCoord = { plane: 0, x: 0, y: 0 };
+    unknownInt = -1;
+    backgroundColor = -0x1000000;
+    isMain = false;
+    zoom = -1;
+    sections: WorldMapSection[] = [];
+    regionLowX = Number.MAX_SAFE_INTEGER;
+    regionHighX = 0;
+    regionLowY = Number.MAX_SAFE_INTEGER;
+    regionHighY = 0;
+
+    static decode(id: number, data: Int8Array): WorldMapArea {
+        const buffer = new ByteBuffer(data);
+        const area = new WorldMapArea();
+        area.id = id | 0;
+        area.internalName = buffer.readString();
+        area.externalName = buffer.readString();
+        area.origin = readCoord(buffer);
+        area.unknownInt = buffer.readInt();
+        area.backgroundColor = buffer.readInt();
+        buffer.readUnsignedByte();
+        area.isMain = buffer.readUnsignedByte() === 1;
+        area.zoom = buffer.readUnsignedByte();
+        const sectionCount = buffer.readUnsignedByte();
+        for (let i = 0; i < sectionCount; i++) {
+            area.sections.push(readWorldMapSection(buffer));
+        }
+        area.setBounds();
+        return area;
+    }
+
+    private setBounds(): void {
+        for (const section of this.sections) {
+            section.expandBounds(this);
+        }
+        if (this.regionLowX === Number.MAX_SAFE_INTEGER) {
+            this.regionLowX = 0;
+            this.regionLowY = 0;
+        }
+    }
+
+    containsPosition(x: number, y: number): boolean {
+        const regionX = Math.floor(x / 64);
+        const regionY = Math.floor(y / 64);
+        if (
+            regionX < this.regionLowX ||
+            regionX > this.regionHighX ||
+            regionY < this.regionLowY ||
+            regionY > this.regionHighY
+        ) {
+            return false;
+        }
+        return this.sections.some((section) => section.containsPosition(x, y));
+    }
+
+    containsCoord(plane: number, x: number, y: number): boolean {
+        return this.sections.some((section) => section.containsCoord(plane, x, y));
+    }
+
+    position(plane: number, x: number, y: number): WorldMapPosition | undefined {
+        for (const section of this.sections) {
+            const pos = section.position(plane, x, y);
+            if (pos) return pos;
+        }
+        return undefined;
+    }
+
+    coord(x: number, y: number): WorldMapCoord | undefined {
+        for (const section of this.sections) {
+            const coord = section.coord(x, y);
+            if (coord) return coord;
+        }
+        return undefined;
+    }
+
+    getOriginPacked(): number {
+        return packWorldMapCoord(this.origin);
+    }
+
+    getWidthTiles(): number {
+        return (this.regionHighX - this.regionLowX + 1) * 64;
+    }
+
+    getHeightTiles(): number {
+        return (this.regionHighY - this.regionLowY + 1) * 64;
+    }
+
+    getBounds(): { minX: number; minY: number; maxX: number; maxY: number } {
+        return {
+            minX: this.regionLowX * 64,
+            minY: this.regionLowY * 64,
+            maxX: this.regionHighX * 64 + 63,
+            maxY: this.regionHighY * 64 + 63,
+        };
+    }
+}
+
+export class WorldMapState {
+    readonly areasById = new Map<number, WorldMapArea>();
+    readonly areasByInternalName = new Map<string, WorldMapArea>();
+    mainArea?: WorldMapArea;
+    currentArea?: WorldMapArea;
+    zoomPercentage = 100;
+    displayX = 0;
+    displayY = 0;
+    displayWidth = 512;
+    displayHeight = 334;
+    elementsEnabled = true;
+    perpetualFlash = false;
+    readonly disabledElements = new Set<number>();
+    readonly disabledCategories = new Set<number>();
+    private loaded = false;
+    private readonly tileIcons = new Map<number, WorldMapIconEntry[]>();
+    private iconIterator: WorldMapIconEntry[] = [];
+    private iconIteratorIndex = 0;
+
+    static empty(): WorldMapState {
+        return new WorldMapState();
+    }
+
+    static load(cacheSystem: CacheSystem): WorldMapState {
+        const state = new WorldMapState();
+        let index;
+        try {
+            index = cacheSystem.getIndex(IndexType.OSRS.worldMap);
+        } catch {
+            return state;
+        }
+
+        const detailsArchiveId = index.getArchiveId("details");
+        if (detailsArchiveId < 0 || !index.archiveExists(detailsArchiveId)) {
+            return state;
+        }
+
+        const archive = index.getArchive(detailsArchiveId);
+        for (const file of archive.files) {
+            try {
+                const area = WorldMapArea.decode(file.id, file.data);
+                state.areasById.set(area.id, area);
+                state.areasByInternalName.set(area.internalName, area);
+                if (area.isMain) {
+                    state.mainArea = area;
+                }
+            } catch (error) {
+                console.log("[WorldMapState] Failed to decode world map area", {
+                    fileId: file.id,
+                    error,
+                });
+            }
+        }
+
+        state.loaded = state.areasById.size > 0;
+        state.currentArea =
+            state.mainArea ?? state.areasById.values().next().value ?? undefined;
+        if (state.currentArea) {
+            state.zoomPercentage = state.currentArea.zoom > 0 ? state.currentArea.zoom : 100;
+            state.jumpToSourceCoordInstant(
+                state.currentArea.origin.plane,
+                state.currentArea.origin.x,
+                state.currentArea.origin.y,
+            );
+        }
+        return state;
+    }
+
+    isLoaded(): boolean {
+        return this.loaded;
+    }
+
+    getCurrentMapAreaId(): number {
+        return this.currentArea?.id ?? -1;
+    }
+
+    getMapArea(id: number): WorldMapArea | undefined {
+        return this.areasById.get(id | 0);
+    }
+
+    setDisplaySize(width: number, height: number): void {
+        this.displayWidth = Math.max(0, width | 0);
+        this.displayHeight = Math.max(0, height | 0);
+    }
+
+    setCurrentMapAreaId(id: number): void {
+        const area = this.getMapArea(id);
+        if (!area) return;
+        this.currentArea = area;
+        this.zoomPercentage = area.zoom > 0 ? area.zoom : this.zoomPercentage;
+        this.jumpToSourceCoordInstant(area.origin.plane, area.origin.x, area.origin.y);
+    }
+
+    setCurrentMapAreaAndPosition(plane: number, x: number, y: number): void {
+        const area = this.mapAreaAtCoord(plane, x, y) ?? this.currentArea ?? this.mainArea;
+        if (!area) return;
+        this.currentArea = area;
+        if (area.zoom > 0) this.zoomPercentage = area.zoom;
+        this.jumpToSourceCoordInstant(plane, x, y);
+    }
+
+    mapAreaAtCoord(plane: number, x: number, y: number): WorldMapArea | undefined {
+        for (const area of this.areasById.values()) {
+            if (area.containsCoord(plane, x, y)) return area;
+        }
+        return undefined;
+    }
+
+    setZoomPercentage(zoom: number): void {
+        this.zoomPercentage = Math.max(25, Math.min(400, zoom | 0));
+    }
+
+    setWorldMapPositionTarget(x: number, y: number): void {
+        if (this.currentArea && !this.currentArea.containsPosition(x | 0, y | 0)) return;
+        this.displayX = x | 0;
+        this.displayY = y | 0;
+    }
+
+    jumpToSourceCoord(plane: number, x: number, y: number): void {
+        this.jumpToSourceCoordInstant(plane, x, y);
+    }
+
+    jumpToSourceCoordInstant(plane: number, x: number, y: number): void {
+        const area = this.currentArea;
+        const position = area?.position(plane | 0, x | 0, y | 0);
+        if (position) {
+            this.displayX = position.x | 0;
+            this.displayY = position.y | 0;
+            return;
+        }
+        if (area) {
+            const origin = area.position(area.origin.plane, area.origin.x, area.origin.y);
+            this.displayX = origin?.x ?? area.origin.x;
+            this.displayY = origin?.y ?? area.origin.y;
+        }
+    }
+
+    sourceToDisplay(packedCoord: number): WorldMapPosition | undefined {
+        const coord = unpackWorldMapCoord(packedCoord);
+        return this.currentArea?.position(coord.plane, coord.x, coord.y);
+    }
+
+    displayToSource(packedCoord: number): WorldMapCoord | undefined {
+        const coord = unpackWorldMapCoord(packedCoord);
+        return this.currentArea?.coord(coord.x, coord.y);
+    }
+
+    coordInMap(mapAreaId: number, packedCoord: number): boolean {
+        const coord = unpackWorldMapCoord(packedCoord);
+        return this.getMapArea(mapAreaId)?.containsCoord(coord.plane, coord.x, coord.y) ?? false;
+    }
+
+    getDisplayCoord(): WorldMapCoord | undefined {
+        const area = this.currentArea;
+        if (!area) return undefined;
+        const coord = area.coord(this.displayX | 0, this.displayY | 0);
+        return coord ?? { plane: area.origin.plane, x: this.displayX | 0, y: this.displayY | 0 };
+    }
+
+    setTileIcons(
+        mapX: number,
+        mapY: number,
+        level: number,
+        icons: Array<{
+            localX: number;
+            localY: number;
+            elementId: number;
+            category: number;
+            spriteId: number;
+        }>,
+    ): void {
+        const key = WorldMapState.getTileKey(mapX, mapY, level);
+        const entries: WorldMapIconEntry[] = [];
+        for (const icon of icons) {
+            if ((icon.elementId | 0) < 0) continue;
+            entries.push({
+                element: icon.elementId | 0,
+                category: icon.category | 0,
+                spriteId: icon.spriteId | 0,
+                coord: packWorldMapCoord({
+                    plane: level | 0,
+                    x: (mapX << 6) + (icon.localX | 0),
+                    y: (mapY << 6) + (icon.localY | 0),
+                }),
+            });
+        }
+        if (entries.length > 0) this.tileIcons.set(key, entries);
+        else this.tileIcons.delete(key);
+    }
+
+    removeTileIcons(mapX: number, mapY: number, level: number): void {
+        this.tileIcons.delete(WorldMapState.getTileKey(mapX, mapY, level));
+    }
+
+    clearTileIcons(): void {
+        this.tileIcons.clear();
+        this.iconIterator = [];
+        this.iconIteratorIndex = 0;
+    }
+
+    getNearestIconCoord(elementId: number, sourcePackedCoord: number): number {
+        const source = unpackWorldMapCoord(sourcePackedCoord);
+        if (this.currentArea && !this.currentArea.containsPosition(source.x, source.y)) {
+            return -1;
+        }
+        let nearest: WorldMapIconEntry | undefined;
+        let nearestDistance = Number.MAX_SAFE_INTEGER;
+        for (const icon of this.getVisibleIcons()) {
+            if ((icon.element | 0) !== (elementId | 0)) continue;
+            const coord = unpackWorldMapCoord(icon.coord);
+            const dx = coord.x - source.x;
+            const dy = coord.y - source.y;
+            const distance = dx * dx + dy * dy;
+            if (distance < nearestDistance) {
+                nearest = icon;
+                nearestDistance = distance;
+            }
+        }
+        return nearest?.coord ?? -1;
+    }
+
+    iconStart(): { element: number; coord: number } | undefined {
+        this.iconIterator = this.getVisibleIcons();
+        this.iconIteratorIndex = 0;
+        return this.iconNext();
+    }
+
+    iconNext(): { element: number; coord: number } | undefined {
+        while (this.iconIteratorIndex < this.iconIterator.length) {
+            const icon = this.iconIterator[this.iconIteratorIndex++];
+            if (this.isIconVisible(icon)) {
+                return { element: icon.element, coord: icon.coord };
+            }
+        }
+        return undefined;
+    }
+
+    setElementEnabled(elementId: number, enabled: boolean): void {
+        if (enabled) this.disabledElements.delete(elementId | 0);
+        else this.disabledElements.add(elementId | 0);
+    }
+
+    setCategoryEnabled(categoryId: number, enabled: boolean): void {
+        if (enabled) this.disabledCategories.delete(categoryId | 0);
+        else this.disabledCategories.add(categoryId | 0);
+    }
+
+    isElementEnabled(elementId: number): boolean {
+        return !this.disabledElements.has(elementId | 0);
+    }
+
+    isCategoryEnabled(categoryId: number): boolean {
+        return !this.disabledCategories.has(categoryId | 0);
+    }
+
+    private getVisibleIcons(): WorldMapIconEntry[] {
+        const icons: WorldMapIconEntry[] = [];
+        const area = this.currentArea;
+        for (const tileIcons of this.tileIcons.values()) {
+            for (const icon of tileIcons) {
+                if (!this.isIconVisible(icon)) continue;
+                if (area) {
+                    const coord = unpackWorldMapCoord(icon.coord);
+                    if (!area.containsCoord(coord.plane, coord.x, coord.y)) continue;
+                }
+                icons.push(icon);
+            }
+        }
+        return icons;
+    }
+
+    private isIconVisible(icon: WorldMapIconEntry): boolean {
+        return (
+            this.elementsEnabled &&
+            this.isElementEnabled(icon.element) &&
+            (icon.category < 0 || this.isCategoryEnabled(icon.category))
+        );
+    }
+
+    private static getTileKey(mapX: number, mapY: number, level: number): number {
+        return (((level | 0) & 0x3) << 16) + (((mapX | 0) & 0xff) << 8) + ((mapY | 0) & 0xff);
+    }
+}

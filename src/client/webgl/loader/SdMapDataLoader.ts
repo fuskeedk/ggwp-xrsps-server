@@ -383,7 +383,7 @@ function extractMinimapIcons(
     level: number,
     mapFunctionToSprite: (
         mapFunctionId: number,
-    ) => { spriteId: number; minimapVisible: boolean } | undefined,
+    ) => { spriteId: number; minimapVisible: boolean; category: number } | undefined,
 ): MinimapIcon[] {
     const icons: MinimapIcon[] = [];
 
@@ -409,6 +409,8 @@ function extractMinimapIcons(
                 icons.push({
                     localX,
                     localY,
+                    elementId: locType.mapFunctionId,
+                    category: sprite.category,
                     spriteId: sprite.spriteId,
                 });
             }
@@ -1691,7 +1693,8 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
         // Extract minimap icons for dynamic rendering
         let mapFunctionToSprite: (
             id: number,
-        ) => { spriteId: number; minimapVisible: boolean } | undefined = () => undefined;
+        ) => { spriteId: number; minimapVisible: boolean; category: number } | undefined =
+            () => undefined;
         try {
             const configIndex = state.cacheSystem.getIndex(IndexType.DAT2.configs);
             const cacheInfo = state.cache.info;
@@ -1703,18 +1706,19 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
                 const melLoader = new ArchiveMapElementTypeLoader(cacheInfo, mapElementArchive);
                 const spriteCache = new Map<
                     number,
-                    { spriteId: number; minimapVisible: boolean } | undefined
+                    { spriteId: number; minimapVisible: boolean; category: number } | undefined
                 >();
                 mapFunctionToSprite = (mapFuncId: number) => {
                     if (!spriteCache.has(mapFuncId)) {
                         let sprite:
-                            | { spriteId: number; minimapVisible: boolean }
+                            | { spriteId: number; minimapVisible: boolean; category: number }
                             | undefined = undefined;
                         try {
                             const mel = melLoader.load(mapFuncId);
                             sprite = {
                                 spriteId: mel.spriteId,
                                 minimapVisible: mel.minimapVisible,
+                                category: mel.category,
                             };
                         } catch {
                             sprite = undefined;

@@ -9,6 +9,8 @@ import { NpcData } from "../npc/NpcData";
 export interface MinimapIcon {
     localX: number; // Local tile X within map square (0-63)
     localY: number; // Local tile Y within map square (0-63)
+    elementId: number; // Map element ID from the object map function
+    category: number; // Map element category, or -1 if unset
     spriteId: number; // Sprite ID to load (resolved from MapElementType.spriteId)
 }
 

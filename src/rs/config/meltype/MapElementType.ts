@@ -11,6 +11,7 @@ export class MapElementType extends Type {
     hoverTextColor: number = 0;
 
     textSize: number = 0;
+    category: number = -1;
 
     worldMapVisible: boolean = true;
     minimapVisible: boolean = false;
@@ -93,7 +94,7 @@ export class MapElementType extends Type {
         } else if (opcode === 18) {
             buffer.readBigSmart();
         } else if (opcode === 19) {
-            const group = buffer.readUnsignedShort();
+            this.category = buffer.readUnsignedShort();
         } else if (opcode === 20) {
             let secondaryVisibleVarbit = buffer.readUnsignedShort();
             if (secondaryVisibleVarbit == 65535) {
@@ -125,7 +126,7 @@ export class MapElementType extends Type {
         } else if (opcode === 30) {
             const vAlign = buffer.readUnsignedByte();
         } else if (opcode === 249) {
-            const params = Type.readParamsMap(buffer);
+            this.params = Type.readParamsMap(buffer);
         } else {
             throw new Error("MapElementType: Unrecognized opcode: " + opcode);
         }

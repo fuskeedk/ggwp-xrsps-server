@@ -159,7 +159,7 @@ import { getModelFaces, isModelFaceTransparent } from "./buffer/SceneBuffer";
 import { GfxManager } from "./gfx/GfxManager";
 import { GfxRenderer } from "./gfx/GfxRenderer";
 import { buildGroundItemGeometry } from "./ground/GroundItemMeshBuilder";
-import { SdMapData } from "./loader/SdMapData";
+import { SdMapData, type MinimapIcon } from "./loader/SdMapData";
 import { SdMapDataLoader } from "./loader/SdMapDataLoader";
 import { SdMapLoaderInput } from "./loader/SdMapLoaderInput";
 import {
@@ -662,8 +662,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
     private groundItemStackHashes: Map<number, string> = new Map();
 
     /** Minimap icons keyed by map square and plane. */
-    private minimapIcons: Map<number, Array<{ localX: number; localY: number; spriteId: number }>> =
-        new Map();
+    private minimapIcons: Map<number, MinimapIcon[]> = new Map();
 
     // Player footprint size in fine units; NPC-transformed players inherit the NPC size.
     private static readonly PLAYER_FOOTPRINT_RADIUS = (0.4 * 128) | 0;
@@ -6259,6 +6258,45 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         this.pendingLocUpdates.delete(mapId);
     }
 
+    async loadWorldMapTile(
+        mapX: number,
+        mapY: number,
+        level: number = 0,
+    ): Promise<{ blob: Blob; icons: MinimapIcon[] } | undefined> {
+        if (!this.osrsClient.loadedCache) return undefined;
+
+        const input: SdMapLoaderInput = {
+            mapX: mapX | 0,
+            mapY: mapY | 0,
+            maxLevel: Scene.MAX_LEVELS - 1,
+            loadNpcs: false,
+            smoothTerrain: this.smoothTerrain,
+            minimizeDrawCalls: true,
+            loadedTextureIds: new Set<number>(),
+        };
+
+        const mapData = await this.osrsClient.workerPool.queueLoad<
+            SdMapLoaderInput,
+            SdMapData | undefined,
+            SdMapDataLoader
+        >(this.dataLoader, input);
+        if (
+            !mapData ||
+            mapData.cacheName !== this.osrsClient.loadedCache.info.name ||
+            mapData.smoothTerrain !== this.smoothTerrain
+        ) {
+            return undefined;
+        }
+
+        const clampedLevel = Math.max(0, Math.min(Scene.MAX_LEVELS - 1, level | 0));
+        const blob = mapData.minimapBlobs?.[clampedLevel];
+        if (!blob) return undefined;
+        return {
+            blob,
+            icons: mapData.minimapIcons?.[clampedLevel] ?? [],
+        };
+    }
+
     isValidMapData(mapData: SdMapData): boolean {
         return (
             mapData.cacheName === this.osrsClient.loadedCache?.info?.name &&
@@ -6294,11 +6332,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
      * @param mapY Map square Y coordinate
      * @returns Array of icons with localX, localY, and spriteId, or undefined if not loaded
      */
-    getMinimapIcons(
-        mapX: number,
-        mapY: number,
-        level: number = 0,
-    ): Array<{ localX: number; localY: number; spriteId: number }> | undefined {
+    getMinimapIcons(mapX: number, mapY: number, level: number = 0): MinimapIcon[] | undefined {
         return this.minimapIcons.get(getMapPlaneId(mapX | 0, mapY | 0, level | 0));
     }
 

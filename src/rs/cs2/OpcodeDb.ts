@@ -601,6 +601,7 @@ export function loadOpcodeDbOsrs(_baseDir: string): OpcodeDb {
     add(6524, "mobile_batterylevel");
     add(6525, "mobile_batterycharging");
     add(6526, "mobile_wifiavailable");
+    add(6600, "worldmap_init");
     add(6601, "worldmap_getmapname");
     add(6602, "worldmap_setmap");
     add(6603, "worldmap_getzoom");
@@ -615,10 +616,19 @@ export function loadOpcodeDbOsrs(_baseDir: string): OpcodeDb {
     add(6612, "worldmap_getconfigsize");
     add(6613, "worldmap_getconfigbounds");
     add(6614, "worldmap_getconfigzoom");
+    add(6615, "worldmap_getsourceposition");
     add(6616, "worldmap_getcurrentmap");
     add(6617, "worldmap_getdisplaycoord");
+    add(6618, "worldmap_getsourcecoord");
+    add(6619, "worldmap_jumptomap");
+    add(6620, "worldmap_jumptomap_instant");
     add(6621, "worldmap_coordinmap");
     add(6622, "worldmap_getsize");
+    add(6623, "worldmap_getmap");
+    add(6624, "worldmap_setmaxflashcount");
+    add(6625, "worldmap_resetmaxflashcount");
+    add(6626, "worldmap_setcyclesperflash");
+    add(6627, "worldmap_resetcyclesperflash");
     add(6628, "worldmap_perpetualflash");
     add(6629, "worldmap_flashelement");
     add(6630, "worldmap_flashelementcategory");
@@ -629,6 +639,7 @@ export function loadOpcodeDbOsrs(_baseDir: string): OpcodeDb {
     add(6635, "worldmap_getdisableelements");
     add(6636, "worldmap_getdisableelement");
     add(6637, "worldmap_getdisableelementcategory");
+    add(6638, "worldmap_getnearesticon");
     add(6639, "worldmap_listelement_start");
     add(6640, "worldmap_listelement_next");
     add(6693, "mec_text");
@@ -636,6 +647,7 @@ export function loadOpcodeDbOsrs(_baseDir: string): OpcodeDb {
     add(6695, "mec_category");
     add(6696, "mec_sprite");
     add(6697, "worldmap_element");
+    add(6698, "worldmap_elementcoord1");
     add(6699, "worldmap_elementcoord");
     add(6700, "clientop_npc_set");
     add(6701, "clientop_npc_del");

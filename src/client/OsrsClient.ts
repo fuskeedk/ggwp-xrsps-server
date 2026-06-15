@@ -79,6 +79,7 @@ import {
 import { ClientPacketId, createPacket, queuePacket } from "../network/packet";
 import { MenuTargetType, type OsrsMenuEntry } from "../rs/MenuEntry";
 import { SoundEffectLoader } from "../rs/audio/SoundEffectLoader";
+import { ConfigType } from "../rs/cache/ConfigType";
 import { CacheSystem } from "../rs/cache/CacheSystem";
 import { IndexType } from "../rs/cache/IndexType";
 import { CacheLoaderFactory, getCacheLoaderFactory } from "../rs/cache/loader/CacheLoaderFactory";
@@ -87,6 +88,10 @@ import { BasTypeLoader } from "../rs/config/bastype/BasTypeLoader";
 import { DbRepository } from "../rs/config/db/DbRepository";
 import { IdkTypeLoader } from "../rs/config/idktype/IdkTypeLoader";
 import { LocTypeLoader } from "../rs/config/loctype/LocTypeLoader";
+import {
+    ArchiveMapElementTypeLoader,
+    type MapElementTypeLoader,
+} from "../rs/config/meltype/MapElementTypeLoader";
 import { NpcTypeLoader } from "../rs/config/npctype/NpcTypeLoader";
 import { ObjModelLoader } from "../rs/config/objtype/ObjModelLoader";
 import { ObjTypeLoader } from "../rs/config/objtype/ObjTypeLoader";
@@ -110,6 +115,7 @@ import {
     getMapPlaneId,
     getMapSquareId,
 } from "../rs/map/MapFileIndex";
+import { WorldMapState } from "../rs/map/WorldMapArea";
 import { SeqFrameLoader } from "../rs/model/seq/SeqFrameLoader";
 import type { SkeletalSeqLoader } from "../rs/model/skeletal/SkeletalSeqLoader";
 import {
@@ -230,6 +236,7 @@ import { OsrsRendererType, createRenderer } from "./GameRenderers";
 import { ClickMode, InputManager } from "./InputManager";
 import { MapManager } from "./MapManager";
 import { PlayerAnimController } from "./PlayerAnimController";
+import type { MinimapIcon } from "./webgl/loader/SdMapData";
 import {
     type TransmitCycles,
     getTransmitCycles,
@@ -437,6 +444,7 @@ export class OsrsClient {
     spotAnimTypeLoader!: SpotAnimTypeLoader;
 
     locTypeLoader!: LocTypeLoader;
+    mapElementTypeLoader?: MapElementTypeLoader;
     objTypeLoader!: ObjTypeLoader;
     objModelLoader!: ObjModelLoader;
     npcTypeLoader!: NpcTypeLoader;
@@ -630,8 +638,6 @@ export class OsrsClient {
     // Feature toggles
     hoverOverlayEnabled: boolean = false;
 
-    // Callbacks for React UI components
-    onOpenWorldMap?: () => void;
     // DevTools: show object id labels per tile
     showObjectTileIds: boolean = false;
     // DevTools: walkable collision devoverlay
@@ -831,9 +837,18 @@ export class OsrsClient {
     // Cap how many generated minimap object URLs we retain in-memory to prevent growth over time.
     static readonly MAX_MINIMAP_URLS = 128;
     static readonly MAX_MINIMAP_URLS_MOBILE = 64;
+    static readonly MAX_WORLDMAP_URLS = 384;
+    static readonly MAX_WORLDMAP_URLS_MOBILE = 160;
+    static readonly MAX_PENDING_WORLDMAP_TILE_LOADS = 24;
 
     minimapImageUrls: Map<number, string> = new Map();
     private minimapImageAccess: Map<number, number> = new Map();
+    worldMapState: WorldMapState = WorldMapState.empty();
+    worldMapImageUrls: Map<number, string> = new Map();
+    private worldMapImageAccess: Map<number, number> = new Map();
+    private worldMapIcons: Map<number, MinimapIcon[]> = new Map();
+    private pendingWorldMapImageIds: Set<number> = new Set();
+    private failedWorldMapImageIds: Set<number> = new Set();
 
     cameraSpeed: number = 1;
 
@@ -1247,6 +1262,7 @@ export class OsrsClient {
             structTypeLoader: this.loaderFactory.getStructTypeLoader(),
             npcTypeLoader: this.npcTypeLoader,
             locTypeLoader: this.locTypeLoader,
+            mapElementTypeLoader: this.mapElementTypeLoader,
             dbRepository: new DbRepository(this.cacheSystem),
             // Stat functions - read from skillsMap populated by server
             getStatLevel: (skillId: number) => {
@@ -1275,6 +1291,7 @@ export class OsrsClient {
             getMinimapZoom: () => {
                 return self.minimapZoom;
             },
+            worldMapState: this.worldMapState,
             getRunEnergy: () => {
                 // Return 0-10000 units as expected by CS2 opcodes
                 return self.runEnergyUnits;
@@ -6580,22 +6597,6 @@ export class OsrsClient {
                         // should reflect what was clicked pre-mutation.
                         const primaryAction = getPrimaryWidgetAction(w);
 
-                        // World map orb - opens React modal instead of CS2 widget
-                        // Check if primary option is "Floating World Map", "Fullscreen World Map", or "Open World Map" (mobile)
-                        const optionLower = (primaryAction.option || "").toLowerCase();
-                        if (
-                            (optionLower.includes("floating") &&
-                                optionLower.includes("world map")) ||
-                            (optionLower.includes("fullscreen") &&
-                                optionLower.includes("world map")) ||
-                            (optionLower.includes("open") && optionLower.includes("world map"))
-                        ) {
-                            if (this.onOpenWorldMap) {
-                                this.onOpenWorldMap();
-                            }
-                            break; // World map is client-side React modal
-                        }
-
                         // If the GL widgets layer is active, defer primary click handling to it.
                         // Primary left-click handling is driven by the game loop
                         // (clickedWidget + menuAction semantics), not by the GL widget click registry.
@@ -9693,6 +9694,8 @@ export class OsrsClient {
 
         this.clearNpcInstancesLocal();
         this.clearMinimapImageUrls();
+        this.clearWorldMapImageUrls();
+        this.worldMapState = WorldMapState.empty();
 
         // ========== Load Login/Title Screen Assets ==========
         // Authentic phased loading with incremental index loading
@@ -9761,6 +9764,24 @@ export class OsrsClient {
             this.spotAnimTypeLoader = this.loaderFactory.getSpotAnimTypeLoader();
             this.locTypeLoader = this.loaderFactory.getLocTypeLoader();
             this.objTypeLoader = this.loaderFactory.getObjTypeLoader();
+            try {
+                const configIndex = this.cacheSystem.getIndex(IndexType.DAT2.configs);
+                const mapFunctionsArchiveId =
+                    cache.info.game === "oldschool"
+                        ? ConfigType.OSRS.mapFunctions
+                        : ConfigType.RS2.mapFunctions;
+                if (configIndex.archiveExists(mapFunctionsArchiveId)) {
+                    this.mapElementTypeLoader = new ArchiveMapElementTypeLoader(
+                        cache.info,
+                        configIndex.getArchive(mapFunctionsArchiveId),
+                    );
+                } else {
+                    this.mapElementTypeLoader = undefined;
+                }
+            } catch (error) {
+                this.mapElementTypeLoader = undefined;
+                console.log("[OsrsClient] Failed to load map element types", { error });
+            }
             this.objModelLoader = new ObjModelLoader(
                 this.objTypeLoader,
                 this.modelLoader,
@@ -9905,6 +9926,7 @@ export class OsrsClient {
             const mapFileLoader = this.loaderFactory.getMapFileLoader();
             this.mapFileIndex = mapFileLoader.mapFileIndex;
             this.isNewTextureAnim = cache.info.game === "runescape" && cache.info.revision >= 681;
+            this.worldMapState = WorldMapState.load(this.cacheSystem);
 
             // Phase 9: Preparing interface
             await showPhase(90, "Preparing interface...");
@@ -11125,6 +11147,10 @@ export class OsrsClient {
         return isTouchDevice ? OsrsClient.MAX_MINIMAP_URLS_MOBILE : OsrsClient.MAX_MINIMAP_URLS;
     }
 
+    private getWorldMapImageUrlLimit(): number {
+        return isTouchDevice ? OsrsClient.MAX_WORLDMAP_URLS_MOBILE : OsrsClient.MAX_WORLDMAP_URLS;
+    }
+
     getMinimapImageUrl(
         mapX: number,
         mapY: number,
@@ -11195,6 +11221,150 @@ export class OsrsClient {
             }
             this.minimapImageUrls.delete(id);
             this.minimapImageAccess.delete(id);
+        }
+    }
+
+    getWorldMapImageUrl(
+        mapX: number,
+        mapY: number,
+        level: number = 0,
+    ): string | undefined {
+        if (mapX < 0 || mapY < 0 || mapX >= MapManager.MAX_MAP_X || mapY >= MapManager.MAX_MAP_Y) {
+            return undefined;
+        }
+        const mapId = this.getMinimapImageKey(mapX, mapY, level);
+        const url = this.worldMapImageUrls.get(mapId);
+        if (url) {
+            this.worldMapImageAccess.set(mapId, performance.now());
+            return url;
+        }
+        this.queueLoadWorldMapImage(mapX, mapY, level);
+        return undefined;
+    }
+
+    getWorldMapIcons(mapX: number, mapY: number, level: number = 0): MinimapIcon[] | undefined {
+        return this.worldMapIcons.get(this.getMinimapImageKey(mapX, mapY, level));
+    }
+
+    private queueLoadWorldMapImage(mapX: number, mapY: number, level: number): void {
+        const mapId = this.getMinimapImageKey(mapX, mapY, level);
+        if (
+            this.pendingWorldMapImageIds.has(mapId) ||
+            this.failedWorldMapImageIds.has(mapId) ||
+            this.worldMapImageUrls.has(mapId)
+        ) {
+            return;
+        }
+        if (this.pendingWorldMapImageIds.size >= OsrsClient.MAX_PENDING_WORLDMAP_TILE_LOADS) {
+            return;
+        }
+
+        const renderer = this.renderer as unknown as {
+            loadWorldMapTile?: (
+                mapX: number,
+                mapY: number,
+                level: number,
+            ) => Promise<{ blob: Blob; icons: MinimapIcon[] } | undefined>;
+        };
+        if (typeof renderer.loadWorldMapTile !== "function") {
+            this.failedWorldMapImageIds.add(mapId);
+            return;
+        }
+
+        this.pendingWorldMapImageIds.add(mapId);
+        void renderer
+            .loadWorldMapTile(mapX | 0, mapY | 0, level | 0)
+            .then((tile) => {
+                if (!tile?.blob) {
+                    this.failedWorldMapImageIds.add(mapId);
+                    return;
+                }
+                this.setWorldMapImageUrl(
+                    mapX | 0,
+                    mapY | 0,
+                    URL.createObjectURL(tile.blob),
+                    level | 0,
+                    tile.icons ?? [],
+                );
+                this.widgetManager?.invalidateAll?.();
+            })
+            .catch(() => {
+                this.failedWorldMapImageIds.add(mapId);
+            })
+            .finally(() => {
+                this.pendingWorldMapImageIds.delete(mapId);
+            });
+    }
+
+    private setWorldMapImageUrl(
+        mapX: number,
+        mapY: number,
+        url: string,
+        level: number,
+        icons: MinimapIcon[],
+    ): void {
+        const mapId = this.getMinimapImageKey(mapX, mapY, level);
+        const old = this.worldMapImageUrls.get(mapId);
+        if (old) {
+            this.releaseWorldMapImageUrl(old);
+            this.worldMapImageUrls.delete(mapId);
+            this.worldMapImageAccess.delete(mapId);
+        }
+        this.worldMapImageUrls.set(mapId, url);
+        this.worldMapImageAccess.set(mapId, performance.now());
+        if (icons.length > 0) this.worldMapIcons.set(mapId, icons);
+        else this.worldMapIcons.delete(mapId);
+        this.worldMapState.setTileIcons(mapX | 0, mapY | 0, level | 0, icons);
+        this.pruneWorldMapImageUrls();
+    }
+
+    clearWorldMapImageUrls(): void {
+        for (const url of this.worldMapImageUrls.values()) {
+            this.releaseWorldMapImageUrl(url);
+        }
+        this.worldMapImageUrls.clear();
+        this.worldMapImageAccess.clear();
+        this.worldMapIcons.clear();
+        this.worldMapState.clearTileIcons();
+        this.pendingWorldMapImageIds.clear();
+        this.failedWorldMapImageIds.clear();
+    }
+
+    private clearWorldMapIconsForImageKey(mapId: number): void {
+        const level = (mapId >>> 16) & 0x3;
+        const mapSquare = mapId & 0xffff;
+        this.worldMapState.removeTileIcons((mapSquare >>> 8) & 0xff, mapSquare & 0xff, level);
+        this.worldMapIcons.delete(mapId);
+    }
+
+    private releaseWorldMapImageUrl(url: string): void {
+        const textureCache = (this.renderer?.canvas as any)?.__textureCache;
+        if (textureCache && typeof textureCache.evictUrl === "function") {
+            try {
+                textureCache.evictUrl(url);
+            } catch {}
+        }
+        URL.revokeObjectURL(url);
+    }
+
+    private pruneWorldMapImageUrls(): void {
+        const limit = this.getWorldMapImageUrlLimit();
+        if (this.worldMapImageUrls.size <= limit) return;
+        const ids = Array.from(this.worldMapImageUrls.keys());
+        ids.sort(
+            (a, b) =>
+                (this.worldMapImageAccess.get(a) ?? -Infinity) -
+                (this.worldMapImageAccess.get(b) ?? -Infinity),
+        );
+        const toRemove = ids.slice(0, this.worldMapImageUrls.size - limit);
+        for (const id of toRemove) {
+            const url = this.worldMapImageUrls.get(id);
+            if (url) {
+                this.releaseWorldMapImageUrl(url);
+            }
+            this.worldMapImageUrls.delete(id);
+            this.worldMapImageAccess.delete(id);
+            this.clearWorldMapIconsForImageKey(id);
         }
     }
 
@@ -11489,6 +11659,7 @@ export class OsrsClient {
         }
 
         this.clearMinimapImageUrls();
+        this.clearWorldMapImageUrls();
 
         console.log("[OsrsClient] Disposed");
     }
