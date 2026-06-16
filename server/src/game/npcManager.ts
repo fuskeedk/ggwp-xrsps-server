@@ -5,7 +5,11 @@ import { BasTypeLoader } from "../../../src/rs/config/bastype/BasTypeLoader";
 import { NpcType } from "../../../src/rs/config/npctype/NpcType";
 import { NpcTypeLoader } from "../../../src/rs/config/npctype/NpcTypeLoader";
 import { DIRECTION_TO_ORIENTATION } from "../../../src/shared/Direction";
-import { getNpcCombatStats } from "../data/npcCombatStats";
+import {
+    getNpcAggressionMetadata,
+    getNpcCombatStats,
+    type NpcCombatStats as NpcCombatStatsData,
+} from "../data/npcCombatStats";
 import { PathService } from "../pathfinding/PathService";
 import { CollisionFlag } from "../pathfinding/legacy/pathfinder/flag/CollisionFlag";
 import { logger } from "../utils/logger";
@@ -86,14 +90,55 @@ const REGION_SIZE = 32; // tiles; aligns to half a chunk for coarse spatial buck
 /** How long an idle NPC holds a pawn-facing before it clears (RSMod Npc.RESET_PAWN_FACE_DELAY). */
 const RESET_PAWN_FACE_DELAY_TICKS = 25;
 
-/**
- * Build NpcCombatProfile from loaded stats or use defaults.
- * Logs a warning once per NPC type when stats are missing.
- */
-function buildCombatProfile(npcTypeId: number): NpcCombatProfile {
-    const stats = getNpcCombatStats(npcTypeId);
+function normalizeNpcName(name?: string): string {
+    return (name ?? "").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function isTrustedCombatStatsForNpc(
+    npcType: NpcType,
+    stats?: NpcCombatStatsData,
+): stats is NpcCombatStatsData {
     if (!stats) {
-        return DEFAULT_NPC_COMBAT_PROFILE;
+        return false;
+    }
+    const npcName = normalizeNpcName(npcType.name);
+    const statsName = normalizeNpcName(stats.name);
+    return !npcName || !statsName || npcName === statsName;
+}
+
+function resolvePositiveStat(value: number, fallback: number): number {
+    return Number.isFinite(value) && value > 0 ? Math.trunc(value) : fallback;
+}
+
+function buildCombatProfile(npcType: NpcType, stats?: NpcCombatStatsData): NpcCombatProfile {
+    if (!stats) {
+        return {
+            ...DEFAULT_NPC_COMBAT_PROFILE,
+            attackLevel: resolvePositiveStat(
+                npcType.attackLevel,
+                DEFAULT_NPC_COMBAT_PROFILE.attackLevel,
+            ),
+            strengthLevel: resolvePositiveStat(
+                npcType.strengthLevel,
+                DEFAULT_NPC_COMBAT_PROFILE.strengthLevel,
+            ),
+            defenceLevel: resolvePositiveStat(
+                npcType.defenceLevel,
+                DEFAULT_NPC_COMBAT_PROFILE.defenceLevel,
+            ),
+            magicLevel: resolvePositiveStat(
+                npcType.magicLevel,
+                DEFAULT_NPC_COMBAT_PROFILE.magicLevel,
+            ),
+            rangedLevel: resolvePositiveStat(
+                npcType.rangedLevel,
+                DEFAULT_NPC_COMBAT_PROFILE.rangedLevel,
+            ),
+            attackSpeed: resolvePositiveStat(
+                npcType.attackSpeed,
+                DEFAULT_NPC_COMBAT_PROFILE.attackSpeed,
+            ),
+        };
     }
     return {
         attackLevel: stats.attackLevel,
@@ -275,18 +320,21 @@ export class NpcManager {
         this.maxNpcSize = Math.max(this.maxNpcSize, size);
 
         const id = this.allocateNpcId();
-        const maxHitpoints = this.deriveMaxHitpoints(npcType);
+        const rawNpcCombatStats = getNpcCombatStats(npcType.id);
+        const npcCombatStats = isTrustedCombatStatsForNpc(npcType, rawNpcCombatStats)
+            ? rawNpcCombatStats
+            : undefined;
+        const maxHitpoints = this.deriveMaxHitpoints(npcType, npcCombatStats);
         const combatLevel = npcType.combatLevel ?? -1;
         // Attack speed is stored in cache param 14
-        const attackSpeed = this.deriveAttackSpeed(npcType);
-        const npcCombatStats = getNpcCombatStats(npcType.id);
+        const attackSpeed = this.deriveAttackSpeed(npcType, npcCombatStats);
         // Prefer server-authored combat stats for aggression metadata when present.
         const isAggressive = this.deriveIsAggressive(npcType, npcCombatStats);
         const aggressionRadius = this.deriveAggressionRadius(npcCombatStats, isAggressive);
         const aggressionToleranceTicks = this.deriveAggressionToleranceTicks(npcCombatStats);
         const aggressionSearchDelayTicks = this.deriveAggressionSearchDelayTicks(npcCombatStats);
         // Load combat profile (stats, bonuses, species) - logged warning if missing
-        const combatProfile = buildCombatProfile(npcType.id);
+        const combatProfile = buildCombatProfile(npcType, npcCombatStats);
 
         const npc = new NpcState(
             id,
@@ -347,7 +395,7 @@ export class NpcManager {
         throw new Error("[NpcManager] NPC id space exhausted (0..65534)");
     }
 
-    private deriveMaxHitpoints(npcType: NpcType): number {
+    private deriveMaxHitpoints(npcType: NpcType, combatStats?: NpcCombatStatsData): number {
         // Prefer explicit cache stats (NpcType opcode 77) when present.
         if (npcType.hitpoints > 0) {
             return npcType.hitpoints;
@@ -355,8 +403,7 @@ export class NpcManager {
 
         // Prefer server-side NPC combat stats (OSRS source of truth) when available.
         // This avoids guessing HP from combat level.
-        const stats = getNpcCombatStats(npcType.id);
-        const statsHp = stats?.hitpoints;
+        const statsHp = combatStats?.hitpoints;
         if (statsHp !== undefined && Number.isFinite(statsHp) && statsHp > 0) {
             return statsHp;
         }
@@ -380,10 +427,18 @@ export class NpcManager {
      * Derive attack speed from NPC cache definition.
      * OSRS attack speeds: 4 ticks is standard (men, goblins), 6 for dragons, varies by NPC.
      */
-    private deriveAttackSpeed(npcType: NpcType): number {
+    private deriveAttackSpeed(npcType: NpcType, combatStats?: NpcCombatStatsData): number {
         // Try direct attackSpeed property on NpcType (opcode may define it)
         if (npcType.attackSpeed > 0) {
             return npcType.attackSpeed;
+        }
+        if (
+            combatStats?.attackSpeed !== undefined &&
+            Number.isFinite(combatStats.attackSpeed) &&
+            combatStats.attackSpeed >= 1 &&
+            combatStats.attackSpeed <= 12
+        ) {
+            return Math.trunc(combatStats.attackSpeed);
         }
         // Try cache param 14 (attack speed param in some cache versions)
         try {
@@ -400,14 +455,9 @@ export class NpcManager {
         return 4;
     }
 
-    /**
-     * Derive whether an NPC is aggressive from cache definition.
-     * NPCs with combat level > 0 and an "Attack" action are considered aggressive.
-     * This is a simplification; actual OSRS uses specific flags and hardcoded lists.
-     */
     private deriveIsAggressive(
         npcType: NpcType,
-        combatStats?: ReturnType<typeof getNpcCombatStats>,
+        combatStats?: NpcCombatStatsData,
     ): boolean {
         if (combatStats) {
             if (combatStats.aggressive !== undefined) {
@@ -417,25 +467,11 @@ export class NpcManager {
                 return true;
             }
         }
-        // Non-combat NPCs are not aggressive
-        if (npcType.combatLevel <= 0) {
-            return false;
-        }
-        // Check if NPC has an "Attack" action (typically action slot 1 or 2)
-        try {
-            const actions = Array.isArray(npcType.actions) ? npcType.actions : [];
-            const hasAttack = actions.some((action) => action && action.toLowerCase() === "attack");
-            if (hasAttack) {
-                return true;
-            }
-        } catch (err) {
-            logger.warn("[npc] failed to check npc attackable status", err);
-        }
-        return false;
+        return getNpcAggressionMetadata(npcType.id)?.aggressive ?? false;
     }
 
     private deriveAggressionRadius(
-        combatStats: ReturnType<typeof getNpcCombatStats>,
+        combatStats: NpcCombatStatsData | undefined,
         isAggressive: boolean,
     ): number {
         if (combatStats?.aggressiveRadius !== undefined) {
@@ -445,7 +481,7 @@ export class NpcManager {
     }
 
     private deriveAggressionToleranceTicks(
-        combatStats: ReturnType<typeof getNpcCombatStats>,
+        combatStats: NpcCombatStatsData | undefined,
     ): number {
         if (
             combatStats?.aggressiveTimer !== undefined &&
@@ -457,7 +493,7 @@ export class NpcManager {
     }
 
     private deriveAggressionSearchDelayTicks(
-        combatStats: ReturnType<typeof getNpcCombatStats>,
+        combatStats: NpcCombatStatsData | undefined,
     ): number {
         if (
             combatStats?.aggroTargetDelay !== undefined &&

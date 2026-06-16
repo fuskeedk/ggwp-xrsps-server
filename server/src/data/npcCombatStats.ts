@@ -52,8 +52,127 @@ interface NpcCombatStatsFile {
     npcs: Record<string, NpcCombatStats>;
 }
 
+type RawMonsterAggressionEntry = {
+    aggressive?: unknown;
+    combat_level?: unknown;
+};
+
+export interface NpcAggressionMetadata {
+    aggressive: boolean;
+    combatLevel?: number;
+}
+
 // Singleton cache
 let npcStatsCache: Map<number, NpcCombatStats> | null = null;
+let npcAggressionMetadataCache: Map<number, NpcAggressionMetadata> | null = null;
+
+function resolveMonstersCompletePath(): string | undefined {
+    const candidates = [
+        path.resolve("references/monsters-complete.json"),
+        path.resolve(__dirname, "../../../references/monsters-complete.json"),
+    ];
+    return candidates.find((candidate) => fs.existsSync(candidate));
+}
+
+function extractObjectAt(
+    text: string,
+    startIndex: number,
+): { json: string; nextIndex: number } | undefined {
+    if (text[startIndex] !== "{") return undefined;
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (let i = startIndex; i < text.length; i++) {
+        const ch = text[i];
+        if (inString) {
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (ch === "\\") {
+                escaped = true;
+                continue;
+            }
+            if (ch === '"') {
+                inString = false;
+            }
+            continue;
+        }
+        if (ch === '"') {
+            inString = true;
+            continue;
+        }
+        if (ch === "{") {
+            depth++;
+            continue;
+        }
+        if (ch === "}") {
+            depth--;
+            if (depth === 0) {
+                return {
+                    json: text.slice(startIndex, i + 1),
+                    nextIndex: i + 1,
+                };
+            }
+        }
+    }
+    return undefined;
+}
+
+function loadNpcAggressionMetadata(): Map<number, NpcAggressionMetadata> {
+    if (npcAggressionMetadataCache) {
+        return npcAggressionMetadataCache;
+    }
+
+    const filePath = resolveMonstersCompletePath();
+    npcAggressionMetadataCache = new Map();
+    if (!filePath) {
+        return npcAggressionMetadataCache;
+    }
+
+    try {
+        const text = fs.readFileSync(filePath, "utf-8");
+        let index = text.indexOf("{");
+        if (index === -1) return npcAggressionMetadataCache;
+        index++;
+        while (index < text.length) {
+            while (index < text.length && /[\s,]/.test(text[index])) index++;
+            if (index >= text.length || text[index] !== '"') break;
+            const keyEnd = text.indexOf('"', index + 1);
+            if (keyEnd === -1) break;
+            const npcIdStr = text.slice(index + 1, keyEnd);
+            index = keyEnd + 1;
+            while (index < text.length && /[\s:]/.test(text[index])) index++;
+            const extracted = extractObjectAt(text, index);
+            if (!extracted) break;
+            let entry: RawMonsterAggressionEntry;
+            try {
+                entry = JSON.parse(extracted.json) as RawMonsterAggressionEntry;
+            } catch {
+                break;
+            }
+            const npcId = parseInt(npcIdStr, 10);
+            if (!Number.isFinite(npcId) || typeof entry?.aggressive !== "boolean") {
+                index = extracted.nextIndex;
+                continue;
+            }
+            const combatLevel =
+                typeof entry.combat_level === "number" && Number.isFinite(entry.combat_level)
+                    ? Math.trunc(entry.combat_level)
+                    : undefined;
+            npcAggressionMetadataCache.set(npcId, {
+                aggressive: entry.aggressive,
+                combatLevel,
+            });
+            index = extracted.nextIndex;
+        }
+    } catch (error) {
+        logger.warn("[NpcCombatStats] Failed to load supplemental aggression metadata:", error);
+        npcAggressionMetadataCache.clear();
+    }
+
+    return npcAggressionMetadataCache;
+}
 
 /**
  * Load NPC combat stats from JSON file
@@ -100,6 +219,10 @@ export function loadNpcCombatStats(): Map<number, NpcCombatStats> {
 export function getNpcCombatStats(npcTypeId: number): NpcCombatStats | undefined {
     const cache = loadNpcCombatStats();
     return cache.get(npcTypeId);
+}
+
+export function getNpcAggressionMetadata(npcTypeId: number): NpcAggressionMetadata | undefined {
+    return loadNpcAggressionMetadata().get(npcTypeId);
 }
 
 /**
@@ -207,4 +330,5 @@ export function getNpcSpecies(npcTypeId: number): string[] {
  */
 export function clearNpcStatsCache(): void {
     npcStatsCache = null;
+    npcAggressionMetadataCache = null;
 }
