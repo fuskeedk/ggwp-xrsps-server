@@ -16,6 +16,7 @@ const BANK_WIDGET_DEPOSIT_INV = packWidgetId(BANK_GROUP_ID, BankMainChild.DEPOSI
 const BANK_WIDGET_DEPOSIT_WORN = packWidgetId(BANK_GROUP_ID, BankMainChild.DEPOSIT_WORN);
 const BANKSIDE_ITEMS = packWidgetId(BANKSIDE_GROUP_ID, BankSideChild.ITEMS);
 const BANK_FILLER_ITEM_ID = 20594;
+const BANKSIDE_DYNAMIC_CHILD_START = 0x8000;
 
 const requestedQuantityOrZero = (player: PlayerState): number => {
     const requested = Math.trunc(player.bank.getBankCustomQuantity());
@@ -86,6 +87,29 @@ const quantityForDepositOp = (player: PlayerState, opId: number, available: numb
         default:
             return 0;
     }
+};
+
+const quantityForDepositOption = (
+    player: PlayerState,
+    option: string | undefined,
+    available: number,
+): number => {
+    const total = Math.max(0, available);
+    const normalized = option?.trim().toLowerCase();
+    if (!normalized) return 0;
+    if (normalized === "deposit-1") return total > 0 ? 1 : 0;
+    if (normalized === "deposit-5") return Math.min(5, Math.max(1, total));
+    if (normalized === "deposit-10") return Math.min(10, Math.max(1, total));
+    if (normalized === "deposit-all") return total;
+    if (normalized === "deposit-x") return 0;
+
+    const customMatch = /^deposit-(\d+)$/.exec(normalized);
+    if (customMatch) {
+        const requested = Math.trunc(Number(customMatch[1]));
+        return requested > 0 ? Math.min(total, requested) : 0;
+    }
+
+    return quantityForDefaultMode(player, total);
 };
 
 const handleWithdrawOp = (event: WidgetActionEvent, opId: number): void => {
@@ -309,7 +333,10 @@ function registerMainBankWidgets(registry: IScriptRegistry): void {
 function registerBanksideWidgets(registry: IScriptRegistry): void {
     const handleDeposit = (event: WidgetActionEvent) => {
         if (event.groupId !== BANKSIDE_GROUP_ID) return;
-        if (event.widgetId !== BANKSIDE_ITEMS) return;
+        const isItemsComponent = event.widgetId === BANKSIDE_ITEMS;
+        const isRuntimeItemChild =
+            event.childId >= BANKSIDE_DYNAMIC_CHILD_START && event.slot !== undefined;
+        if (!isItemsComponent && !isRuntimeItemChild) return;
 
         const slot = event.slot;
         if (slot === undefined || slot < 0) return;
@@ -321,13 +348,20 @@ function registerBanksideWidgets(registry: IScriptRegistry): void {
 
         const opId = event.opId;
         const desired =
-            opId !== undefined ? quantityForDepositOp(event.player, opId, available) : 0;
+            opId !== undefined
+                ? quantityForDepositOp(event.player, opId, available)
+                : quantityForDepositOption(event.player, event.option, available);
 
         if (!desired || desired <= 0) return;
 
-        const result = event.services?.depositInventoryItemToBank?.(event.player, slot, desired, {
-            itemIdHint: event.itemId,
-        });
+        const result = event.services.banking?.depositInventoryItemToBank?.(
+            event.player,
+            slot,
+            desired,
+            {
+                itemIdHint: event.itemId,
+            },
+        );
 
         if (result && result.ok === false && result.message) {
             event.services.messaging.sendGameMessage(event.player, String(result.message));
@@ -339,6 +373,16 @@ function registerBanksideWidgets(registry: IScriptRegistry): void {
             widgetId: BANKSIDE_ITEMS,
             opId,
             handler: handleDeposit,
+        });
+    }
+
+    for (const option of ["Deposit-1", "Deposit-5", "Deposit-10", "Deposit-X", "Deposit-All"]) {
+        registry.registerWidgetAction({
+            option,
+            handler: (event) => {
+                if (event.widgetId === BANKSIDE_ITEMS) return;
+                handleDeposit(event);
+            },
         });
     }
 }

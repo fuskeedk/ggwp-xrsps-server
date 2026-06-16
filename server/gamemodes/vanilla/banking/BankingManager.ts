@@ -962,7 +962,7 @@ export class BankingManager implements BankingProvider {
             return { ok: false, message: resolved.message ?? "You can't withdraw that item." };
         }
 
-        const result = this.services.inventory.addItemToInventory(
+        const result = this.services.addItemToInventory(
             player,
             resolved.itemId,
             removal.quantity,

@@ -7973,12 +7973,7 @@ export class OsrsClient {
             // Some input layers may pass a shallow widget snapshot that omits `id` but keeps `parentUid`.
             // OSRS packets use the PARENT widget id for dynamic children; the dynamic child's own id/uid
             // is not transmitted (only childIndex is carried in the packet slot).
-            const parentId =
-                typeof widget.parentUid === "number"
-                    ? widget.parentUid | 0
-                    : typeof widget.id === "number"
-                      ? widget.id | 0
-                      : undefined;
+            const parentId = this.resolveDynamicWidgetParentId(widget);
             if (parentId === undefined) {
                 // Fall through to UID-derived identifiers (best-effort)
             } else {
@@ -8005,6 +8000,62 @@ export class OsrsClient {
                   : 0;
         const widgetId = ((groupId & 0xffff) << 16) | (childId & 0xffff);
         return { widgetId, groupId, childId };
+    }
+
+    private resolveDynamicWidgetParentId(widget: any): number | undefined {
+        const validParentId = (value: unknown): number | undefined => {
+            if (typeof value !== "number") return undefined;
+            const id = value | 0;
+            return id > 0 ? id : undefined;
+        };
+
+        const widgetUid = typeof widget?.uid === "number" ? widget.uid | 0 : undefined;
+        const directParentUid = validParentId(widget?.parentUid);
+        const directId = validParentId(widget?.id);
+        const direct =
+            directParentUid ??
+            (directId !== undefined && directId !== widgetUid ? directId : undefined);
+        if (direct !== undefined) return direct;
+
+        const uid = validParentId(widget?.uid);
+        const canonical =
+            uid !== undefined ? this.widgetManager?.getWidgetByUid?.(uid | 0) : undefined;
+        const canonicalParent =
+            validParentId((canonical as any)?.parentUid) ?? validParentId((canonical as any)?.id);
+        if (canonicalParent !== undefined) return canonicalParent;
+
+        const childIndex =
+            typeof widget?.childIndex === "number"
+                ? widget.childIndex | 0
+                : typeof (canonical as any)?.childIndex === "number"
+                  ? ((canonical as any).childIndex as number) | 0
+                  : -1;
+        if (childIndex < 0) return undefined;
+
+        const groupId =
+            typeof widget?.groupId === "number"
+                ? widget.groupId | 0
+                : typeof (canonical as any)?.groupId === "number"
+                  ? ((canonical as any).groupId as number) | 0
+                  : uid !== undefined
+                    ? (uid >>> 16) & 0xffff
+                    : undefined;
+        if (groupId === undefined) return undefined;
+
+        const groupWidgets = this.widgetManager?.getWidgetsForGroup?.(groupId) ?? [];
+        for (const parent of groupWidgets as any[]) {
+            const child = Array.isArray(parent?.children) ? parent.children[childIndex] : undefined;
+            if (!child) continue;
+            if (
+                child === widget ||
+                child === canonical ||
+                (uid !== undefined && typeof child.uid === "number" && (child.uid | 0) === uid)
+            ) {
+                return validParentId(parent.uid) ?? validParentId(parent.id);
+            }
+        }
+
+        return undefined;
     }
 
     private inferWidgetOpId(widget: any, option?: string): number | undefined {
