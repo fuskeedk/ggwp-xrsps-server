@@ -1,5 +1,4 @@
 import type { IScriptRegistry, ScriptServices } from "../../../src/game/scripts/types";
-import type { BankingProvider } from "./BankingProvider";
 import {
     BankLimits,
     BankMainChild,
@@ -73,26 +72,23 @@ export function registerBankingHandlers(registry: IScriptRegistry, services: Scr
                   : event.player.bank.getBankInsertMode();
         const entry = event.services.banking?.getBankEntryAtClientSlot?.(event.player, from);
         if (!entry) return;
-        const banking = event.services.gamemodeServices?.banking as BankingProvider | undefined;
-        if (banking?.moveBankSlot) {
-            banking.moveBankSlot(event.player, from, to, { insert, tab });
-        }
+        event.services.banking?.moveBankSlot?.(event.player, from, to, { insert, tab });
     });
 
     registry.registerClientMessageHandler("if_buttond", (event) => {
         const payload = event.payload;
         if (!payload) return;
-        const banking = event.services.gamemodeServices?.banking as BankingProvider | undefined;
-        if (banking?.handleIfButtonD) {
-            banking.handleIfButtonD(event.player, {
-                sourceWidgetId: payload.sourceWidgetId as number,
-                sourceSlot: payload.sourceSlot as number,
-                sourceItemId: payload.sourceItemId as number,
-                targetWidgetId: payload.targetWidgetId as number,
-                targetSlot: payload.targetSlot as number,
-                targetItemId: payload.targetItemId as number,
-            });
+        if (!event.services.banking?.handleIfButtonD) {
+            return;
         }
+        event.services.banking.handleIfButtonD(event.player, {
+            sourceWidgetId: payload.sourceWidgetId as number,
+            sourceSlot: payload.sourceSlot as number,
+            sourceItemId: payload.sourceItemId as number,
+            targetWidgetId: payload.targetWidgetId as number,
+            targetSlot: payload.targetSlot as number,
+            targetItemId: payload.targetItemId as number,
+        });
     });
 }
 

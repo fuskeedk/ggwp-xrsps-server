@@ -437,12 +437,12 @@ export class ClientBinaryEncoder {
 
     encodeIfButtond(payload: any): Uint8Array {
         this.buffer.reset();
-        this.buffer.writeInt(payload.sourceWidgetId);
-        this.buffer.writeShort(payload.sourceSlot);
-        this.buffer.writeShort(payload.sourceItemId);
-        this.buffer.writeInt(payload.targetWidgetId);
-        this.buffer.writeShort(payload.targetSlot);
-        this.buffer.writeShort(payload.targetItemId);
+        this.buffer.writeShortLE(payload.targetItemId | 0);
+        this.buffer.writeIntLE(payload.targetWidgetId | 0);
+        this.buffer.writeShort(payload.sourceItemId | 0);
+        this.buffer.writeShortAddLE(payload.sourceSlot | 0);
+        this.buffer.writeIntME(payload.sourceWidgetId | 0);
+        this.buffer.writeShortLE(payload.targetSlot | 0);
         return this.buffer.toPacket(ClientPacketId.IF_BUTTOND);
     }
 

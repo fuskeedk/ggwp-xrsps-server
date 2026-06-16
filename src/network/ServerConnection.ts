@@ -2717,12 +2717,12 @@ export function sendBankMove(
  * onDragComplete sends the IF_BUTTOND packet.
  *
  * Packet format (16 bytes):
+ * - targetItemId: ShortLE (2 bytes)
  * - targetWidgetId: IntLE (4 bytes)
- * - sourceItemId: ShortAdd (2 bytes)
- * - targetSlot: Short (2 bytes)
- * - sourceWidgetId: Int (4 bytes)
- * - targetItemId: ShortAdd (2 bytes)
- * - sourceSlot: ShortAdd (2 bytes)
+ * - sourceItemId: Short (2 bytes)
+ * - sourceSlot: ShortAddLE (2 bytes)
+ * - sourceWidgetId: IntME (4 bytes)
+ * - targetSlot: ShortLE (2 bytes)
  */
 export function sendWidgetDrag(
     sourceWidgetId: number,
@@ -2741,12 +2741,12 @@ export function sendWidgetDrag(
     const { ClientPacketId } = require("./packet/ClientPacket");
 
     const pkt = createPacket(ClientPacketId.IF_BUTTOND);
+    pkt.packetBuffer.writeShortLE(targetItemId | 0);
     pkt.packetBuffer.writeIntLE(targetWidgetId | 0);
-    pkt.packetBuffer.writeShortAdd(sourceItemId | 0);
-    pkt.packetBuffer.writeShort(targetSlot | 0);
-    pkt.packetBuffer.writeInt(sourceWidgetId | 0);
-    pkt.packetBuffer.writeShortAdd(targetItemId | 0);
-    pkt.packetBuffer.writeShortAdd(sourceSlot | 0);
+    pkt.packetBuffer.writeShort(sourceItemId | 0);
+    pkt.packetBuffer.writeShortAddLE(sourceSlot | 0);
+    pkt.packetBuffer.writeIntME(sourceWidgetId | 0);
+    pkt.packetBuffer.writeShortLE(targetSlot | 0);
     queuePacket(pkt);
 }
 

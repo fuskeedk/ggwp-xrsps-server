@@ -75,6 +75,7 @@ export function registerBinaryHandlers(
     router.register("widget_action", createWidgetActionHandler(services));
     router.register("item_spawner_search", createItemSpawnerSearchHandler(services));
     router.register("if_triggeroplocal", createIfTriggerOpLocalHandler(services));
+    router.register("if_buttond", createIfButtonDHandler(services));
     router.register("inventory_use_on", createInventoryUseOnHandler(services));
     router.register("resume_pausebutton", createResumePauseButtonHandler(services));
 }
@@ -231,6 +232,25 @@ function createIfTriggerOpLocalHandler(services: BinaryHandlerExtServices): Mess
                 itemId,
             });
         }
+    };
+}
+
+function createIfButtonDHandler(services: BinaryHandlerExtServices): MessageHandler {
+    return (ctx) => {
+        const player = services.getPlayer(ctx.ws);
+        if (!player) return;
+        const scriptRegistry = services.getScriptRegistry();
+        const msgHandler = scriptRegistry.findClientMessageHandler("if_buttond");
+        if (!msgHandler) return;
+
+        const scriptRuntime = services.getScriptRuntime();
+        msgHandler({
+            tick: services.getCurrentTick(),
+            services: scriptRuntime.getServices(),
+            player,
+            messageType: "if_buttond",
+            payload: (ctx.payload ?? {}) as Record<string, unknown>,
+        });
     };
 }
 

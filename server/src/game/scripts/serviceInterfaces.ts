@@ -150,6 +150,23 @@ export interface BankingServices {
         player: PlayerState,
         clientSlot: number,
     ) => { itemId: number; quantity: number; tab?: number } | undefined;
+    moveBankSlot?: (
+        player: PlayerState,
+        from: number,
+        to: number,
+        opts?: { insert?: boolean; tab?: number },
+    ) => boolean;
+    handleIfButtonD?: (
+        player: PlayerState,
+        payload: {
+            sourceWidgetId: number;
+            sourceSlot: number;
+            sourceItemId: number;
+            targetWidgetId: number;
+            targetSlot: number;
+            targetItemId: number;
+        },
+    ) => void;
     queueBankSnapshot?: (player: PlayerState) => void;
     sendBankTabVarbits?: (player: PlayerState) => void;
     addItemToBank?: (player: PlayerState, itemId: number, quantity: number) => boolean;

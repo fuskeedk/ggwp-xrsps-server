@@ -701,15 +701,15 @@ export function decodePacket(opcode: number, data: Uint8Array): DecodedPacket {
 
         // IF_BUTTOND (1) - Widget drag to widget (16 bytes)
         // Used for bank item rearrangement, inventory swaps, etc.
-        // Client: writeIntLE(targetWidgetId), writeShortAdd(sourceItemId), writeShort(targetSlot),
-        //         writeInt(sourceWidgetId), writeShortAdd(targetItemId), writeShortAdd(sourceSlot)
+        // Client: writeShortLE(targetItemId), writeIntLE(targetWidgetId), writeShort(sourceItemId),
+        //         writeShortAddLE(sourceSlot), writeIntME(sourceWidgetId), writeShortLE(targetSlot)
         case ClientPacketId.IF_BUTTOND: {
+            const targetItemId = buf.readShortLE();
             const targetWidgetId = buf.readIntLE();
-            const sourceItemId = buf.readShortAdd();
-            const targetSlot = buf.readShort();
-            const sourceWidgetId = buf.readInt();
-            const targetItemId = buf.readShortAdd();
-            const sourceSlot = buf.readShortAdd();
+            const sourceItemId = buf.readShort();
+            const sourceSlot = buf.readShortAddLE();
+            const sourceWidgetId = buf.readIntME();
+            const targetSlot = buf.readShortLE();
             return {
                 type: "if_button_d",
                 sourceWidgetId,

@@ -7393,15 +7393,20 @@ export class OsrsClient {
                     // For dynamically created children (fileId === -1),
                     // send the PARENT container's UID, not the child's own UID.
                     // The childIndex is the slot within the container.
-                    const sourceIsDynamic = (w as any).fileId === -1;
-                    const targetIsDynamic = (dragTarget as any).fileId === -1;
-
-                    const sourceWidgetId = sourceIsDynamic
-                        ? ((w as any).parentUid ?? w.uid)
-                        : w.uid;
-                    const targetWidgetId = targetIsDynamic
-                        ? ((dragTarget as any).parentUid ?? dragTarget.uid)
-                        : dragTarget.uid;
+                    const resolvedSourceParent =
+                        (w as any).fileId === -1
+                            ? this.resolveDynamicWidgetParentId(w)
+                            : undefined;
+                    const resolvedTargetParent =
+                        (dragTarget as any).fileId === -1
+                            ? this.resolveDynamicWidgetParentId(dragTarget)
+                            : undefined;
+                    const sourceWidgetId =
+                        (w as any).fileId === -1 ? (resolvedSourceParent ?? w.uid) : w.uid;
+                    const targetWidgetId =
+                        (dragTarget as any).fileId === -1
+                            ? (resolvedTargetParent ?? dragTarget.uid)
+                            : dragTarget.uid;
 
                     const targetSlot = (dragTarget as any).childIndex ?? -1;
                     const sourceItemId = (w as any).itemId ?? -1;

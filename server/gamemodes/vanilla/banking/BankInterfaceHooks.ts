@@ -1,3 +1,4 @@
+import { VARBIT_BUSY } from "../../../src/widgets/InterfaceService";
 import type { InterfaceService } from "../../../src/widgets/InterfaceService";
 import { BankLimits, BankMainChild, BankSideChild, WidgetGroup } from "./bankConstants";
 
@@ -62,11 +63,13 @@ const BANK_POTIONSTORE_SLOT_END = 578;
 
 export const BANK_MODAL_INDICATOR_VARP = 548;
 export const SCRIPT_BANK_INTERFACE_UNDERLAY = 917;
+export const SCRIPT_BANK_CAPACITY_TOOLTIP = 1495;
 
 export interface BankOpenData {
     varps: Record<number, number>;
     varbits: Record<number, number>;
     capacityText?: string;
+    capacityTooltip?: string;
 }
 
 export function registerBankInterfaceHooks(interfaceService: InterfaceService): void {
@@ -168,6 +171,13 @@ export function registerBankInterfaceHooks(interfaceService: InterfaceService): 
                 bankData.capacityText,
             );
         }
+        if (bankData?.capacityTooltip !== undefined) {
+            ctx.service.runScript(player, SCRIPT_BANK_CAPACITY_TOOLTIP, [
+                bankData.capacityTooltip,
+                (BANK_INTERFACE_ID << 16) | BankMainChild.OCCUPIED_SLOTS,
+                (BANK_INTERFACE_ID << 16) | BankMainChild.TOOLTIP,
+            ]);
+        }
         ctx.service.setWidgetFlags(
             player,
             (BANK_INTERFACE_ID << 16) | BankMainChild.POTIONSTORE_ITEMS,
@@ -175,9 +185,11 @@ export function registerBankInterfaceHooks(interfaceService: InterfaceService): 
             BANK_POTIONSTORE_SLOT_END,
             BANK_POTIONSTORE_FLAGS,
         );
+        ctx.service.setVarbit(player, VARBIT_BUSY, 1);
     });
 
     interfaceService.onInterfaceClose(BANK_INTERFACE_ID, (player, ctx) => {
         ctx.service.restoreNormalInventory(player);
+        ctx.service.setVarbit(player, VARBIT_BUSY, 0);
     });
 }

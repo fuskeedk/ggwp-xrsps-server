@@ -171,6 +171,8 @@ export class VanillaGamemode extends BaseGamemode {
                     bm.withdraw(player, slot, quantity, { overrideNoted: opts?.noted }),
                 getBankEntryAtClientSlot: (player, clientSlot) =>
                     bm.getBankEntryAtClientSlot(player, clientSlot),
+                moveBankSlot: (player, from, to, opts) => bm.moveBankSlot(player, from, to, opts),
+                handleIfButtonD: (player, payload) => bm.handleIfButtonD(player, payload),
                 queueBankSnapshot: (player) => bm.queueBankSnapshot(player),
                 sendBankTabVarbits: (player) => bm.sendBankTabVarbits(player),
                 addItemToBank: (player, itemId, qty) => bm.addItemToBank(player, itemId, qty),

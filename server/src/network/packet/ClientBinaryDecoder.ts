@@ -552,12 +552,12 @@ export function decodeClientPacket(data: Uint8Array | ArrayBuffer): DecodedClien
             return {
                 type: "if_buttond",
                 payload: {
-                    sourceWidgetId: reader.readInt(),
-                    sourceSlot: reader.readShort(),
+                    targetItemId: reader.readShortLE(),
+                    targetWidgetId: reader.readIntLE(),
                     sourceItemId: reader.readShort(),
-                    targetWidgetId: reader.readInt(),
-                    targetSlot: reader.readShort(),
-                    targetItemId: reader.readShort(),
+                    sourceSlot: reader.readShortAddLE(),
+                    sourceWidgetId: reader.readIntME(),
+                    targetSlot: reader.readShortLE(),
                 },
             };
 

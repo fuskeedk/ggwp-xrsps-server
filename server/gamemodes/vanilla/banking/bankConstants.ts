@@ -17,6 +17,7 @@ export const BankMainChild = {
     CLOSE_BUTTON: 2,
     TITLE: 3,
     BANK_TUTORIAL: 4,
+    OCCUPIED_SLOTS: 7,
     CAPACITY: 8,
     ITEMS_CONTAINER: 9,
     TABS: 10, // Tab interaction target used for tab clicks and drag-to-tab.

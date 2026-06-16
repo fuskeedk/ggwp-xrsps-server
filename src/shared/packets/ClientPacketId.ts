@@ -118,7 +118,7 @@ export const CLIENT_PACKET_LENGTHS: Record<ClientPacketId, number> = {
     [ClientPacketId.WIDGET]: -1,
     [ClientPacketId.WIDGET_ACTION]: -1,
     [ClientPacketId.RESUME_PAUSEBUTTON]: 6, // widgetId(4) + childIndex(2)
-    [ClientPacketId.IF_BUTTOND]: 16, // src widget(4) + slot(2) + item(2) + dst widget(4) + slot(2) + item(2)
+    [ClientPacketId.IF_BUTTOND]: 16, // target item(2) + target widget(4) + source item(2) + source slot(2) + source widget(4) + target slot(2)
     [ClientPacketId.EMOTE]: 3, // index(2) + loop(1)
 
     [ClientPacketId.TRADE_ACTION]: -1,

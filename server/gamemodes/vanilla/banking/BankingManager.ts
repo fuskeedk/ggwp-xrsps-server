@@ -29,6 +29,10 @@ import {
 } from "./bankConstants";
 
 const INVENTORY_SLOT_COUNT = 28;
+const BANK_TAB_WIDGET_SLOT_START = TAB_SLOT_OFFSET;
+const BANK_TAB_WIDGET_SLOT_END = TAB_SLOT_OFFSET + BankLimits.MAX_TABS;
+const BANK_ITEMS_TAB_DROP_SLOT_START = BankLimits.MAX_SLOTS + BankLimits.MAX_TABS * 2;
+const BANK_ITEMS_TAB_DROP_SLOT_END = BANK_ITEMS_TAB_DROP_SLOT_START + BankLimits.MAX_TABS;
 
 /**
  * BankingManager handles all banking operations for players.
@@ -40,6 +44,36 @@ export class BankingManager implements BankingProvider {
     private formatBankCapacityText(capacity: number): string {
         const safe = Math.max(1, Math.min(BankLimits.MAX_SLOTS, capacity));
         return String(safe).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    private formatBankCapacityTooltip(): string {
+        return "Non-members' capacity: 400<br>Become a member for 500 more.<br>A banker can sell you up to 450 more.<br>+20 for your PIN.<br>+40 as a Jagex Account.";
+    }
+
+    private tabIndexFromDragTarget(targetChild: number, targetSlot: number): number | undefined {
+        if (!Number.isFinite(targetSlot)) return undefined;
+        if (
+            targetChild === BankMainChild.TABS &&
+            targetSlot >= BANK_TAB_WIDGET_SLOT_START &&
+            targetSlot <= BANK_TAB_WIDGET_SLOT_END
+        ) {
+            return slotToTabIndex(targetSlot);
+        }
+        if (
+            targetChild === BankMainChild.ITEMS &&
+            targetSlot >= BANK_ITEMS_TAB_DROP_SLOT_START &&
+            targetSlot <= BANK_ITEMS_TAB_DROP_SLOT_END
+        ) {
+            return targetSlot - BANK_ITEMS_TAB_DROP_SLOT_START;
+        }
+        if (
+            targetChild === BankMainChild.ITEMS &&
+            targetSlot >= BANK_TAB_WIDGET_SLOT_START &&
+            targetSlot <= BANK_TAB_WIDGET_SLOT_END
+        ) {
+            return slotToTabIndex(targetSlot);
+        }
+        return undefined;
     }
 
     // ========================================================================
@@ -620,7 +654,7 @@ export class BankingManager implements BankingProvider {
      * Deposit entire equipment to bank.
      */
     depositEquipment(player: PlayerState, tab?: number): boolean {
-        const equip = this.services.equipment.getEquipArray(player);
+        const equip = this.services.getEquipArray(player);
         const equipQty = this.services.getEquipQtyArray(player);
         let moved = false;
         let bankFull = false;
@@ -1146,7 +1180,7 @@ export class BankingManager implements BankingProvider {
 
         for (let i = 0; i < BankLimits.MAX_TABS; i++) {
             const varbitId = BankVarbit.TAB_1 + i;
-            this.services.variables.queueVarbit(player.id, varbitId, tabSizes[i] ?? 0);
+            this.services.queueVarbit(player.id, varbitId, tabSizes[i] ?? 0);
         }
     }
 
@@ -1200,6 +1234,30 @@ export class BankingManager implements BankingProvider {
         const sourceChild = sourceWidgetId & 0xffff;
         const targetGroup = (targetWidgetId >>> 16) & 0xffff;
         const targetChild = targetWidgetId & 0xffff;
+        const targetTabIndex =
+            targetGroup === WidgetGroup.BANK_MAIN
+                ? this.tabIndexFromDragTarget(targetChild, targetSlot)
+                : undefined;
+
+        if (targetTabIndex !== undefined) {
+            if (sourceGroup === WidgetGroup.BANK_SIDE && sourceChild === BankSideChild.ITEMS) {
+                if (targetTabIndex === 0) {
+                    this.depositToSlot(player, sourceSlot, sourceItemId, 0, -1);
+                } else if (targetTabIndex >= 1 && targetTabIndex <= BankLimits.MAX_TABS) {
+                    this.depositToTab(player, sourceSlot, sourceItemId, targetTabIndex);
+                }
+                return;
+            }
+
+            if (sourceGroup === WidgetGroup.BANK_MAIN && sourceChild === BankMainChild.ITEMS) {
+                if (targetTabIndex === 0) {
+                    this.moveToTab(player, sourceSlot, 0, sourceItemId);
+                } else if (targetTabIndex >= 1 && targetTabIndex <= BankLimits.MAX_TABS) {
+                    this.moveToTab(player, sourceSlot, targetTabIndex, sourceItemId);
+                }
+                return;
+            }
+        }
 
         // Case 1: Inventory (bankside) -> Bank main (deposit to specific slot)
         if (
@@ -1306,6 +1364,7 @@ export class BankingManager implements BankingProvider {
             }
             return;
         }
+
     }
 
     // ========================================================================
@@ -1362,6 +1421,7 @@ export class BankingManager implements BankingProvider {
                 varps,
                 varbits,
                 capacityText: this.formatBankCapacityText(capacity),
+                capacityTooltip: this.formatBankCapacityTooltip(),
             };
 
             this.services.queueWidgetEvent(player.id, {
