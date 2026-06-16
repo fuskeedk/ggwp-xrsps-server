@@ -19,6 +19,10 @@ export interface MinimapIcon {
     textSize?: number;
     horizontalAlignment?: number;
     verticalAlignment?: number;
+    sourceX?: number;
+    sourceY?: number;
+    displayX?: number;
+    displayY?: number;
 }
 
 export type SdMapData = {
@@ -43,7 +47,7 @@ export type SdMapData = {
     tileRenderFlags: Uint8Array[][];
     collisionDatas: CollisionData[];
 
-    minimapBlobs: Blob[];
+    minimapBlobs?: Blob[];
     minimapPixels?: MinimapPixelData[];
     minimapIcons: MinimapIcon[][];
     worldMapIcons: MinimapIcon[][];

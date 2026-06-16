@@ -426,6 +426,10 @@ export class TextureCache {
         return this.glr.createTextureFromRgbaPixels(key, pixels, width, height);
     }
 
+    getTextureByKey(key: string) {
+        return this.glr.getTexture(key);
+    }
+
     evictTextureKey(key: string): void {
         this.glr.deleteTexture(key);
     }

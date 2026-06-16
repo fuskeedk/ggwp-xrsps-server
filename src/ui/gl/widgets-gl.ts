@@ -14,6 +14,7 @@ import {
     drawTextGL as UI_drawTextGL,
     drawWrappedTextGL as UI_drawWrappedTextGL,
 } from "../widgets/components/TextRenderer";
+import { getBitmapFontAtlas } from "../text/BitmapFontAtlas";
 import { runCs1 } from "../widgets/cs1/runCs1";
 import {
     collectWidgetsAtPointAcrossRoots as UI_collectWidgetsAtPointAcrossRoots,
@@ -555,6 +556,262 @@ const SCROLLBAR_BOTTOM_COLOR = 0x332d25;
 function scaleLogicalPixels(scale: number, logicalPixels: number): number {
     const safeScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
     return Math.max(1, Math.round(logicalPixels * safeScale));
+}
+
+type WorldMapLabelMetrics = {
+    lines: string[];
+    lineWidths: number[];
+    logicalWidth: number;
+    lineHeight: number;
+    logicalHeight: number;
+};
+
+const WORLD_MAP_LABEL_TINT: [number, number, number] = [0, 0, 0];
+const WORLD_MAP_LABEL_QUADS = {
+    data: new Float32Array(16 * 512),
+    quadCount: 0,
+};
+
+function ensureWorldMapLabelQuadCapacity(addQuads: number): void {
+    const requiredQuads = WORLD_MAP_LABEL_QUADS.quadCount + addQuads;
+    const currentQuads = WORLD_MAP_LABEL_QUADS.data.length / 16;
+    if (requiredQuads <= currentQuads) return;
+
+    let nextQuads = Math.max(1, currentQuads);
+    while (nextQuads < requiredQuads) {
+        nextQuads <<= 1;
+    }
+
+    const next = new Float32Array(nextQuads * 16);
+    next.set(WORLD_MAP_LABEL_QUADS.data.subarray(0, WORLD_MAP_LABEL_QUADS.quadCount * 16));
+    WORLD_MAP_LABEL_QUADS.data = next;
+}
+
+function appendWorldMapLabelGlyphQuad(
+    originX: number,
+    originY: number,
+    scaleX: number,
+    scaleY: number,
+    left: number,
+    top: number,
+    right: number,
+    bottom: number,
+    u0: number,
+    v0: number,
+    u1: number,
+    v1: number,
+): void {
+    const x0 = originX + Math.round(left * scaleX);
+    const y0 = originY + Math.round(top * scaleY);
+    let x1 = originX + Math.round(right * scaleX);
+    let y1 = originY + Math.round(bottom * scaleY);
+    if (right > left && x1 <= x0) x1 = x0 + 1;
+    if (bottom > top && y1 <= y0) y1 = y0 + 1;
+    if (x1 <= x0 || y1 <= y0) return;
+
+    ensureWorldMapLabelQuadCapacity(1);
+    const data = WORLD_MAP_LABEL_QUADS.data;
+    const offset = WORLD_MAP_LABEL_QUADS.quadCount * 16;
+    data[offset + 0] = x0;
+    data[offset + 1] = y0;
+    data[offset + 2] = u0;
+    data[offset + 3] = v0;
+    data[offset + 4] = x1;
+    data[offset + 5] = y0;
+    data[offset + 6] = u1;
+    data[offset + 7] = v0;
+    data[offset + 8] = x1;
+    data[offset + 9] = y1;
+    data[offset + 10] = u1;
+    data[offset + 11] = v1;
+    data[offset + 12] = x0;
+    data[offset + 13] = y1;
+    data[offset + 14] = u0;
+    data[offset + 15] = v1;
+    WORLD_MAP_LABEL_QUADS.quadCount++;
+}
+
+function drawWorldMapLabelGL(
+    glr: GLRenderer,
+    font: BitmapFont,
+    metrics: WorldMapLabelMetrics,
+    x: number,
+    y: number,
+    color: number,
+    scaleX: number,
+    scaleY: number,
+): void {
+    const atlas = getBitmapFontAtlas(glr, font);
+    WORLD_MAP_LABEL_QUADS.quadCount = 0;
+
+    const originX = x | 0;
+    const originY = y | 0;
+    const ascent = (font.maxAscent || font.ascent || 0) | 0;
+    for (let lineIndex = 0; lineIndex < metrics.lines.length; lineIndex++) {
+        const line = metrics.lines[lineIndex];
+        let penX = ((metrics.logicalWidth - (metrics.lineWidths[lineIndex] ?? 0)) / 2) | 0;
+        const baselineY = ascent + lineIndex * metrics.lineHeight;
+        let previous = -1;
+        for (let i = 0; i < line.length; i++) {
+            let ch = line.charCodeAt(i) & 0xff;
+            if (ch === 160) ch = 32;
+            if (font.kerning && previous !== -1) {
+                penX += font.kerning[(previous << 8) + ch] || 0;
+            }
+
+            const glyph = atlas.glyphs[ch];
+            if (glyph?.drawable) {
+                const left = penX + glyph.lb;
+                const top = baselineY - atlas.ascent + glyph.tb;
+                appendWorldMapLabelGlyphQuad(
+                    originX,
+                    originY,
+                    scaleX,
+                    scaleY,
+                    left,
+                    top,
+                    left + glyph.w,
+                    top + glyph.h,
+                    glyph.u0,
+                    glyph.v0,
+                    glyph.u1,
+                    glyph.v1,
+                );
+            }
+            penX += glyph?.adv ?? font.advances[ch] ?? glyph?.w ?? 0;
+            previous = ch;
+        }
+    }
+
+    if (WORLD_MAP_LABEL_QUADS.quadCount <= 0) return;
+    WORLD_MAP_LABEL_TINT[0] = ((color >>> 16) & 0xff) / 255;
+    WORLD_MAP_LABEL_TINT[1] = ((color >>> 8) & 0xff) / 255;
+    WORLD_MAP_LABEL_TINT[2] = (color & 0xff) / 255;
+    glr.drawTextureQuads(
+        atlas.texture,
+        WORLD_MAP_LABEL_QUADS.data,
+        WORLD_MAP_LABEL_QUADS.quadCount,
+        1,
+        WORLD_MAP_LABEL_TINT,
+        1,
+    );
+}
+
+const ARC_TURN_UNITS = 65536;
+const ARC_FULL_RADIANS = Math.PI * 2;
+
+type ArcRenderCache = {
+    canvas: HTMLCanvasElement;
+    key: string;
+    stateKey: string;
+};
+
+function arcUnitToRadians(unit: number): number {
+    return ((unit / ARC_TURN_UNITS) * ARC_FULL_RADIANS - Math.PI / 2) % ARC_FULL_RADIANS;
+}
+
+function getClockwiseArcSpan(start: number, end: number): number {
+    const rawSpan = end - start;
+    if (rawSpan === 0) return 0;
+    if (Math.abs(rawSpan) >= ARC_TURN_UNITS) return ARC_TURN_UNITS;
+    return ((rawSpan % ARC_TURN_UNITS) + ARC_TURN_UNITS) % ARC_TURN_UNITS;
+}
+
+function renderArcWidget(
+    glr: GLRenderer,
+    w: Widget,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    rootScaleX: number,
+    rootScaleY: number,
+): void {
+    const canvasWidth = Math.max(1, Math.ceil(Math.abs(width)));
+    const canvasHeight = Math.max(1, Math.ceil(Math.abs(height)));
+    const start = (w.arcStart ?? 0) | 0;
+    const end = (w.arcEnd ?? 0) | 0;
+    const span = getClockwiseArcSpan(start, end);
+    if (span <= 0) {
+        return;
+    }
+
+    const trans = w.transparency ?? w.opacity ?? 0;
+    if (trans >= 255) {
+        return;
+    }
+
+    const color = (w.textColor ?? w.color ?? 0xffffff) | 0;
+    const alpha = Math.max(0, Math.min(1, (255 - (trans & 255)) / 255));
+    const r = (color >>> 16) & 0xff;
+    const g = (color >>> 8) & 0xff;
+    const b = color & 0xff;
+    const filled = !!w.filled;
+    const lineWidth = Math.max(
+        1,
+        Math.round(((w.lineWidth ?? 1) || 1) * Math.max(rootScaleX, rootScaleY)),
+    );
+    const stateKey = `${canvasWidth}:${canvasHeight}:${start}:${end}:${color}:${trans}:${
+        filled ? 1 : 0
+    }:${lineWidth}`;
+
+    const wAny = w as any;
+    let cache = wAny.__arcRenderCache as ArcRenderCache | undefined;
+    if (!cache) {
+        const canvas = document.createElement("canvas");
+        const uid = w.uid ?? w.id ?? 0;
+        cache = {
+            canvas,
+            key: `__widget_arc_${uid}_${w.childIndex ?? -1}`,
+            stateKey: "",
+        };
+        wAny.__arcRenderCache = cache;
+    }
+
+    if (
+        cache.stateKey !== stateKey ||
+        cache.canvas.width !== canvasWidth ||
+        cache.canvas.height !== canvasHeight
+    ) {
+        const canvas = cache.canvas;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            return;
+        }
+
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+        ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
+        ctx.lineWidth = lineWidth;
+        ctx.lineCap = "butt";
+
+        const cx = canvasWidth / 2;
+        const cy = canvasHeight / 2;
+        const inset = filled ? 0 : lineWidth / 2;
+        const radiusX = Math.max(0.5, canvasWidth / 2 - inset);
+        const radiusY = Math.max(0.5, canvasHeight / 2 - inset);
+        const startAngle = arcUnitToRadians(start);
+        const endAngle = startAngle + (span / ARC_TURN_UNITS) * ARC_FULL_RADIANS;
+
+        ctx.beginPath();
+        if (filled) {
+            ctx.moveTo(cx, cy);
+            ctx.ellipse(cx, cy, radiusX, radiusY, 0, startAngle, endAngle, false);
+            ctx.closePath();
+            ctx.fill();
+        } else {
+            ctx.ellipse(cx, cy, radiusX, radiusY, 0, startAngle, endAngle, false);
+            ctx.stroke();
+        }
+
+        glr.updateTextureFromCanvas(cache.key, canvas);
+        cache.stateKey = stateKey;
+    }
+
+    const tex = glr.getTexture(cache.key) ?? glr.updateTextureFromCanvas(cache.key, cache.canvas);
+    glr.drawTexture(tex, x, y, width, height, 1, 1);
 }
 
 /**
@@ -2010,9 +2267,7 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
         const staticChildren = isContainer
             ? (widgetManager?.getStaticChildrenByParentUid(w.uid) ?? EMPTY_WIDGETS)
             : EMPTY_WIDGETS;
-        const dynamicChildren = isContainer
-            ? (widgetManager?.getDynamicChildrenByParent(w) ?? EMPTY_WIDGETS)
-            : EMPTY_WIDGETS;
+        const dynamicChildren = widgetManager?.getDynamicChildrenByParent(w) ?? EMPTY_WIDGETS;
         const hasStaticChildren = staticChildren.length > 0;
         const hasChildren = dynamicChildren.length > 0;
 
@@ -2038,8 +2293,8 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
         //
         // IMPORTANT: Actively dragged widgets should NOT be culled - they need to be deferred
         // for rendering on top, even when dragged outside their parent's clip bounds.
-        const isContainerWithChildren = isContainer && (hasChildren || hasStaticChildren);
-        if (isIf3 && !isClipValid(widgetClip) && !isContainerWithChildren && !isDragActive) {
+        const hasRenderableChildren = hasChildren || (isContainer && hasStaticChildren);
+        if (isIf3 && !isClipValid(widgetClip) && !hasRenderableChildren && !isDragActive) {
             return; // IF3 widget is completely outside visible area and has no children
         }
         if (profileWidgetRender) {
@@ -2548,21 +2803,11 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                 const centerY = y + height / 2;
                 const displayX = worldMapState.displayX | 0;
                 const displayY = worldMapState.displayY | 0;
+                const worldMapRenderHost = osrsClient as any;
                 const projectDisplayToScreen = (displayCoordX: number, displayCoordY: number) => ({
                     x: centerX + (displayCoordX - displayX) * pixelsPerTileX,
                     y: centerY - (displayCoordY - displayY) * pixelsPerTileY,
                 });
-                const bounds = currentArea.getBounds();
-                const minVisibleTileX = displayX - logicalWidth / (2 * logicalPixelsPerTile) - 64;
-                const maxVisibleTileX = displayX + logicalWidth / (2 * logicalPixelsPerTile) + 64;
-                const minVisibleTileY =
-                    displayY - logicalHeight / (2 * logicalPixelsPerTile) - 64;
-                const maxVisibleTileY =
-                    displayY + logicalHeight / (2 * logicalPixelsPerTile) + 64;
-                const minMapX = Math.max(bounds.minX >> 6, Math.floor(minVisibleTileX / 64));
-                const maxMapX = Math.min(bounds.maxX >> 6, Math.floor(maxVisibleTileX / 64));
-                const minMapY = Math.max(bounds.minY >> 6, Math.floor(minVisibleTileY / 64));
-                const maxMapY = Math.min(bounds.maxY >> 6, Math.floor(maxVisibleTileY / 64));
                 const tileDrawWidth = 64 * pixelsPerTileX;
                 const tileDrawHeight = 64 * pixelsPerTileY;
                 const worldMapLevel = Math.max(0, Math.min(3, currentArea.origin.plane | 0));
@@ -2591,50 +2836,82 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                     }
                     return undefined;
                 };
-                const visibleMapTiles: Array<{ mapX: number; mapY: number; distance: number }> =
-                    [];
-                for (let mapY = minMapY; mapY <= maxMapY; mapY++) {
-                    for (let mapX = minMapX; mapX <= maxMapX; mapX++) {
-                        const tileCenterX = mapX * 64 + 32;
-                        const tileCenterY = mapY * 64 + 32;
-                        const dx = tileCenterX - displayX;
-                        const dy = tileCenterY - displayY;
-                        visibleMapTiles.push({ mapX, mapY, distance: dx * dx + dy * dy });
+                let visibleWorldMapTiles: Array<{
+                    mapX: number;
+                    mapY: number;
+                    distance: number;
+                    sourceTile: { mapX: number; mapY: number; level?: number };
+                }>;
+                let maxVisibleTileDistance = 0;
+                const visibleTileCacheKey = [
+                    currentArea.id | 0,
+                    displayX,
+                    displayY,
+                    logicalWidth | 0,
+                    logicalHeight | 0,
+                    worldMapState.zoomPercentage | 0,
+                    worldMapLevel,
+                ].join(":");
+                const visibleTileCache = worldMapRenderHost?.__worldMapVisibleTileCache;
+                if (visibleTileCache?.key === visibleTileCacheKey) {
+                    visibleWorldMapTiles = visibleTileCache.tiles;
+                    maxVisibleTileDistance = visibleTileCache.maxDistance;
+                } else {
+                    const bounds = currentArea.getBounds();
+                    const minVisibleTileX =
+                        displayX - logicalWidth / (2 * logicalPixelsPerTile) - 64;
+                    const maxVisibleTileX =
+                        displayX + logicalWidth / (2 * logicalPixelsPerTile) + 64;
+                    const minVisibleTileY =
+                        displayY - logicalHeight / (2 * logicalPixelsPerTile) - 64;
+                    const maxVisibleTileY =
+                        displayY + logicalHeight / (2 * logicalPixelsPerTile) + 64;
+                    const minMapX = Math.max(bounds.minX >> 6, Math.floor(minVisibleTileX / 64));
+                    const maxMapX = Math.min(bounds.maxX >> 6, Math.floor(maxVisibleTileX / 64));
+                    const minMapY = Math.max(bounds.minY >> 6, Math.floor(minVisibleTileY / 64));
+                    const maxMapY = Math.min(bounds.maxY >> 6, Math.floor(maxVisibleTileY / 64));
+                    const visibleMapTiles: Array<{
+                        mapX: number;
+                        mapY: number;
+                        distance: number;
+                    }> = [];
+                    for (let mapY = minMapY; mapY <= maxMapY; mapY++) {
+                        for (let mapX = minMapX; mapX <= maxMapX; mapX++) {
+                            const tileCenterX = mapX * 64 + 32;
+                            const tileCenterY = mapY * 64 + 32;
+                            const dx = tileCenterX - displayX;
+                            const dy = tileCenterY - displayY;
+                            visibleMapTiles.push({ mapX, mapY, distance: dx * dx + dy * dy });
+                        }
+                    }
+                    if (visibleMapTiles.length > 1) {
+                        visibleMapTiles.sort((a, b) => a.distance - b.distance);
+                    }
+                    maxVisibleTileDistance =
+                        visibleMapTiles.length > 0
+                            ? visibleMapTiles[visibleMapTiles.length - 1].distance
+                            : 0;
+                    visibleWorldMapTiles = visibleMapTiles.map(({ mapX, mapY, distance }) => {
+                        const sourceTile =
+                            resolveSourceTileForDisplayTile(mapX, mapY) ??
+                            ({
+                                mapX,
+                                mapY,
+                                level: worldMapLevel,
+                            } as const);
+                        return { mapX, mapY, distance, sourceTile };
+                    });
+                    if (worldMapRenderHost) {
+                        worldMapRenderHost.__worldMapVisibleTileCache = {
+                            key: visibleTileCacheKey,
+                            tiles: visibleWorldMapTiles,
+                            maxDistance: maxVisibleTileDistance,
+                        };
                     }
                 }
-                if (visibleMapTiles.length > 1) {
-                    visibleMapTiles.sort((a, b) => a.distance - b.distance);
-                }
-                const maxVisibleTileDistance =
-                    visibleMapTiles.length > 0
-                        ? visibleMapTiles[visibleMapTiles.length - 1].distance
-                        : 0;
-                const visibleWorldMapTiles = visibleMapTiles.map(({ mapX, mapY, distance }) => {
-                    const sourceTile =
-                        resolveSourceTileForDisplayTile(mapX, mapY) ??
-                        ({
-                            mapX,
-                            mapY,
-                            level: worldMapLevel,
-                        } as const);
-                    return { mapX, mapY, distance, sourceTile };
-                });
                 osrsClient?.retainWorldMapImageTiles?.(visibleWorldMapTiles);
 
-                let drawnWorldMapTileCount = 0;
-                let missingWorldMapUrlCount = 0;
-                let missingWorldMapTextureCount = 0;
-                let remappedWorldMapTileCount = 0;
-                let firstMissingWorldMapUrl: string | undefined;
-                let firstMissingWorldMapTexture: string | undefined;
                 for (const { mapX, mapY, distance, sourceTile } of visibleWorldMapTiles) {
-                    if (
-                        (sourceTile.mapX | 0) !== (mapX | 0) ||
-                        (sourceTile.mapY | 0) !== (mapY | 0) ||
-                        ((sourceTile.level ?? worldMapLevel) | 0) !== (worldMapLevel | 0)
-                    ) {
-                        remappedWorldMapTileCount++;
-                    }
                     const source = osrsClient?.getWorldMapImageSource?.(
                         sourceTile.mapX,
                         sourceTile.mapY,
@@ -2642,26 +2919,22 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                         maxVisibleTileDistance - distance,
                     );
                     if (!source) {
-                        missingWorldMapUrlCount++;
-                        firstMissingWorldMapUrl ??= `${sourceTile.mapX | 0},${
-                            sourceTile.mapY | 0
-                        },${(sourceTile.level ?? 0) | 0} display=${mapX | 0},${mapY | 0}`;
                         continue;
                     }
-                    const tileTex = tc.getTextureFromRgbaPixels(
-                        source.key,
-                        source.pixels,
-                        source.width,
-                        source.height,
-                    );
+                    const tileTex = source.pixels
+                        ? tc.getTextureFromRgbaPixels(
+                              source.key,
+                              source.pixels,
+                              source.width,
+                              source.height,
+                          )
+                        : tc.getTextureByKey(source.key);
                     if (!tileTex) {
-                        missingWorldMapTextureCount++;
-                        firstMissingWorldMapTexture ??= `${sourceTile.mapX | 0},${
-                            sourceTile.mapY | 0
-                        },${(sourceTile.level ?? 0) | 0} display=${mapX | 0},${mapY | 0}`;
                         continue;
                     }
-                    drawnWorldMapTileCount++;
+                    if (source.pixels) {
+                        osrsClient?.markWorldMapImageTextureUploaded?.(source.key);
+                    }
 
                     const tileTopLeft = projectDisplayToScreen(mapX * 64, mapY * 64 + 64);
                     glr.drawTexture(
@@ -2674,47 +2947,16 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                         1,
                     );
                 }
-                if (
-                    osrsClient &&
-                    (missingWorldMapUrlCount > 0 ||
-                        missingWorldMapTextureCount > 0 ||
-                        visibleWorldMapTiles.length > 96 ||
-                        tileDrawWidth < 1 ||
-                        tileDrawHeight < 1)
-                ) {
-                    const now = performance.now();
-                    const diagnosticHost = osrsClient as any;
-                    const diagnostic = diagnosticHost.__worldMapRenderDiagnostic ?? {
-                        lastLogMs: -Infinity,
-                        suppressed: 0,
-                    };
-                    if (now - diagnostic.lastLogMs >= 1000) {
-                        const cacheStats =
-                            typeof diagnosticHost.getWorldMapImageDebugStats === "function"
-                                ? diagnosticHost.getWorldMapImageDebugStats()
-                                : undefined;
-                        console.log(
-                            `[worldmap-render] visible=${visibleWorldMapTiles.length} drawn=${drawnWorldMapTileCount} missingUrl=${missingWorldMapUrlCount} missingTexture=${missingWorldMapTextureCount} remapped=${remappedWorldMapTileCount} display=${displayX},${displayY} zoomScale=${logicalPixelsPerTile.toFixed(
-                                2,
-                            )} tilePx=${tileDrawWidth.toFixed(2)}x${tileDrawHeight.toFixed(
-                                2,
-                            )} cacheLoaded=${cacheStats?.loaded ?? "?"} cachePending=${
-                                cacheStats?.pending ?? "?"
-                            } cacheFailed=${cacheStats?.failed ?? "?"} cacheRetained=${
-                                cacheStats?.retained ?? "?"
-                            } firstMissingUrl=${firstMissingWorldMapUrl ?? "none"} firstMissingTexture=${
-                                firstMissingWorldMapTexture ?? "none"
-                            } suppressed=${diagnostic.suppressed | 0}`,
-                        );
-                        diagnostic.lastLogMs = now;
-                        diagnostic.suppressed = 0;
-                    } else {
-                        diagnostic.suppressed = (diagnostic.suppressed | 0) + 1;
-                    }
-                    diagnosticHost.__worldMapRenderDiagnostic = diagnostic;
-                }
 
-                const mapElementCache = new Map<number, any>();
+                const mapElementCache =
+                    worldMapRenderHost.__worldMapElementCache ??
+                    (worldMapRenderHost.__worldMapElementCache = new Map<number, any>());
+                const labelMetricsCache =
+                    worldMapRenderHost.__worldMapLabelMetricsCache ??
+                    (worldMapRenderHost.__worldMapLabelMetricsCache = new Map<
+                        string,
+                        WorldMapLabelMetrics
+                    >());
                 const getMapElement = (elementId: number) => {
                     if (mapElementCache.has(elementId)) return mapElementCache.get(elementId);
                     let element;
@@ -2771,17 +3013,23 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                             continue;
                         }
 
-                        const sourceX = sourceTile.mapX * 64 + (icon.localX | 0);
-                        const sourceY = sourceTile.mapY * 64 + (icon.localY | 0);
-                        const displayPos = currentArea.position(
-                            sourceTile.level,
-                            sourceX,
-                            sourceY,
-                        );
-                        if (!displayPos) continue;
+                        let displayIconX = icon.displayX;
+                        let displayIconY = icon.displayY;
+                        if (displayIconX === undefined || displayIconY === undefined) {
+                            const sourceX = icon.sourceX ?? sourceTile.mapX * 64 + (icon.localX | 0);
+                            const sourceY = icon.sourceY ?? sourceTile.mapY * 64 + (icon.localY | 0);
+                            const displayPos = currentArea.position(
+                                sourceTile.level,
+                                sourceX,
+                                sourceY,
+                            );
+                            if (!displayPos) continue;
+                            displayIconX = displayPos.x;
+                            displayIconY = displayPos.y;
+                        }
                         const iconPos = projectDisplayToScreen(
-                            displayPos.x + 0.5,
-                            displayPos.y + 0.5,
+                            displayIconX + 0.5,
+                            displayIconY + 0.5,
                         );
                         const iconX = iconPos.x;
                         const iconY = iconPos.y;
@@ -2817,39 +3065,70 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
                         const textSize = (element?.textSize ?? icon.textSize ?? 0) | 0;
                         if (label && isWorldMapLabelVisible(textSize)) {
                             const fontId = getWorldMapLabelFontId(textSize);
+                            const labelText = String(label);
                             const font = opts.fontLoader(fontId);
-                            const labelLines = String(label)
-                                .replace(/<br\s*\/?\s*>/gi, "\n")
-                                .split(/\n/);
-                            const labelLogicalWidth = Math.max(
-                                1,
-                                ...labelLines.map(
-                                    (line) => (font?.measure?.(line) ?? line.length * 6) | 0,
-                                ),
-                            );
                             const fontBaseline =
                                 ((font as any)?.lineHeight ?? (font as any)?.ascent ?? 12) | 0 ||
                                 12;
-                            const labelLineHeight = Math.max(1, (fontBaseline / 2) | 0);
-                            const labelLogicalHeight = Math.max(
-                                1,
-                                ((labelLines.length * fontBaseline) / 2) | 0,
-                            );
-                            const labelW = labelLogicalWidth * rootScaleX;
-                            const labelH = labelLogicalHeight * rootScaleY;
-                            drawWrappedTextGL(
-                                label,
-                                iconX - labelW / 2,
-                                iconY,
-                                labelW,
-                                labelH,
-                                fontId,
-                                element?.textColor ?? icon.textColor ?? 0,
-                                labelLineHeight,
-                                false,
-                                0,
-                                1,
-                            );
+                            const labelMetricKey = `${fontId}:${fontBaseline}:${labelText}`;
+                            let metrics = labelMetricsCache.get(labelMetricKey);
+                            if (!metrics) {
+                                const labelLines = labelText
+                                    .replace(/<br\s*\/?\s*>/gi, "\n")
+                                    .split(/\n/);
+                                const lineWidths = labelLines.map(
+                                    (line) => (font?.measure?.(line) ?? line.length * 6) | 0,
+                                );
+                                const logicalWidth = Math.max(
+                                    1,
+                                    ...lineWidths,
+                                );
+                                const lineHeight = Math.max(1, (fontBaseline / 2) | 0);
+                                const logicalHeight = Math.max(
+                                    1,
+                                    ((labelLines.length * fontBaseline) / 2) | 0,
+                                );
+                                metrics = {
+                                    lines: labelLines,
+                                    lineWidths,
+                                    logicalWidth,
+                                    lineHeight,
+                                    logicalHeight,
+                                };
+                                if (labelMetricsCache.size > 2048) {
+                                    labelMetricsCache.clear();
+                                }
+                                labelMetricsCache.set(labelMetricKey, metrics);
+                            }
+                            const labelW = metrics.logicalWidth * rootScaleX;
+                            const labelH = metrics.logicalHeight * rootScaleY;
+                            const labelColor = element?.textColor ?? icon.textColor ?? 0;
+                            if (font && !/<(?!br\s*\/?\s*>)/i.test(labelText)) {
+                                drawWorldMapLabelGL(
+                                    glr,
+                                    font,
+                                    metrics,
+                                    iconX - labelW / 2,
+                                    iconY,
+                                    labelColor,
+                                    rootScaleX,
+                                    rootScaleY,
+                                );
+                            } else {
+                                drawWrappedTextGL(
+                                    labelText,
+                                    iconX - labelW / 2,
+                                    iconY,
+                                    labelW,
+                                    labelH,
+                                    fontId,
+                                    labelColor,
+                                    metrics.lineHeight,
+                                    false,
+                                    0,
+                                    1,
+                                );
+                            }
                         }
                     }
                 }
@@ -3250,7 +3529,9 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
             }
         }
 
-        if (w.type === 3) {
+        if (w.arcStart !== undefined || w.arcEnd !== undefined) {
+            renderArcWidget(glr, w, x, y, width, height, rootScaleX, rootScaleY);
+        } else if (w.type === 3) {
             const rectStartMs = profileWidgetRender ? performance.now() : 0;
             // Type 3 rectangle rendering
             // Rectangle widget rendering
@@ -3966,12 +4247,23 @@ export function renderWidgetTreeGL(glr: GLRenderer, root: Widget, opts: GLRender
             }
         }
 
-        // Only type 0 and 11 are containers that can have children
+        if (!isContainer && hasChildren) {
+            for (const child of dynamicChildren) {
+                if (child != null) {
+                    const dynamicDispatchStartMs = profileWidgetRender ? performance.now() : 0;
+                    dynamicChildrenVisited++;
+                    drawNode(child, logicalX, logicalY, eff, isSelectedHere, widgetClip);
+                    if (profileWidgetRender) {
+                        dynamicDispatchMs += performance.now() - dynamicDispatchStartMs;
+                    }
+                }
+            }
+        }
+
+        // Only type 0 and 11 are containers that can have static children or mounted interfaces.
         // Widget draw dispatch
         // - Type 0 (layer): renders static children (via parentUid) AND dynamic children (w.children)
         // - Type 11 (layer): renders ONLY dynamic children (w.children)
-        // Non-container types do NOT render children even if they somehow have them
-        // Only containers can have children - skip children processing for non-containers
         if (!isContainer) {
             leafWidgets++;
             return; // Non-containers have finished rendering their content above

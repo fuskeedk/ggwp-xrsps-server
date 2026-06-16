@@ -1401,7 +1401,6 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
 
         if (worldMapTileOnly) {
             const level = Math.max(0, Math.min(Scene.MAX_LEVELS - 1, worldMapTileOnly.level | 0));
-            const minimapBlobs: Blob[] = new Array(Scene.MAX_LEVELS);
             const minimapPixels = new Array(Scene.MAX_LEVELS);
             minimapPixels[level] = loadMinimapPixels(
                 state.minimapImageRenderer,
@@ -1436,7 +1435,6 @@ export class SdMapDataLoader implements RenderDataLoader<SdMapLoaderInput, SdMap
                     heightMapSize: mapSize,
                     renderPosX,
                     renderPosY,
-                    minimapBlobs,
                     minimapPixels,
                     minimapIcons,
                     worldMapIcons,
