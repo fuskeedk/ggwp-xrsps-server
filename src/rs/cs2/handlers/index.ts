@@ -9,6 +9,7 @@ import { registerCoreOps } from "./CoreOps";
 import { registerDbOps } from "./DbOps";
 import type { HandlerMap } from "./HandlerTypes";
 import { registerMarketOps } from "./MarketOps";
+import { registerRuneLiteOps } from "./RuneLiteOps";
 import { registerMathOps } from "./MathOps";
 import { registerSocialOps } from "./SocialOps";
 import { registerStringOps } from "./StringOps";
@@ -39,6 +40,7 @@ export function createHandlerMap(): HandlerMap {
     registerMarketOps(handlers);
     registerDbOps(handlers);
     registerWorldListOps(handlers);
+    registerRuneLiteOps(handlers);
 
     return handlers;
 }

@@ -1,12 +1,21 @@
 import { xxHash32 } from "js-xxhash";
-import xxhash, { XXHashAPI } from "xxhash-wasm";
+
+import { isIos } from "./DeviceUtil";
+
+type XXHashAPI = {
+    h32Raw(data: Uint8Array): number;
+    h64Raw(data: Uint8Array): bigint;
+};
 
 export class Hasher {
     static hashApi: XXHashAPI | undefined;
 
-    static async init(): Promise<XXHashAPI> {
+    static async init(): Promise<void> {
+        if (isIos) {
+            return;
+        }
+        const xxhash = (await import("xxhash-wasm")).default;
         Hasher.hashApi = await xxhash();
-        return Hasher.hashApi;
     }
 
     static hash32Int(n: number): number {

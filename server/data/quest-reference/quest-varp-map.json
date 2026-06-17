@@ -1,0 +1,1018 @@
+{
+  "meta": {
+    "generatedAt": "2026-06-16T20:08:08.812Z",
+    "count": 155
+  },
+  "quests": {
+    "a kingdom divided": {
+      "varpId": 3669,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "KINGDOMDIVIDED_SPEEDRUN_BEST"
+    },
+    "a porcine of interest": {
+      "varpId": 2748,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "PORCINE_MAIN"
+    },
+    "a soul's bane": {
+      "varpId": 709,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "SOULBANE"
+    },
+    "a tail of two cats": {
+      "varpId": 568,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "TWOCATS_VARBIT"
+    },
+    "a taste of hope": {
+      "varpId": 3673,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "TASTEOFHOPE_SPEEDRUN_BEST"
+    },
+    "alfred grimhand's barcrawl": {
+      "varpId": 77,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "BARCRAWL"
+    },
+    "barbarian training": {
+      "varpId": 946,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "BARBARIANASSAULT4"
+    },
+    "below ice mountain": {
+      "varpId": 3665,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "BELOWICEMOUNTAIN_SPEEDRUN_BEST"
+    },
+    "beneath cursed sands": {
+      "varpId": 3677,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "BENEATHCURSEDSANDS_SPEEDRUN_BEST"
+    },
+    "between a rock": {
+      "varpId": 433,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "DWARFROCK_MAIN"
+    },
+    "big chompy bird hunting": {
+      "varpId": 283,
+      "startedValue": 1,
+      "completionValue": 65,
+      "source": "questListData"
+    },
+    "biohazard": {
+      "varpId": 68,
+      "startedValue": 1,
+      "completionValue": 16,
+      "source": "questListData"
+    },
+    "black knights' fortress": {
+      "varpId": 130,
+      "startedValue": 1,
+      "completionValue": 4,
+      "source": "questListData"
+    },
+    "cabin fever": {
+      "varpId": 683,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "_100_PIRATE_QUEST"
+    },
+    "client of kourend": {
+      "varpId": 2085,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "KOUREND_ACHIEVEMENT_DIARY"
+    },
+    "clock tower": {
+      "varpId": 10,
+      "startedValue": 1,
+      "completionValue": 8,
+      "source": "questListData"
+    },
+    "contact": {
+      "varpId": 964,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "CONTACT_MASTER"
+    },
+    "cook's assistant": {
+      "varpId": 29,
+      "startedValue": 1,
+      "completionValue": 2,
+      "source": "questListData"
+    },
+    "creature of fenkenstrain": {
+      "varpId": 255,
+      "startedValue": 1,
+      "completionValue": 17,
+      "source": "questListData"
+    },
+    "current affairs": {
+      "varpId": 4956,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "CURRENT_AFFAIRS_MAIN"
+    },
+    "darkness of hallowvale": {
+      "varpId": 2725,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "HALLOWED_GENERAL"
+    },
+    "death plateau": {
+      "varpId": 62,
+      "startedValue": 1,
+      "completionValue": 80,
+      "source": "questListData"
+    },
+    "death to the dorgeshuun": {
+      "varpId": 987,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "DORGESH_KAAN_1"
+    },
+    "defender of varrock": {
+      "varpId": 1176,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "VARROCK_ACHIEVEMENT_DIARY"
+    },
+    "demon slayer": {
+      "varpId": 2561,
+      "startedValue": 1,
+      "completionValue": 3,
+      "source": "questListData"
+    },
+    "desert treasure": {
+      "varpId": 440,
+      "startedValue": 1,
+      "completionValue": 15,
+      "source": "questListData"
+    },
+    "desert treasure i": {
+      "varpId": 440,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "DESERTTREASUREMAIN"
+    },
+    "desert treasure ii the fallen empire": {
+      "varpId": 599,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "DESERT"
+    },
+    "devious minds": {
+      "varpId": 622,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "DEVIOUS_BASE"
+    },
+    "doric's quest": {
+      "varpId": 31,
+      "startedValue": 10,
+      "completionValue": 100,
+      "source": "questListData"
+    },
+    "dragon slayer i": {
+      "varpId": 176,
+      "startedValue": 1,
+      "completionValue": 10,
+      "source": "questListData"
+    },
+    "dragon slayer ii": {
+      "varpId": 394,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "SLAYER_COUNT"
+    },
+    "dream mentor": {
+      "varpId": 1003,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "DREAM_MAIN"
+    },
+    "druidic ritual": {
+      "varpId": 80,
+      "startedValue": 1,
+      "completionValue": 4,
+      "source": "questListData"
+    },
+    "dwarf cannon": {
+      "varpId": 77,
+      "startedValue": 1,
+      "completionValue": 11,
+      "source": "questListData"
+    },
+    "eadgar's ruse": {
+      "varpId": 335,
+      "startedValue": 1,
+      "completionValue": 110,
+      "source": "questListData"
+    },
+    "eagles' peak": {
+      "varpId": 308,
+      "startedValue": 1,
+      "completionValue": 15,
+      "source": "questListData"
+    },
+    "elemental workshop i": {
+      "varpId": 75,
+      "startedValue": 1,
+      "completionValue": 6,
+      "source": "questListData"
+    },
+    "elemental workshop ii": {
+      "varpId": 273,
+      "startedValue": 1,
+      "completionValue": 2,
+      "source": "questListData"
+    },
+    "enakhra's lament": {
+      "varpId": 641,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "ENAKH_QUEST_EXPOSITBITS"
+    },
+    "enlightened journey": {
+      "varpId": 75,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "JOURNEY_NUMBER"
+    },
+    "enter the abyss": {
+      "varpId": 492,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "ABYSSAL_MINIQUEST"
+    },
+    "ernest the chicken": {
+      "varpId": 32,
+      "startedValue": 1,
+      "completionValue": 3,
+      "source": "questListData"
+    },
+    "fairytale i growing pains": {
+      "varpId": 671,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "FAIRYTALE_MULTI"
+    },
+    "fairytale ii cure a queen": {
+      "varpId": 671,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "FAIRYTALE_MULTI"
+    },
+    "family crest": {
+      "varpId": 148,
+      "startedValue": 1,
+      "completionValue": 11,
+      "source": "questListData"
+    },
+    "family pest": {
+      "varpId": 1418,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "FAMILY_QUEST_VARP"
+    },
+    "fight arena": {
+      "varpId": 17,
+      "startedValue": 1,
+      "completionValue": 14,
+      "source": "questListData"
+    },
+    "fishing contest": {
+      "varpId": 11,
+      "startedValue": 1,
+      "completionValue": 5,
+      "source": "questListData"
+    },
+    "forgettable tale": {
+      "varpId": 521,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "FORGET_MAIN_VAR"
+    },
+    "garden of tranquillity": {
+      "varpId": 553,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "GARDEN_VARP_1"
+    },
+    "gertrude's cat": {
+      "varpId": 180,
+      "startedValue": 1,
+      "completionValue": 6,
+      "source": "questListData"
+    },
+    "ghosts ahoy": {
+      "varpId": 217,
+      "startedValue": 1,
+      "completionValue": 60,
+      "source": "questListData"
+    },
+    "goblin diplomacy": {
+      "varpId": 2378,
+      "startedValue": 1,
+      "completionValue": 6,
+      "source": "questListData"
+    },
+    "haunted mine": {
+      "varpId": 382,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "HAUNTEDMINE"
+    },
+    "hazeel cult": {
+      "varpId": 223,
+      "startedValue": 1,
+      "completionValue": 9,
+      "source": "questListData"
+    },
+    "heroes' quest": {
+      "varpId": 188,
+      "startedValue": 1,
+      "completionValue": 3,
+      "source": "questListData"
+    },
+    "holy grail": {
+      "varpId": 5,
+      "startedValue": 1,
+      "completionValue": 10,
+      "source": "questListData"
+    },
+    "hopespear's will": {
+      "varpId": 3357,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "HOPESPEAR_BASE"
+    },
+    "horror from the deep": {
+      "varpId": 34,
+      "startedValue": 1,
+      "completionValue": 11,
+      "source": "questListData"
+    },
+    "icthlarin's little helper": {
+      "varpId": 445,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "MAIN_ICS_VAR"
+    },
+    "imp catcher": {
+      "varpId": 160,
+      "startedValue": 1,
+      "completionValue": 2,
+      "source": "questListData"
+    },
+    "in aid of the myreque": {
+      "varpId": 240,
+      "startedValue": 1,
+      "completionValue": 220,
+      "source": "questListData"
+    },
+    "in search of the myreque": {
+      "varpId": 199,
+      "startedValue": 1,
+      "completionValue": 95,
+      "source": "questListData"
+    },
+    "into the tombs": {
+      "varpId": 3419,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "ITT_PRIMARY"
+    },
+    "jungle potion": {
+      "varpId": 175,
+      "startedValue": 1,
+      "completionValue": 12,
+      "source": "questListData"
+    },
+    "land of the goblins": {
+      "varpId": 62,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "GOBLINQUEST"
+    },
+    "learning the ropes": {
+      "varpId": 281,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "TUTORIAL"
+    },
+    "legend's quest": {
+      "varpId": 139,
+      "startedValue": 1,
+      "completionValue": 180,
+      "source": "questListData"
+    },
+    "legends' quest": {
+      "varpId": 139,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "LEGENDSQUEST"
+    },
+    "lost city": {
+      "varpId": 147,
+      "startedValue": 1,
+      "completionValue": 6,
+      "source": "questListData"
+    },
+    "lunar diplomacy": {
+      "varpId": 823,
+      "startedValue": 1,
+      "completionValue": 190,
+      "source": "questListData"
+    },
+    "mage arena": {
+      "varpId": 267,
+      "startedValue": 1,
+      "completionValue": 8,
+      "source": "questListData"
+    },
+    "mage arena i": {
+      "varpId": 267,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "MAGEARENA"
+    },
+    "mage arena ii": {
+      "varpId": 267,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "MAGEARENA"
+    },
+    "making friends with my arm": {
+      "varpId": 604,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "MAKINGHISTORY"
+    },
+    "making history": {
+      "varpId": 604,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "MAKINGHISTORY"
+    },
+    "merlin's crystal": {
+      "varpId": 14,
+      "startedValue": 1,
+      "completionValue": 7,
+      "source": "questListData"
+    },
+    "monk's friend": {
+      "varpId": 30,
+      "startedValue": 1,
+      "completionValue": 80,
+      "source": "questListData"
+    },
+    "monkey madness i": {
+      "varpId": 365,
+      "startedValue": 1,
+      "completionValue": 90,
+      "source": "questListData"
+    },
+    "mountain daughter": {
+      "varpId": 423,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "MDAUGHTER_VAR"
+    },
+    "mourning's end part i": {
+      "varpId": 517,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "MOURNING_QUEST"
+    },
+    "mourning's end part ii": {
+      "varpId": 574,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "MOURNING_QUEST_PART2"
+    },
+    "murder mystery": {
+      "varpId": 192,
+      "startedValue": 1,
+      "completionValue": 2,
+      "source": "questListData"
+    },
+    "my arm's big adventure": {
+      "varpId": 905,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "MYARM_QUEST"
+    },
+    "nature spirit": {
+      "varpId": 93,
+      "startedValue": 1,
+      "completionValue": 110,
+      "source": "questListData"
+    },
+    "observatory quest": {
+      "varpId": 112,
+      "startedValue": 1,
+      "completionValue": 9,
+      "source": "questListData"
+    },
+    "one small favour": {
+      "varpId": 416,
+      "startedValue": 1,
+      "completionValue": 75,
+      "source": "questListData"
+    },
+    "pirate's treasure": {
+      "varpId": 71,
+      "startedValue": 1,
+      "completionValue": 4,
+      "source": "questListData"
+    },
+    "plague city": {
+      "varpId": 165,
+      "startedValue": 1,
+      "completionValue": 29,
+      "source": "questListData"
+    },
+    "priest in peril": {
+      "varpId": 302,
+      "startedValue": 1,
+      "completionValue": 60,
+      "source": "questListData"
+    },
+    "prince ali rescue": {
+      "varpId": 273,
+      "startedValue": 1,
+      "completionValue": 110,
+      "source": "questListData"
+    },
+    "rag and bone man i": {
+      "varpId": 714,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "RAG_QUEST"
+    },
+    "rag and bone man ii": {
+      "varpId": 716,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "RAG_BONE_2"
+    },
+    "ratcatchers": {
+      "varpId": 607,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "MAIN_RATCATCH_VAR"
+    },
+    "recipe for disaster": {
+      "varpId": 655,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "FEVER_QUEST"
+    },
+    "recipe for disaster freeing king awowogei": {
+      "varpId": 1796,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "OGE"
+    },
+    "recipe for disaster freeing the goblin generals": {
+      "varpId": 425,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "GOBLIN_CAVES"
+    },
+    "recruitment drive": {
+      "varpId": 496,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "RECRUITMENTDRIVE"
+    },
+    "regicide": {
+      "varpId": 328,
+      "startedValue": 1,
+      "completionValue": 15,
+      "source": "questListData"
+    },
+    "romeo and juliet": {
+      "varpId": 144,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "questListData"
+    },
+    "roving elves": {
+      "varpId": 402,
+      "startedValue": 1,
+      "completionValue": 80,
+      "source": "questListData"
+    },
+    "royal trouble": {
+      "varpId": 730,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "ROYAL_QUESTVARBITS"
+    },
+    "rum deal": {
+      "varpId": 600,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "DEAL_QUEST"
+    },
+    "rune mysteries": {
+      "varpId": 63,
+      "startedValue": 1,
+      "completionValue": 6,
+      "source": "questListData"
+    },
+    "scorpion catcher": {
+      "varpId": 76,
+      "startedValue": 1,
+      "completionValue": 6,
+      "source": "questListData"
+    },
+    "scrambled": {
+      "varpId": 4748,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "SCRAMBLED_PRIMARY"
+    },
+    "sea slug": {
+      "varpId": 166,
+      "startedValue": 1,
+      "completionValue": 12,
+      "source": "questListData"
+    },
+    "shades of mort'ton": {
+      "varpId": 339,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "MORTTONQUEST"
+    },
+    "shadow of the storm": {
+      "varpId": 602,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "AGRITH_QUEST_VARP"
+    },
+    "shadows of custodia": {
+      "varpId": 976,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "SHADOW_MAJ"
+    },
+    "sheep herder": {
+      "varpId": 60,
+      "startedValue": 1,
+      "completionValue": 30,
+      "source": "questListData"
+    },
+    "sheep shearer": {
+      "varpId": 179,
+      "startedValue": 1,
+      "completionValue": 21,
+      "source": "questListData"
+    },
+    "shield of arrav": {
+      "varpId": 145,
+      "startedValue": 1,
+      "completionValue": 7,
+      "source": "questListData"
+    },
+    "shilo village": {
+      "varpId": 116,
+      "startedValue": 1,
+      "completionValue": 15,
+      "source": "questListData"
+    },
+    "sins of the father": {
+      "varpId": 3672,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "SINSOFTHEFATHER_SPEEDRUN_BEST"
+    },
+    "sleeping giants": {
+      "varpId": 3428,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "GIANTS_FOUNDRY_MAIN"
+    },
+    "song of the elves": {
+      "varpId": 3378,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "SONGOFTHEELVES_SPEEDRUN_BEST"
+    },
+    "spirits of the elid": {
+      "varpId": 307,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "DRUIDSPIRIT"
+    },
+    "swan song": {
+      "varpId": 723,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "SWANSONG_QUEST"
+    },
+    "tai bwo wannai trio": {
+      "varpId": 320,
+      "startedValue": 1,
+      "completionValue": 29,
+      "source": "questListData"
+    },
+    "temple of ikov": {
+      "varpId": 26,
+      "startedValue": 1,
+      "completionValue": 90,
+      "source": "questListData"
+    },
+    "temple of the eye": {
+      "varpId": 343,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "TEMPLE_REPAIRED_P"
+    },
+    "the dig site": {
+      "varpId": 131,
+      "startedValue": 1,
+      "completionValue": 12,
+      "source": "questListData"
+    },
+    "the eyes of glouphrie": {
+      "varpId": 3676,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "TEMPLEOFTHEEYE_SPEEDRUN_BEST"
+    },
+    "the feud": {
+      "varpId": 101,
+      "startedValue": 1,
+      "completionValue": 28,
+      "source": "questListData"
+    },
+    "the fremennik exiles": {
+      "varpId": 1184,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "FREMENNIK_ACHIEVEMENT_DIARY"
+    },
+    "the fremennik isles": {
+      "varpId": 1184,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "FREMENNIK_ACHIEVEMENT_DIARY"
+    },
+    "the fremennik trials": {
+      "varpId": 347,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "VIKING"
+    },
+    "the garden of death": {
+      "varpId": 3713,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "TGOD_PRIMARY"
+    },
+    "the general's shadow": {
+      "varpId": 976,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "SHADOW_MAJ"
+    },
+    "the giant dwarf": {
+      "varpId": 482,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "GIANTDWARF_MAIN"
+    },
+    "the golem": {
+      "varpId": 437,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "GOLEM_QUEST"
+    },
+    "the grand tree": {
+      "varpId": 150,
+      "startedValue": 1,
+      "completionValue": 160,
+      "source": "questListData"
+    },
+    "the great brain robbery": {
+      "varpId": 980,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "BRAIN_QUEST_VAR"
+    },
+    "the hand in the sand": {
+      "varpId": 635,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "HANDSAND"
+    },
+    "the knight's sword": {
+      "varpId": 122,
+      "startedValue": 1,
+      "completionValue": 7,
+      "source": "questListData"
+    },
+    "the lost tribe": {
+      "varpId": 465,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "LOST_TRIBE"
+    },
+    "the restless ghost": {
+      "varpId": 107,
+      "startedValue": 1,
+      "completionValue": 5,
+      "source": "questListData"
+    },
+    "the slug menace": {
+      "varpId": 874,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "QUEST_SLUG2"
+    },
+    "the tourist trap": {
+      "varpId": 197,
+      "startedValue": 1,
+      "completionValue": 19,
+      "source": "questListData"
+    },
+    "throne of miscellania": {
+      "varpId": 359,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "MISC_QUEST"
+    },
+    "tree gnome village": {
+      "varpId": 111,
+      "startedValue": 1,
+      "completionValue": 9,
+      "source": "questListData"
+    },
+    "tribal totem": {
+      "varpId": 200,
+      "startedValue": 1,
+      "completionValue": 6,
+      "source": "questListData"
+    },
+    "troll romance": {
+      "varpId": 385,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "TROLL_LOVE"
+    },
+    "troll stronghold": {
+      "varpId": 317,
+      "startedValue": 1,
+      "completionValue": 90,
+      "source": "questListData"
+    },
+    "underground pass": {
+      "varpId": 161,
+      "startedValue": 1,
+      "completionValue": 110,
+      "source": "questListData"
+    },
+    "vampyre slayer": {
+      "varpId": 178,
+      "startedValue": 1,
+      "completionValue": 3,
+      "source": "questListData"
+    },
+    "wanted": {
+      "varpId": 571,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual-constant",
+      "constant": "QUEST_WANTED"
+    },
+    "watchtower": {
+      "varpId": 212,
+      "startedValue": 1,
+      "completionValue": 13,
+      "source": "questListData"
+    },
+    "waterfall quest": {
+      "varpId": 65,
+      "startedValue": 1,
+      "completionValue": 10,
+      "source": "questListData"
+    },
+    "witch's house": {
+      "varpId": 226,
+      "startedValue": 1,
+      "completionValue": 7,
+      "source": "questListData"
+    },
+    "witch's potion": {
+      "varpId": 67,
+      "startedValue": 1,
+      "completionValue": 3,
+      "source": "questListData"
+    },
+    "x marks the spot": {
+      "varpId": 3675,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "fuzzy-constant",
+      "constant": "XMARKSTHESPOT_SPEEDRUN_BEST"
+    },
+    "zogre flesh eaters": {
+      "varpId": 487,
+      "startedValue": 1,
+      "completionValue": 15,
+      "source": "questListData"
+    }
+  }
+}

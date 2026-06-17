@@ -929,4 +929,7 @@ export enum Opcodes {
 
     // Loot tracker (enhanced client)
     LOOTTRACKER_LOOTADD = 7628,
+
+    // RuneLite script extension (runelite_callback in patched CS2 scripts)
+    RUNELITE_EXECUTE = 6599,
 }

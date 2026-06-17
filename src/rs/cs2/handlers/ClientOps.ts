@@ -225,7 +225,7 @@ export function registerClientOps(handlers: HandlerMap): void {
     });
 
     handlers.set(Opcodes.STAFFMODLEVEL, (ctx) => {
-        ctx.pushInt(0);
+        ctx.pushInt(ctx.getStaffModLevel?.() ?? 0);
     });
 
     handlers.set(Opcodes.REBOOTTIMER, (ctx) => {

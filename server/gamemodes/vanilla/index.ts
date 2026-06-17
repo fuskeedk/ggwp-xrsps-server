@@ -10,6 +10,7 @@ import type {
     GamemodeUiBridge,
     GamemodeUiController,
 } from "../../src/game/gamemodes/GamemodeDefinition";
+import { PlayerType } from "../../../src/rs/chat/PlayerType";
 import type { PlayerState } from "../../src/game/player";
 import {
     getProviderRegistry,
@@ -44,11 +45,20 @@ import { computeTargetBonusPercentages } from "./equipment/targetBonuses";
 import { registerSmithingBarModalHandler } from "./modals/smithingBarModalHandler";
 import { registerWidgetCloseHandlers } from "./modals/widgetCloseHandlers";
 import { registerWidgetOpenHandlers } from "./modals/widgetOpenHandlers";
-import { getRegisteredQuests, registerQuestHandlers } from "./quests";
+import { registerQuestHandlers } from "./quests";
+import { registerSkillMasterHandlers } from "./skillCapes/skillMasters";
+import { importQuestFlags, exportQuestFlags } from "./quests/QuestFlags";
+import {
+    exportOsrsQuestPackagePlayerState,
+    importOsrsQuestPackagePlayerState,
+} from "./quests/osrsQuestBridge";
+import { registerLumbridgeNpcHandlers } from "./scripts/content/lumbridgeNpcs";
 import { registerAlKharidBorderHandlers } from "./scripts/content/alKharidBorder";
 import { registerBobHandlers } from "./scripts/content/bob";
 import { registerClimbingHandlers } from "./scripts/content/climbing";
+import { registerAccountTutorHandlers } from "./scripts/content/accountTutors";
 import { registerDefaultTalkHandlers } from "./scripts/content/defaultTalk";
+import { getAccountTypePlayerTypes } from "./account/accountType";
 import { registerDemoInteractionHandlers } from "./scripts/content/demoInteractions";
 import { registerDoorHandlers } from "./scripts/content/doors";
 import { registerPohPoolHandlers } from "./scripts/content/pohPools";
@@ -57,7 +67,13 @@ import { registerWildernessAccessHandlers } from "./scripts/content/wildernessAc
 import { registerFollowerItemHandlers } from "./scripts/items/followers";
 import { registerPacksHandlers } from "./scripts/items/packs";
 import { handleDismiss, handleResumePauseButton, registerLevelUpHandlers } from "./scripts/levelup";
+import {
+    GrandExchangeService,
+    registerGrandExchangeHandlers,
+    registerGrandExchangeInterfaceHooks,
+} from "./grandexchange";
 import { registerShopInterfaceHooks } from "./shops";
+import { registerTradeInterfaceHooks } from "./trade/TradeInterfaceHooks";
 import { ShopService } from "./shops/ShopService";
 import { registerShopInteractionHandlers } from "./shops/shopInteractions";
 import { registerShopWidgetHandlers } from "./shops/shopWidgets";
@@ -72,6 +88,7 @@ import { registerEmoteWidgetHandlers } from "./widgets/emoteWidgets";
 import { registerMinimapWidgetHandlers } from "./widgets/minimapWidgets";
 import { registerMusicWidgetHandlers } from "./widgets/musicWidgets";
 import { registerPrayerWidgetHandlers } from "./widgets/prayerWidgets";
+import { buildVanillaQuestListGroups } from "./widgets/buildQuestListGroups";
 import { registerQuestJournalWidgetHandlers } from "./widgets/questJournalWidgets";
 import { registerSettingsWidgetHandlers } from "./widgets/settingsWidgets";
 import { registerSkillGuideWidgetHandlers } from "./widgets/skillGuideWidgets";
@@ -83,6 +100,7 @@ export class VanillaGamemode extends BaseGamemode {
 
     private bankingManager: BankingManager | undefined;
     private shopService: ShopService | undefined;
+    private geService: GrandExchangeService | undefined;
     private serverServices: GamemodeServerServices | undefined;
     private scriptServices: ScriptServices | undefined;
 
@@ -117,9 +135,45 @@ export class VanillaGamemode extends BaseGamemode {
     }
 
     override getQuestListGroups(_player: PlayerState): readonly GamemodeQuestListGroup[] {
-        const quests = getRegisteredQuests().map((quest) => quest.key);
-        if (quests.length === 0) return [];
-        return [{ title: "Free Quests", quests }];
+        return buildVanillaQuestListGroups();
+    }
+
+    override getPlayerTypes(player: PlayerState, isAdmin: boolean): PlayerType[] {
+        const types: PlayerType[] = [];
+        if (isAdmin) {
+            types.push(PlayerType.JagexModerator);
+        }
+        types.push(...getAccountTypePlayerTypes(player));
+        if (types.length === 0) {
+            types.push(PlayerType.Normal);
+        }
+        return types;
+    }
+
+    override serializePlayerState(player: PlayerState): Record<string, unknown> | undefined {
+        const questFlags = exportQuestFlags(player);
+        const osrsQuestPackageState = exportOsrsQuestPackagePlayerState(player);
+        if (!questFlags && !osrsQuestPackageState) return undefined;
+        return { questFlags, osrsQuestPackageState };
+    }
+
+    override deserializePlayerState(player: PlayerState, data: Record<string, unknown>): void {
+        const questFlags = data.questFlags;
+        if (questFlags && typeof questFlags === "object") {
+            importQuestFlags(player, questFlags as Record<string, boolean | string>);
+        } else {
+            importQuestFlags(player, undefined);
+        }
+
+        const osrsQuestPackageState = data.osrsQuestPackageState;
+        if (osrsQuestPackageState && typeof osrsQuestPackageState === "object") {
+            importOsrsQuestPackagePlayerState(
+                player,
+                osrsQuestPackageState as ReturnType<typeof exportOsrsQuestPackagePlayerState>,
+            );
+        } else {
+            importOsrsQuestPackagePlayerState(player, undefined);
+        }
     }
 
     private registerProviders(): void {
@@ -170,6 +224,20 @@ export class VanillaGamemode extends BaseGamemode {
                             : undefined,
                     );
                 },
+                depositAllMatchingInventoryItems: (player, itemId, opts) => {
+                    const itemIdHintRaw = opts?.itemIdHint;
+                    const tabRaw = opts?.tab;
+                    return bm.depositAllMatchingInventoryItems(player, Math.trunc(itemId), {
+                        itemIdHint:
+                            itemIdHintRaw !== undefined && Number.isFinite(itemIdHintRaw)
+                                ? Math.trunc(itemIdHintRaw)
+                                : undefined,
+                        tab:
+                            tabRaw !== undefined && Number.isFinite(tabRaw)
+                                ? Math.trunc(tabRaw)
+                                : undefined,
+                    });
+                },
                 withdrawFromBankSlot: (player, slot, quantity, opts) =>
                     bm.withdraw(player, slot, quantity, { overrideNoted: opts?.noted }),
                 getBankEntryAtClientSlot: (player, clientSlot) =>
@@ -211,6 +279,7 @@ export class VanillaGamemode extends BaseGamemode {
     }
 
     override registerHandlers(registry: IScriptRegistry, services: ScriptServices): void {
+        this.scriptServices = services;
         // Banking, equipment, shops
         registerBankingHandlers(registry, services);
         registerEquipmentHandlers(registry, services);
@@ -218,15 +287,20 @@ export class VanillaGamemode extends BaseGamemode {
         registerShopInteractionHandlers(registry, services);
         registerShopWidgetHandlers(registry, services);
         registerZaffHandlers(registry, services);
+        if (this.geService) {
+            registerGrandExchangeHandlers(registry, this.geService);
+        }
 
         // Content
         registerClimbingHandlers(registry, services);
         registerDoorHandlers(registry, services);
         registerDefaultTalkHandlers(registry, services);
+        registerAccountTutorHandlers(registry, services);
         registerPohPoolHandlers(registry, services);
         registerWildernessAccessHandlers(registry, services);
         registerAlKharidBorderHandlers(registry, services);
         registerBobHandlers(registry, services);
+        registerLumbridgeNpcHandlers(registry, services);
         registerRomeoHandlers(registry, services);
         registerDemoInteractionHandlers(registry, services);
 
@@ -245,11 +319,16 @@ export class VanillaGamemode extends BaseGamemode {
         registerSettingsWidgetHandlers(registry, services);
         registerQuestJournalWidgetHandlers(registry, services);
         registerDiaryJournalWidgetHandlers(registry, services);
-        registerAccountSummaryWidgetHandlers(registry, services);
+        registerAccountSummaryWidgetHandlers(registry, services, (player) =>
+            this.getQuestListGroups(player),
+        );
         registerCollectionLogWidgetHandlers(registry, services);
 
         // Skills
         registerSkillHandlers(registry, services);
+
+        // Skill masters (before quests — quest handlers override for active quest NPCs)
+        registerSkillMasterHandlers(registry, services);
 
         // Quests (after skills so quest gates can wrap skill loc handlers)
         registerQuestHandlers(registry, services);
@@ -295,6 +374,12 @@ export class VanillaGamemode extends BaseGamemode {
         // === Shops ===
         this.shopService = new ShopService({ serverServices: ss });
 
+        // === Grand Exchange ===
+        this.geService = new GrandExchangeService({
+            serverServices: ss,
+            getScriptServices: () => this.scriptServices,
+        });
+
         // === Static ground item spawns ===
         registerVanillaGroundItemSpawns(ss);
 
@@ -304,10 +389,17 @@ export class VanillaGamemode extends BaseGamemode {
             registerBankInterfaceHooks(interfaceService);
             registerEquipmentStatsInterfaceHooks(interfaceService);
             registerShopInterfaceHooks(interfaceService);
+            registerTradeInterfaceHooks(interfaceService);
+            if (this.geService) {
+                registerGrandExchangeInterfaceHooks(interfaceService, this.geService);
+            }
         }
     }
 
     onResumePauseButton(player: PlayerState, widgetId: number, childIndex: number): boolean {
+        if (this.geService?.handleResumePauseButton(player, widgetId, childIndex)) {
+            return true;
+        }
         if (!this.scriptServices) return false;
         return handleResumePauseButton(this.scriptServices, player, widgetId, childIndex);
     }
@@ -323,6 +415,7 @@ export class VanillaGamemode extends BaseGamemode {
 
         this.bankingManager = undefined;
         this.shopService = undefined;
+        this.geService = undefined;
         this.serverServices = undefined;
         this.scriptServices = undefined;
     }

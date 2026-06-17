@@ -49,6 +49,9 @@ export function registerMessageHandlers(svc: ServerServices, router: MessageRout
         handleTradeAction: (player, payload, tick) => {
             svc.tradeManager?.handleAction(player, payload, tick);
         },
+        handleTradeResumePauseButton: (player, widgetId, childIndex, tick) =>
+            svc.tradeManager?.handleResumePauseButton(player, widgetId, childIndex, tick) ?? false,
+        friendsService: svc.friendsService,
 
         // Movement
         setPendingWalkCommand: (ws, command) =>

@@ -7,6 +7,7 @@ import {
     type IScriptRegistry,
     type ScriptServices,
 } from "../../../src/game/scripts/types";
+import type { PlayerState } from "../../../src/game/player";
 
 /**
  * Skill guide widget handlers - opens skill guide overlay when skill tab is clicked.
@@ -18,11 +19,11 @@ import {
  */
 
 // Widget/Interface IDs
-const SKILLS_TAB_GROUP_ID = 320;
+export const SKILLS_TAB_GROUP_ID = 320;
 const SKILL_GUIDE_GROUP_ID = 214;
 const SCRIPT_SKILL_GUIDE_BUILD = 9340;
 
-type SkillGuideEntry = {
+export type SkillGuideEntry = {
     childId: number;
     skillVarbitValue: number;
     skillName: string;
@@ -32,7 +33,7 @@ type SkillGuideEntry = {
  * Skill guide buttons in interface 320 mapped to their guide varbit values.
  * Based on RSMod's SkillGuide.kt enum.
  */
-const SKILL_GUIDE_ENTRIES: readonly SkillGuideEntry[] = [
+export const SKILL_GUIDE_ENTRIES: readonly SkillGuideEntry[] = [
     { childId: 1, skillVarbitValue: 1, skillName: "Attack" },
     { childId: 2, skillVarbitValue: 2, skillName: "Strength" },
     { childId: 3, skillVarbitValue: 5, skillName: "Defence" },
@@ -59,47 +60,54 @@ const SKILL_GUIDE_ENTRIES: readonly SkillGuideEntry[] = [
     { childId: 24, skillVarbitValue: 24, skillName: "Sailing" },
 ];
 
+export function openSkillGuidePanel(
+    player: PlayerState,
+    services: ScriptServices,
+    entry: SkillGuideEntry,
+): void {
+    const { skillVarbitValue } = entry;
+
+    player.varps.setVarbitValue(VARBIT_SKILL_GUIDE_SUBSECTION, 0);
+    player.varps.setVarbitValue(VARBIT_SKILL_GUIDE_SKILL, skillVarbitValue);
+
+    services.variables.queueVarbit?.(player.id, VARBIT_SKILL_GUIDE_SUBSECTION, 0);
+    services.variables.queueVarbit?.(player.id, VARBIT_SKILL_GUIDE_SKILL, skillVarbitValue);
+
+    const floaterUid = BaseComponentUids.FLOATER_OVERLAY;
+
+    services.dialog.openSubInterface(player, floaterUid, SKILL_GUIDE_GROUP_ID, 1, {
+        modal: true,
+        varbits: {
+            [VARBIT_SKILL_GUIDE_SUBSECTION]: 0,
+            [VARBIT_SKILL_GUIDE_SKILL]: skillVarbitValue,
+        },
+        postScripts: [
+            {
+                scriptId: SCRIPT_SKILL_GUIDE_BUILD,
+                args: [skillVarbitValue, 0, 0, 0],
+            },
+        ],
+    });
+
+    const SKILL_GUIDE_ICONS_UID = (SKILL_GUIDE_GROUP_ID << 16) | 32;
+    services.dialog.queueWidgetEvent(player.id, {
+        action: "set_flags_range",
+        uid: SKILL_GUIDE_ICONS_UID,
+        fromSlot: -1,
+        toSlot: -1,
+        flags: 0,
+    });
+}
+
 export function registerSkillGuideWidgetHandlers(
     registry: IScriptRegistry,
     services: ScriptServices,
 ): void {
     // Register a handler for each skill in the skills tab (interface 320)
     // Uses onButton since binary IF_BUTTON packets don't send option strings
-    for (const { childId, skillVarbitValue, skillName } of SKILL_GUIDE_ENTRIES) {
-        registry.onButton(SKILLS_TAB_GROUP_ID, childId, (event) => {
-            const player = event.player;
-
-            player.varps.setVarbitValue(VARBIT_SKILL_GUIDE_SUBSECTION, 0);
-            player.varps.setVarbitValue(VARBIT_SKILL_GUIDE_SKILL, skillVarbitValue);
-
-            services.variables.queueVarbit?.(player.id, VARBIT_SKILL_GUIDE_SUBSECTION, 0);
-            services.variables.queueVarbit?.(player.id, VARBIT_SKILL_GUIDE_SKILL, skillVarbitValue);
-
-            const floaterUid = BaseComponentUids.FLOATER_OVERLAY;
-
-            services.dialog.openSubInterface(player, floaterUid, SKILL_GUIDE_GROUP_ID, 1, {
-                modal: true,
-                varbits: {
-                    [VARBIT_SKILL_GUIDE_SUBSECTION]: 0,
-                    [VARBIT_SKILL_GUIDE_SKILL]: skillVarbitValue,
-                },
-                postScripts: [
-                    {
-                        scriptId: SCRIPT_SKILL_GUIDE_BUILD,
-                        args: [skillVarbitValue, 0, 0, 0],
-                    },
-                ],
-            });
-
-            // Clear events on skill_guide:icons (214:32)
-            const SKILL_GUIDE_ICONS_UID = (SKILL_GUIDE_GROUP_ID << 16) | 32;
-            services.dialog.queueWidgetEvent(player.id, {
-                action: "set_flags_range",
-                uid: SKILL_GUIDE_ICONS_UID,
-                fromSlot: -1,
-                toSlot: -1,
-                flags: 0,
-            });
+    for (const entry of SKILL_GUIDE_ENTRIES) {
+        registry.onButton(SKILLS_TAB_GROUP_ID, entry.childId, (event) => {
+            openSkillGuidePanel(event.player, services, entry);
         });
     }
 

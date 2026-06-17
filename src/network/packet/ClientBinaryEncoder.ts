@@ -459,7 +459,8 @@ export class ClientBinaryEncoder {
 
     encodeTradeAction(payload: any): Uint8Array {
         this.buffer.reset();
-        // action: offer=0, remove=1, accept=2, decline=3, confirm_accept=4, confirm_decline=5
+        // action: offer=0, remove=1, accept=2, decline=3, confirm_accept=4, confirm_decline=5,
+        // accept_request=6, decline_request=7
         const actionMap: Record<string, number> = {
             offer: 0,
             remove: 1,
@@ -467,9 +468,15 @@ export class ClientBinaryEncoder {
             decline: 3,
             confirm_accept: 4,
             confirm_decline: 5,
+            accept_request: 6,
+            decline_request: 7,
         };
         this.buffer.writeByte(actionMap[payload.action] ?? 0);
-        this.buffer.writeShort(payload.slot ?? 0);
+        const slot =
+            payload.action === "accept_request" || payload.action === "decline_request"
+                ? (payload.fromPlayerId ?? 0)
+                : (payload.slot ?? 0);
+        this.buffer.writeShort(slot);
         this.buffer.writeInt(payload.quantity ?? 0);
         this.buffer.writeShort(payload.itemId ?? -1);
         return this.buffer.toPacket(ClientPacketId.TRADE_ACTION);
@@ -484,6 +491,27 @@ export class ClientBinaryEncoder {
         this.buffer.writeByte(messageType === "game" ? 1 : 0);
         this.buffer.writeString(text);
         return this.buffer.toPacket(ClientPacketId.CHAT);
+    }
+
+    encodeSocialFriend(action: "add" | "del", name: string): Uint8Array {
+        this.buffer.reset();
+        this.buffer.writeByte(action === "del" ? 1 : 0);
+        this.buffer.writeString(name);
+        return this.buffer.toPacket(ClientPacketId.SOCIAL_FRIEND);
+    }
+
+    encodeSocialIgnore(action: "add" | "del", name: string): Uint8Array {
+        this.buffer.reset();
+        this.buffer.writeByte(action === "del" ? 1 : 0);
+        this.buffer.writeString(name);
+        return this.buffer.toPacket(ClientPacketId.SOCIAL_IGNORE);
+    }
+
+    encodeSocialPrivateMessage(recipient: string, text: string): Uint8Array {
+        this.buffer.reset();
+        this.buffer.writeString(recipient);
+        this.buffer.writeString(text);
+        return this.buffer.toPacket(ClientPacketId.SOCIAL_PRIVATE_MESSAGE);
     }
 
     encodeVarpTransmit(varpId: number, value: number): Uint8Array {
@@ -625,6 +653,15 @@ export function encodeClientMessage(msg: { type: string; payload: any }): Uint8A
 
         case "chat":
             return clientEncoder.encodeChat(payload.text, payload.messageType);
+
+        case "social_friend":
+            return clientEncoder.encodeSocialFriend(payload.action, payload.name);
+
+        case "social_ignore":
+            return clientEncoder.encodeSocialIgnore(payload.action, payload.name);
+
+        case "social_private_message":
+            return clientEncoder.encodeSocialPrivateMessage(payload.recipient, payload.text);
 
         case "varp_transmit":
             return clientEncoder.encodeVarpTransmit(payload.varpId, payload.value);

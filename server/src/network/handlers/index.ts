@@ -2,6 +2,7 @@ import type { MessageHandlerServices } from "../MessageHandlers";
 import type { MessageRouter } from "../MessageRouter";
 import { type BinaryHandlerExtServices, registerBinaryHandlers } from "./binaryMessageHandlers";
 import { registerChatHandler } from "./chatHandler";
+import { registerSocialHandlers } from "./socialHandler";
 import { registerDebugHandler } from "./debugHandler";
 import { registerDialogHandlers } from "./dialogHandlers";
 import { createIfCloseHandler } from "./ifCloseHandler";
@@ -36,6 +37,7 @@ export function registerAllHandlers(
     registerSpellHandlers(router, services);
     registerDebugHandler(router, services);
     registerChatHandler(router, services);
+    registerSocialHandlers(router, services);
 
     // Extracted from onConnection if-else chain
     router.register("logout", createLogoutHandler(services));

@@ -24,10 +24,15 @@
  * 5030 CHAT_GETHISTORYEX_BYTYPEANDLINE: pop 2 ints, push 4 ints + 4 strings
  * 5031 CHAT_GETHISTORYEX_BYUID: pop 1 int, push 4 ints + 4 strings
  */
-import { sendChat } from "../../../network/ServerConnection";
+import { sendChat, sendPrivateMessage } from "../../../network/ServerConnection";
 import { chatHistory } from "../ChatHistory";
 import { Opcodes } from "../Opcodes";
 import type { HandlerMap } from "./HandlerTypes";
+
+function isLikelyPlayerName(value: string): boolean {
+    const v = value.trim();
+    return /^[a-z0-9_ ]{1,12}$/i.test(v);
+}
 
 export function registerChatOps(handlers: HandlerMap): void {
     // CHAT_GETFILTER_PUBLIC (5000): Returns public chat mode
@@ -132,10 +137,23 @@ export function registerChatOps(handlers: HandlerMap): void {
     handlers.set(Opcodes.CHAT_SENDPUBLIC, (ctx) => {
         const message = ctx.stringStack[--ctx.stringStackSize];
         const chatType = ctx.intStack[--ctx.intStackSize];
-        // Send the chat message to server
+
+        const pendingInput = (ctx.varManager.getVarcString(335) ?? "").trim();
+        // Patched CS2 command scripts block ::bank with a local "silly" message instead of
+        // forwarding to the server. If the script is about to send something other than the
+        // raw chat input while a ::command is still pending, route the command to the server.
+        if (
+            pendingInput.startsWith("::") &&
+            pendingInput.length > 2 &&
+            message !== pendingInput
+        ) {
+            sendChat(pendingInput, "public", 0);
+            ctx.varManager.setVarcString(335, "");
+            return;
+        }
+
         if (message && message.trim()) {
             sendChat(message, "public", chatType | 0);
-            // Clear the chat input buffer (varcstring 335) after sending
             ctx.varManager.setVarcString(335, "");
         }
     });
@@ -143,10 +161,21 @@ export function registerChatOps(handlers: HandlerMap): void {
     // CHAT_SENDPRIVATE (5009): Sends private message
     // Pops: recipient (string), message (string)
     handlers.set(Opcodes.CHAT_SENDPRIVATE, (ctx) => {
-        ctx.stringStackSize -= 2;
-        const _recipient = ctx.stringStack[ctx.stringStackSize];
-        const _message = ctx.stringStack[ctx.stringStackSize + 1];
-        // Server would handle the private message packet
+        const first = String(ctx.stringStack[--ctx.stringStackSize] ?? "");
+        const second = String(ctx.stringStack[--ctx.stringStackSize] ?? "");
+
+        // Canonical order is recipient+message, but keep a defensive fallback
+        // so PM still works if script stack order differs.
+        let recipient = second;
+        let message = first;
+        if (isLikelyPlayerName(first) && !isLikelyPlayerName(second)) {
+            recipient = first;
+            message = second;
+        }
+
+        if (recipient?.trim() && message?.trim()) {
+            sendPrivateMessage(recipient, message);
+        }
     });
 
     // CHAT_SENDCLAN (5010): Sends clan chat message
@@ -215,6 +244,7 @@ export function registerChatOps(handlers: HandlerMap): void {
         // Send command to server with :: prefix restored for server-side handling
         if (command && command.trim()) {
             sendChat("::" + command.trim(), "public", 0);
+            ctx.varManager.setVarcString(335, "");
         }
     });
 

@@ -101,6 +101,10 @@ export function exportPersistentVars(player: PlayerState): PlayerPersistentVars 
     if (followerSnapshot) {
         snapshot.follower = followerSnapshot;
     }
+    const socialSnapshot = player.social.serialize();
+    if (socialSnapshot) {
+        snapshot.social = socialSnapshot;
+    }
     snapshot.accountCreationTimeMs = accountSnapshot.accountCreationTimeMs;
     snapshot.playTimeSeconds = accountSnapshot.playTimeSeconds;
     return snapshot;
@@ -237,4 +241,5 @@ export function applyPersistentVars(player: PlayerState, state?: PlayerPersisten
     }
     player.collectionLog.deserialize(state.collectionLog);
     player.followers.deserialize(state.follower);
+    player.social.deserialize(state.social);
 }

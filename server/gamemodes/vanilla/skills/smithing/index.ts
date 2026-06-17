@@ -4,7 +4,7 @@ import {
     type ScriptServices,
 } from "../../../../src/game/scripts/types";
 import { openSmithingBarModal } from "../../modals/smithingBarModalHandler";
-import { executeSmeltAction, registerSmeltingInteractions } from "./smelting";
+import { executeSmeltAction, openSmeltingSkillMulti, registerSmeltingInteractions } from "./smelting";
 import { executeSmithAction, registerSmithingInteractions } from "./smithing";
 import { SMITHING_RECIPES } from "./smithingData";
 import { SmithingUI } from "./smithingUI";
@@ -17,7 +17,7 @@ export function register(registry: IScriptRegistry, services: ScriptServices): v
 
     const production = services.production;
     if (production) {
-        production.openSmeltingInterface = (player) => smithingUI.openSmeltingInterface(player);
+        production.openSmeltingInterface = (player) => openSmeltingSkillMulti(player, services);
         production.openForgeInterface = (player) => smithingUI.openForgeInterface(player);
         production.openSmithingInterface = (player) => smithingUI.openSmithingInterface(player);
         production.smeltBars = (player, params) =>

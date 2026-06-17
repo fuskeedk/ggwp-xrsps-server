@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "description": "Manual start NPC game IDs when npc-spawns.json lacks revision 237 NPCs",
+    "source": "OSRS Wiki NPC infobox IDs"
+  },
+  "overrides": {
+    "the_ides_of_milk": { "startNpcGameIds": [13309], "npcName": "Cassius" },
+    "shades_of_mort_ton": { "startNpcGameIds": [1290], "npcName": "Razmire Keelgan" },
+    "desert_treasure_i": { "startNpcGameIds": [12162], "npcName": "Asgarnia Smith" },
+    "elemental_workshop_i": { "startNpcGameIds": [3490], "npcName": "Jorral" },
+    "elemental_workshop_ii": { "startNpcGameIds": [3635], "npcName": "Examiner" },
+    "while_guthix_sleeps": { "startNpcGameIds": [13540], "npcName": "Idria" },
+    "recipe_for_disaster_defeating_the_culinaromancer": {
+      "startNpcGameIds": [4849],
+      "npcName": "Culinaromancer"
+    },
+    "the_curse_of_arrav": { "startNpcGameIds": [12610], "npcName": "Elias White" },
+    "defender_of_varrock": { "startNpcGameIds": [11868], "npcName": "Aris" },
+    "sleeping_giants": { "startNpcGameIds": [11468], "npcName": "Kovac" },
+    "desert_treasure_ii_the_fallen_empire": { "startNpcGameIds": [12305], "npcName": "Azzanadra" },
+    "secrets_of_the_north": { "startNpcGameIds": [12085], "npcName": "Ceril Carnillean" },
+    "children_of_the_sun": { "startNpcGameIds": [12644], "npcName": "Alina" },
+    "perilous_moons": { "startNpcGameIds": [12861], "npcName": "Attala" },
+    "the_ribbiting_tale_of_a_lily_pad_labour_dispute": {
+      "startNpcGameIds": [12935],
+      "npcName": "Marcellus"
+    },
+    "twilight_s_promise": { "startNpcGameIds": [12654], "npcName": "Ennius Tullus" },
+    "at_first_light": { "startNpcGameIds": [13120], "npcName": "Guildmaster Apatura" },
+    "the_heart_of_darkness": { "startNpcGameIds": [12650], "npcName": "Prince Itzla Arkan" },
+    "death_on_the_isle": { "startNpcGameIds": [13818], "npcName": "Patzi" },
+    "meat_and_greet": { "startNpcGameIds": [13804], "npcName": "Emelio" },
+    "ethically_acquired_antiquities": {
+      "startNpcGameIds": [13297],
+      "npcName": "Curator Herminius"
+    },
+    "the_final_dawn": { "startNpcGameIds": [12652], "npcName": "Servius, Teokan of Ralos" },
+    "pandemonium": { "startNpcGameIds": [14968], "npcName": "'Squawking' Steve Beanie" },
+    "prying_times": { "startNpcGameIds": [14968], "npcName": "'Squawking' Steve Beanie" },
+    "troubled_tortugans": { "startNpcGameIds": [14990], "npcName": "Floopa" },
+    "the_red_reef": { "startNpcGameIds": [15002], "npcName": "Elder Raley" },
+    "shadows_of_custodia": { "startNpcGameIds": [14660], "npcName": "Bartender" },
+    "the_frozen_door": { "startNpcGameIds": [11287], "npcName": "Messenger" },
+    "vale_totems_miniquest": { "startNpcGameIds": [14577], "npcName": "Ranulph" }
+  }
+}

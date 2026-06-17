@@ -43,6 +43,8 @@ const MESSAGE_TYPE_MAP: Record<string, number> = {
     server: 0,
     public: 2,
     private: 3,
+    private_in: 3,
+    private_out: 6,
     trade: 4,
     clan: 7,
     broadcast: 0,
@@ -121,6 +123,43 @@ class ChatHistoryStore {
         }
 
         return uid;
+    }
+
+    /**
+     * Update an existing message's text in place (e.g. count input prompt while typing).
+     */
+    updateMessageText(uid: number, text: string): boolean {
+        for (const list of this.messagesByType.values()) {
+            const msg = list.find((entry) => entry.uid === uid);
+            if (!msg) continue;
+            msg.text = text;
+            this.sortedMessagesCache.valid = false;
+            if (this.onMessageAdded) {
+                this.onMessageAdded(msg);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Remove a message by UID (e.g. transient count input prompt).
+     */
+    removeMessage(uid: number): boolean {
+        for (const [type, list] of this.messagesByType.entries()) {
+            const index = list.findIndex((entry) => entry.uid === uid);
+            if (index < 0) continue;
+            list.splice(index, 1);
+            if (list.length === 0) {
+                this.messagesByType.delete(type);
+            }
+            this.sortedMessagesCache.valid = false;
+            if (this.onMessageAdded) {
+                this.onMessageAdded(list[list.length - 1] ?? { uid: -1, type, text: "", from: "", prefix: "", timestamp: 0, cycle: 0 });
+            }
+            return true;
+        }
+        return false;
     }
 
     /**

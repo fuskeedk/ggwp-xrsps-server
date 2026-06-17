@@ -1,3 +1,5 @@
+import "../../ios-shim";
+
 import JSZip from "jszip";
 import { TransferDescriptor } from "threads";
 import { registerSerializer } from "threads";

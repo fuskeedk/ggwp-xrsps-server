@@ -1024,6 +1024,45 @@ export function decodeServerPacket(data: Uint8Array | ArrayBuffer): DecodedServe
             };
         }
 
+        case ServerPacketId.FRIEND_LIST: {
+            const count = reader.readShort();
+            const friends: Array<{
+                name: string;
+                previousName: string;
+                world: number;
+                rank: number;
+                isOnline: boolean;
+            }> = [];
+            for (let i = 0; i < count; i++) {
+                friends.push({
+                    name: reader.readString(),
+                    previousName: reader.readString(),
+                    world: reader.readShort(),
+                    rank: reader.readByte(),
+                    isOnline: reader.readByte() === 1,
+                });
+            }
+            return {
+                type: "friend_list",
+                payload: { friends },
+            };
+        }
+
+        case ServerPacketId.IGNORE_LIST: {
+            const count = reader.readShort();
+            const ignores: Array<{ name: string; previousName: string }> = [];
+            for (let i = 0; i < count; i++) {
+                ignores.push({
+                    name: reader.readString(),
+                    previousName: reader.readString(),
+                });
+            }
+            return {
+                type: "ignore_list",
+                payload: { ignores },
+            };
+        }
+
         case ServerPacketId.SOUND: {
             const soundId = reader.readShort();
             const hasPosition = reader.readBoolean();
@@ -1482,6 +1521,32 @@ export function decodeServerPacket(data: Uint8Array | ArrayBuffer): DecodedServe
             };
         }
 
+        case ServerPacketId.GE_OFFERS_SYNC: {
+            const count = reader.readByte();
+            const slots: Array<{
+                slot: number;
+                type: 0 | 1 | 2;
+                itemId: number;
+                quantity: number;
+                quantityTraded: number;
+                priceEach: number;
+            }> = [];
+            for (let i = 0; i < count; i++) {
+                slots.push({
+                    slot: reader.readByte(),
+                    type: reader.readByte() as 0 | 1 | 2,
+                    itemId: reader.readShort(),
+                    quantity: reader.readInt(),
+                    quantityTraded: reader.readInt(),
+                    priceEach: reader.readInt(),
+                });
+            }
+            return {
+                type: "ge_offers",
+                payload: { slots },
+            };
+        }
+
         // ========================================
         // TRADE
         // ========================================
@@ -1880,9 +1945,16 @@ export function decodeBatchedServerPackets(data: Uint8Array | ArrayBuffer): Deco
 
         // Extract this packet and decode it
         const packetData = buffer.slice(offset, offset + totalPacketSize);
-        const decoded = decodeServerPacket(packetData);
-        if (decoded) {
-            messages.push(decoded);
+        try {
+            const decoded = decodeServerPacket(packetData);
+            if (decoded) {
+                messages.push(decoded);
+            }
+        } catch (err) {
+            console.warn(
+                `[batch] Failed to decode opcode ${opcode} at offset ${offset}:`,
+                err,
+            );
         }
 
         offset += totalPacketSize;

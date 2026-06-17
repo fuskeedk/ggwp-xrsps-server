@@ -20,9 +20,14 @@ export const ACCOUNT_SUMMARY_CLICK_LAYER_UID = packWidgetUid(
 export const ACCOUNT_SUMMARY_ENTRY_LIST_UID = ACCOUNT_SUMMARY_CLICK_LAYER_UID;
 
 // Dynamic account-summary rows are created under 712:3.
+// Indices match [interface,account_summary_sidepanel] summary_click_layer comsubs.
+export const ACCOUNT_SUMMARY_QUEST_LIST_CHILD_INDEX = 3;
+export const ACCOUNT_SUMMARY_ACHIEVEMENT_DIARY_CHILD_INDEX = 4;
+export const ACCOUNT_SUMMARY_COMBAT_ACHIEVEMENTS_CHILD_INDEX = 5;
 export const ACCOUNT_SUMMARY_COLLECTION_LOG_CHILD_INDEX = 6;
 export const ACCOUNT_SUMMARY_PLAYTIME_CHILD_INDEX = 7;
 
+export const ACCOUNT_SUMMARY_NAV_ENTRY_ACTION_FLAGS = 0x2; // op1 ("Quest List", etc.)
 export const ACCOUNT_SUMMARY_COLLECTION_ACTION_FLAGS = 0x6;
 export const ACCOUNT_SUMMARY_PLAYTIME_ACTION_FLAGS = 0x2;
 

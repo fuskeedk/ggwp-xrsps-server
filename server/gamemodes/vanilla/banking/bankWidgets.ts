@@ -166,7 +166,7 @@ const handleWithdrawOp = (event: WidgetActionEvent, opId: number): void => {
 
     const noted = player.bank.getBankWithdrawNotes();
     const result = services.banking!.withdrawFromBankSlot!(player, event.slot, quantity, { noted });
-    if (!result.ok && result.message) {
+    if (result.message) {
         services.messaging.sendGameMessage(player, result.message);
     }
 };
@@ -440,12 +440,29 @@ function registerBanksideWidgets(registry: IScriptRegistry): void {
         if (available <= 0) return;
 
         const opId = event.opId;
-        const desired =
-            opId !== undefined
-                ? quantityForDepositOp(event.player, opId, available)
-                : quantityForDepositOption(event.player, event.option, available);
+        const normalizedOption = event.option?.trim().toLowerCase();
+        const fromOption = event.option
+            ? quantityForDepositOption(event.player, event.option, available)
+            : 0;
+        const fromOp =
+            opId !== undefined ? quantityForDepositOp(event.player, opId, available) : 0;
+        const desired = fromOption > 0 ? fromOption : fromOp;
 
         if (!desired || desired <= 0) return;
+
+        const isDepositAll = normalizedOption === "deposit-all" || opId === 8;
+
+        if (isDepositAll && normalizedOption !== "deposit-x") {
+            const result = event.services.banking?.depositAllMatchingInventoryItems?.(
+                event.player,
+                entry.itemId,
+                { itemIdHint: event.itemId },
+            );
+            if (result && result.ok === false && result.message) {
+                event.services.messaging.sendGameMessage(event.player, String(result.message));
+            }
+            return;
+        }
 
         const result = event.services.banking?.depositInventoryItemToBank?.(
             event.player,
@@ -471,11 +488,9 @@ function registerBanksideWidgets(registry: IScriptRegistry): void {
 
     for (const option of ["Deposit-1", "Deposit-5", "Deposit-10", "Deposit-X", "Deposit-All"]) {
         registry.registerWidgetAction({
+            widgetId: BANKSIDE_ITEMS,
             option,
-            handler: (event) => {
-                if (event.widgetId === BANKSIDE_ITEMS) return;
-                handleDeposit(event);
-            },
+            handler: handleDeposit,
         });
     }
 }

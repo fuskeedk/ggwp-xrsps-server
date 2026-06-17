@@ -1,10 +1,6 @@
 /**
  * WASM-accelerated Vorbis decoder for standard Ogg Vorbis files and OSRS custom format.
- * Uses @wasm-audio-decoders/ogg-vorbis for standard Ogg files.
- * Uses ported OSRS Vorbis decoder for OSRS custom music sample format.
  */
-import { OggVorbisDecoder } from "@wasm-audio-decoders/ogg-vorbis";
-
 import {
     type RawSoundData as OsrsRawSoundData,
     VorbisSample,
@@ -13,25 +9,39 @@ import {
 } from "../../rs/audio/vorbis";
 import { CacheSystem } from "../../rs/cache/CacheSystem";
 import { IndexType } from "../../rs/cache/IndexType";
+import { isIos } from "../../util/DeviceUtil";
 
-let decoder: OggVorbisDecoder | null = null;
-let initPromise: Promise<OggVorbisDecoder> | null = null;
+type OggDecoder = {
+    ready: Promise<void>;
+    decodeFile(data: Uint8Array): Promise<{
+        channelData: Float32Array[];
+        sampleRate: number;
+        samplesDecoded: number;
+    }>;
+    free(): void | Promise<void>;
+};
 
-// Cache for OSRS setup data
-let osrsSetupData: Uint8Array | null = null;
+let decoder: OggDecoder | null = null;
+let initPromise: Promise<OggDecoder | null> | null = null;
 
-/**
- * Initialize the WASM decoder (lazy, singleton).
- */
-async function getDecoder(): Promise<OggVorbisDecoder> {
+async function getDecoder(): Promise<OggDecoder | null> {
+    if (isIos) {
+        return null;
+    }
     if (decoder) return decoder;
     if (initPromise) return initPromise;
 
     initPromise = (async () => {
-        const dec = new OggVorbisDecoder();
-        await dec.ready;
-        decoder = dec;
-        return dec;
+        try {
+            const { OggVorbisDecoder } = await import("@wasm-audio-decoders/ogg-vorbis");
+            const dec = new OggVorbisDecoder();
+            await dec.ready;
+            decoder = dec;
+            return dec;
+        } catch (e) {
+            console.warn("[VorbisWasm] Failed to init WASM decoder:", e);
+            return null;
+        }
     })();
 
     return initPromise;
@@ -56,8 +66,14 @@ export interface RawSoundData {
  * @param oggData - Raw Ogg Vorbis file bytes
  * @returns Decoded audio data with channel arrays
  */
-export async function decodeOggVorbis(oggData: Uint8Array): Promise<DecodedAudio> {
+export async function decodeOggVorbis(oggData: Uint8Array): Promise<DecodedAudio | null> {
     const dec = await getDecoder();
+    
+    // På iOS Safari: returner null da WASM er deaktiveret
+    if (!dec) {
+        console.log("[decodeOggVorbis] WASM decoder not available (iOS Safari)");
+        return null;
+    }
 
     // Use decodeFile for complete files (handles reset internally)
     const result = await dec.decodeFile(oggData);
@@ -78,8 +94,13 @@ export async function decodeOggVorbis(oggData: Uint8Array): Promise<DecodedAudio
 export async function decodeOggVorbisToAudioBuffer(
     oggData: Uint8Array,
     context: AudioContext,
-): Promise<AudioBuffer> {
+): Promise<AudioBuffer | null> {
     const decoded = await decodeOggVorbis(oggData);
+    
+    // Return null hvis WASM ikke er tilgængelig (f.eks. på iOS Safari)
+    if (!decoded) {
+        return null;
+    }
 
     const buffer = context.createBuffer(
         decoded.channelData.length,

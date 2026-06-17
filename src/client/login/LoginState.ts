@@ -212,13 +212,13 @@ export class LoginState {
     hoveredServerIndex: number = -1;
 
     /** Current server address displayed on the button */
-    serverAddress: string = "localhost:43594";
+    serverAddress: string = "osrs.ggwp.dk";
 
     /** Current server name displayed on the button */
-    serverName: string = "Local Development";
+    serverName: string = "ggwp OSRS";
 
     /** Whether the current server uses secure WebSocket */
-    serverSecure: boolean = false;
+    serverSecure: boolean = true;
 
     /** Persist the last selected server to localStorage */
     saveLastServer(): void {

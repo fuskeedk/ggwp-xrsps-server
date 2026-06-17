@@ -71,6 +71,7 @@ import { TileTextOverlay } from "../../ui/devoverlay/TileTextOverlay";
 import { WidgetsOverlay } from "../../ui/devoverlay/WidgetsOverlay";
 import { MENU_ACTION_DEPRIORITIZE_OFFSET, MenuAction, menuAction } from "../../ui/menu/MenuAction";
 import { worldEntriesToSimple } from "../../ui/menu/MenuBridge";
+import { VARBIT_IN_WILDERNESS, VARBIT_PVP_SPEC_ORB } from "../../shared/vars";
 import type { MenuClickContext, SimpleMenuEntry } from "../../ui/menu/MenuEngine";
 import { chooseDefaultMenuEntry, shouldLeftClickOpenMenu } from "../../ui/menu/MenuEngine";
 import { MenuOpcode } from "../../ui/menu/MenuState";
@@ -1566,6 +1567,12 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                 event.stopImmediatePropagation();
                 this.osrsClient.handleLoginMouseClick(x, y, ClickMode.LEFT);
                 this.requestMobileLoginKeyboard(0);
+                return;
+            }
+            if (action?.type === "new_user") {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                this.osrsClient.handleLoginMouseClick(x, y, ClickMode.LEFT);
                 return;
             }
         }
@@ -6316,6 +6323,11 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
         );
     }
 
+    resetMapLoadingState(): void {
+        this.mapDataLoadedNotified = false;
+        this.heightValidAtTime = undefined;
+    }
+
     clearMaps(): void {
         this.mapManager.cleanUp();
         this.mapsToLoad.clear();
@@ -8734,7 +8746,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             if (this.heightValidAtTime === undefined) {
                 // First frame with valid height - record the time
                 this.heightValidAtTime = timeSec;
-            } else if (timeSec - this.heightValidAtTime >= 1.0) {
+            } else if (timeSec - this.heightValidAtTime >= (this.osrsClient.gameState === GameState.LOADING_GAME ? 0.15 : 1.0)) {
                 // Fog animation complete (1 second elapsed) - notify loading tracker
                 this.mapDataLoadedNotified = true;
                 this.osrsClient.loadingTracker.markComplete(LoadingRequirement.MAP_DATA_LOADED);
@@ -13416,6 +13428,10 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                         ? playerEcs.getTeam(localEcsIndex | 0) | 0
                         : 0;
                 const targetIsClanMember = isClanMemberName(playerLabel);
+                const varManager = this.osrsClient.varManager;
+                const inPvpZone =
+                    ((varManager?.getVarbit(VARBIT_IN_WILDERNESS) ?? 0) | 0) === 1 ||
+                    ((varManager?.getVarbit(VARBIT_PVP_SPEC_ORB) ?? 0) | 0) === 1;
 
                 // When hovering a player, Walk here target becomes the player's label.
                 if (walkHereEntry) {
@@ -13486,7 +13502,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                             targetId: sid | 0,
                             targetType: MenuTargetType.PLAYER,
                             targetName: playerLabel,
-                            targetLevel: -1,
+                            targetLevel: targetCombatLevel,
                             mapX: localX,
                             mapY: localY,
                             playerServerId: sid | 0,
@@ -13505,7 +13521,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                             targetId: sid | 0,
                             targetType: MenuTargetType.PLAYER,
                             targetName: playerLabel,
-                            targetLevel: -1,
+                            targetLevel: targetCombatLevel,
                             mapX: localX,
                             mapY: localY,
                             playerServerId: sid | 0,
@@ -13519,6 +13535,8 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                             },
                         });
                     } else if (actionIdx === 0) {
+                        if (!inPvpZone) continue;
+
                         const attackOption = ClientState.playerAttackOption | 0;
                         if (attackOption === 3) continue;
 

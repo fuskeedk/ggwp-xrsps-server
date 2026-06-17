@@ -1,12 +1,8 @@
 import { VARBIT_MASTERY_POINT_UNLOCK_BASE } from "../../../../src/shared/gamemode/GamemodeDataTypes";
 import {
-    ACCOUNT_SUMMARY_COLLECTION_ACTION_FLAGS,
-    ACCOUNT_SUMMARY_COLLECTION_LOG_CHILD_INDEX,
-    ACCOUNT_SUMMARY_ENTRY_LIST_UID,
     ACCOUNT_SUMMARY_GROUP_ID,
-    ACCOUNT_SUMMARY_PLAYTIME_ACTION_FLAGS,
-    ACCOUNT_SUMMARY_PLAYTIME_CHILD_INDEX,
 } from "../../../../src/shared/ui/accountSummary";
+import { queueAccountSummaryEntryFlags } from "../../vanilla/widgets/sideJournalTabSwitch";
 import { LEAGUE_SUMMARY_GROUP_ID } from "../../../../src/shared/ui/leagueSummary";
 import {
     DIARY_LIST_ENTRY_EVENT_FLAGS,
@@ -774,20 +770,7 @@ export function queueSideJournalLeagueOnlyUi(
         // Ensure "Collection Log" (op1) and "Collection Overview" (op2) from
         // Account Summary transmit to the server.
         if (contentGroup === ACCOUNT_SUMMARY_GROUP_ID) {
-            bridge.queueWidgetEvent(playerId, {
-                action: "set_flags_range",
-                uid: ACCOUNT_SUMMARY_ENTRY_LIST_UID,
-                fromSlot: ACCOUNT_SUMMARY_COLLECTION_LOG_CHILD_INDEX,
-                toSlot: ACCOUNT_SUMMARY_COLLECTION_LOG_CHILD_INDEX,
-                flags: ACCOUNT_SUMMARY_COLLECTION_ACTION_FLAGS,
-            });
-            bridge.queueWidgetEvent(playerId, {
-                action: "set_flags_range",
-                uid: ACCOUNT_SUMMARY_ENTRY_LIST_UID,
-                fromSlot: ACCOUNT_SUMMARY_PLAYTIME_CHILD_INDEX,
-                toSlot: ACCOUNT_SUMMARY_PLAYTIME_CHILD_INDEX,
-                flags: ACCOUNT_SUMMARY_PLAYTIME_ACTION_FLAGS,
-            });
+            queueAccountSummaryEntryFlags(playerId, bridge);
         }
     }
     if (sideJournalOpen && opts.activateQuestSideTab !== false) {

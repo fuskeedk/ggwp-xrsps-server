@@ -81,6 +81,8 @@ export const enum ServerPacketId {
     // CHAT/MESSAGES (120-129)
     // ========================================
     CHAT_MESSAGE = 120,
+    FRIEND_LIST = 121,
+    IGNORE_LIST = 122,
 
     // ========================================
     // WORLD UPDATES (130-149)
@@ -108,6 +110,7 @@ export const enum ServerPacketId {
     TRADE_OPEN = 155,
     TRADE_UPDATE = 156,
     TRADE_CLOSE = 157,
+    GE_OFFERS_SYNC = 158,
 
     // ========================================
     // SCRIPTS (170-179)
@@ -203,6 +206,8 @@ export const SERVER_PACKET_LENGTHS: Record<ServerPacketId, number> = {
     [ServerPacketId.WIDGET_SET_QUEST_LIST]: -2,
 
     [ServerPacketId.CHAT_MESSAGE]: -1,
+    [ServerPacketId.FRIEND_LIST]: -2,
+    [ServerPacketId.IGNORE_LIST]: -2,
 
     [ServerPacketId.LOC_CHANGE]: -1,
     [ServerPacketId.LOC_ADD_CHANGE]: -1,
@@ -226,6 +231,7 @@ export const SERVER_PACKET_LENGTHS: Record<ServerPacketId, number> = {
     [ServerPacketId.TRADE_OPEN]: -2,
     [ServerPacketId.TRADE_UPDATE]: -2,
     [ServerPacketId.TRADE_CLOSE]: -1,
+    [ServerPacketId.GE_OFFERS_SYNC]: -1,
 
     [ServerPacketId.RUN_CLIENT_SCRIPT]: -2,
 

@@ -35,6 +35,12 @@ import {
 } from "../widgets/minimapOrbs";
 import { getViewportRootInitScripts } from "../widgets/viewport";
 import { ADMIN_CROWN_ICON } from "./AuthenticationService";
+import {
+    ggwpAuthEnabled,
+    isGgwpAdminRights,
+    verifyGgwpAccount,
+} from "../auth/GgwpAccountService";
+import { refreshGgwpMembershipForPlayer } from "../../gamemodes/ggwp/membership";
 import type { RoutedMessage } from "./MessageRouter";
 import { PlayerSyncSession } from "./PlayerSyncSession";
 import { handleExaminePacket as handleExaminePacketFn } from "./handlers/examineHandler";
@@ -71,6 +77,7 @@ interface HandshakeAppearance {
  */
 export class LoginHandshakeService {
     private readonly pendingLoginNames = new WeakMap<WebSocket, string>();
+    private readonly pendingLoginRights = new WeakMap<WebSocket, string>();
 
     constructor(private readonly svc: ServerServices) {}
 
@@ -130,6 +137,13 @@ export class LoginHandshakeService {
         ws: WebSocket,
         payload: { username?: string; password?: string; revision?: number },
     ): void {
+        void this.handleLoginMessageAsync(ws, payload);
+    }
+
+    private async handleLoginMessageAsync(
+        ws: WebSocket,
+        payload: { username?: string; password?: string; revision?: number },
+    ): Promise<void> {
         const { username, password, revision } = payload;
         const normalizedUsername = (username || "").trim().toLowerCase();
 
@@ -187,7 +201,36 @@ export class LoginHandshakeService {
             return;
         }
 
-        // All checks passed - login successful
+        // 6. ggwp.dk Postgres account (when enabled)
+        if (ggwpAuthEnabled()) {
+            const auth = await verifyGgwpAccount(username ?? "", password ?? "");
+            if (!auth.ok) {
+                sendLoginError(3, auth.message);
+                return;
+            }
+            if (isGgwpAdminRights(auth.rights)) {
+                this.svc.authService.registerSessionAdmin(auth.displayName);
+            }
+            this.setPendingLoginName(ws, auth.displayName);
+            this.pendingLoginRights.set(ws, auth.rights);
+            this.svc.networkLayer.withDirectSendBypass("login_response", () =>
+                this.svc.networkLayer.sendWithGuard(
+                    ws,
+                    encodeMessage({
+                        type: "login_response",
+                        payload: {
+                            success: true,
+                            displayName: auth.displayName,
+                        },
+                    }),
+                    "login_response",
+                ),
+            );
+            logger.info(`Login successful (ggwp): ${auth.displayName}`);
+            return;
+        }
+
+        // All checks passed - login successful (open server)
         const displayName = (username ?? "").slice(0, 12);
         this.setPendingLoginName(ws, displayName);
         this.svc.networkLayer.withDirectSendBypass("login_response", () =>
@@ -246,6 +289,12 @@ export class LoginHandshakeService {
                     logger.warn("[handshake] failed to close socket", err);
                 }
                 return;
+            }
+
+            const loginRights = this.pendingLoginRights.get(ws);
+            if (loginRights) {
+                p.gamemodeState.set("ggwp:rights", loginRights);
+                this.pendingLoginRights.delete(ws);
             }
             {
                 p.widgets.setDispatcher((action) => {
@@ -360,6 +409,13 @@ export class LoginHandshakeService {
                 this.svc.varpSyncService.sendSavedAutocastTransmitVarbits(ws, p);
                 this.svc.varpSyncService.sendSavedSpellbookState(ws, p);
                 this.svc.varpSyncService.syncAccountTypeVarbit(ws, p);
+                if (this.svc.gamemode.id === "ggwp") {
+                    void refreshGgwpMembershipForPlayer(this.svc, ws, p);
+                }
+                // Defer friend/ignore sync until after login loading completes so batched
+                // packets cannot interfere with critical handshake/player_sync delivery.
+                this.svc.friendsService?.scheduleSyncToPlayer(p);
+                this.svc.friendsService?.notifyFriendPresenceChanged(p);
                 const sideJournalState = this.svc.gamemodeUi.normalizeSideJournalState(p);
                 this.svc.networkLayer.withDirectSendBypass("varp", () =>
                     this.svc.networkLayer.sendWithGuard(
@@ -962,6 +1018,7 @@ export class LoginHandshakeService {
                         player,
                         "The other player has declined the trade.",
                     );
+                    this.svc.friendsService?.notifyFriendPresenceChanged(player);
                     if (id !== undefined) {
                         this.svc.widgetDialogHandler!.cleanupPlayerDialogState(id);
                     }

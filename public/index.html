@@ -31,6 +31,22 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>xRSPS</title>
+    <script>
+      (function () {
+        var ua = navigator.userAgent || "";
+        var isIos =
+          /iPad|iPhone|iPod/.test(ua) ||
+          (ua.indexOf("Macintosh") >= 0 && navigator.maxTouchPoints >= 1);
+        if (!isIos) return;
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            regs.forEach(function (reg) {
+              reg.unregister();
+            });
+          });
+        }
+      })();
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

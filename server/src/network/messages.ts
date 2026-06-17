@@ -200,6 +200,8 @@ export const TradeAction = {
     Decline: "decline",
     ConfirmAccept: "confirm_accept",
     ConfirmDecline: "confirm_decline",
+    AcceptRequest: "accept_request",
+    DeclineRequest: "decline_request",
 } as const;
 export type TradeAction = (typeof TradeAction)[keyof typeof TradeAction];
 
@@ -215,7 +217,9 @@ export type TradeActionClientPayload =
     | { action: typeof TradeAction.Accept }
     | { action: typeof TradeAction.Decline }
     | { action: typeof TradeAction.ConfirmAccept }
-    | { action: typeof TradeAction.ConfirmDecline };
+    | { action: typeof TradeAction.ConfirmDecline }
+    | { action: typeof TradeAction.AcceptRequest; fromPlayerId: number }
+    | { action: typeof TradeAction.DeclineRequest; fromPlayerId: number };
 
 export type GroundItemActionPayload = {
     stackId: number;
@@ -390,6 +394,19 @@ export type CollectionLogServerPayload = {
     slots: CollectionLogSlotMessage[];
 };
 
+export type GeOfferSlotMessage = {
+    slot: number;
+    type: 0 | 1 | 2;
+    itemId: number;
+    quantity: number;
+    quantityTraded: number;
+    priceEach: number;
+};
+
+export type GeOffersServerPayload = {
+    slots: GeOfferSlotMessage[];
+};
+
 export type ServerToClient =
     | { type: "welcome"; payload: { tickMs: number; serverTime: number } }
     | { type: "tick"; payload: { tick: number; time: number } }
@@ -445,6 +462,7 @@ export type ServerToClient =
       }
     | { type: "widget"; payload: WidgetServerPayload }
     | { type: "shop"; payload: ShopServerPayload }
+    | { type: "ge_offers"; payload: GeOffersServerPayload }
     | { type: "ground_items"; payload: GroundItemsServerPayload }
     | { type: "trade"; payload: TradeServerPayload }
     | {
@@ -467,6 +485,24 @@ export type ServerToClient =
               from?: string;
               prefix?: string;
               text: string;
+          };
+      }
+    | {
+          type: "friend_list";
+          payload: {
+              friends: Array<{
+                  name: string;
+                  previousName: string;
+                  world: number;
+                  rank: number;
+                  isOnline: boolean;
+              }>;
+          };
+      }
+    | {
+          type: "ignore_list";
+          payload: {
+              ignores: Array<{ name: string; previousName: string }>;
           };
       }
     | {
@@ -677,6 +713,18 @@ export type ClientToServer =
           };
       }
     | {
+          type: "social_friend";
+          payload: { action: "add" | "del"; name: string };
+      }
+    | {
+          type: "social_ignore";
+          payload: { action: "add" | "del"; name: string };
+      }
+    | {
+          type: "social_private_message";
+          payload: { recipient: string; text: string };
+      }
+    | {
           type: "debug";
           payload:
               | { kind: "projectiles_request"; requestId?: number }
@@ -876,6 +924,12 @@ function encodeMessageToBinaryDirect(msg: ServerToClient): Uint8Array {
                 payload.playerId,
             );
 
+        case "friend_list":
+            return serverEncoder.encodeFriendList(payload.friends);
+
+        case "ignore_list":
+            return serverEncoder.encodeIgnoreList(payload.ignores);
+
         case "sound":
             return serverEncoder.encodeSound(
                 payload.soundId,
@@ -984,6 +1038,9 @@ function encodeMessageToBinaryDirect(msg: ServerToClient): Uint8Array {
 
         case "shop":
             return encodeShopToBinary(payload);
+
+        case "ge_offers":
+            return serverEncoder.encodeGeOffersSync(payload.slots ?? []);
 
         case "trade":
             return encodeTradeToBinary(payload);

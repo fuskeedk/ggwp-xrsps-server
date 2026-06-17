@@ -152,8 +152,13 @@ const FALLBACK_SERVERS: ServerListEntry[] = [
     },
 ];
 
-const SERVER_LIST_URL = "https://xrsps.com/servers.json";
+const GGWP_REGISTER_URL = "https://ggwp.dk/osrs/register";
+const GGWP_LAUNCHER_URL = "https://ggwp.dk/downloads/osrs/index.html";
 
+const SERVER_LIST_URL =
+    (typeof window !== "undefined" ? window.location.origin : "") + "/servers.json";
+
+export { GGWP_REGISTER_URL, GGWP_LAUNCHER_URL };
 /**
  * Login screen renderer.
  * Instance-based class that renders login screens based on LoginState.
@@ -1169,6 +1174,8 @@ export class LoginRenderer {
                 return this.handleBannedClick(x, y);
             case LoginIndex.OK_MESSAGE:
                 return this.handleOkMessageClick(x, y);
+            case LoginIndex.DOWNLOAD_LAUNCHER:
+                return this.handleDownloadLauncherClick(x, y);
             default:
                 return undefined;
         }
@@ -1374,6 +1381,16 @@ export class LoginRenderer {
 
     private handleOkMessageClick(x: number, y: number): LoginAction | undefined {
         if (this.isButtonHit(x, y, this.loginBoxX + 180, 301)) {
+            return LoginActions.BACK;
+        }
+        return undefined;
+    }
+
+    private handleDownloadLauncherClick(x: number, y: number): LoginAction | undefined {
+        if (this.isButtonHit(x, y, this.loginBoxX + 180, 276)) {
+            return LoginActions.DOWNLOAD_LAUNCHER;
+        }
+        if (this.isButtonHit(x, y, this.loginBoxX + 180, 326)) {
             return LoginActions.BACK;
         }
         return undefined;
@@ -2031,7 +2048,7 @@ export class LoginRenderer {
         this.drawCenteredText(
             ctx,
             this.fontBold12,
-            "Welcome to xRSPS",
+            "Welcome to GGWP",
             this.loginBoxX + 180,
             251,
             0xffff00,
@@ -2539,7 +2556,7 @@ export class LoginRenderer {
         this.drawCenteredText(
             ctx,
             this.fontBold12,
-            "Welcome to xRSPS",
+            "Welcome to GGWP",
             this.loginBoxX + 180,
             209,
             0xffff00,

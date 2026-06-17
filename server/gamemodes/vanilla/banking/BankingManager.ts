@@ -969,6 +969,64 @@ export class BankingManager implements BankingProvider {
     }
 
     /**
+     * Deposit every inventory slot that holds the given item (Deposit-All).
+     */
+    depositAllMatchingInventoryItems(
+        player: PlayerState,
+        itemId: number,
+        opts?: { itemIdHint?: number; tab?: number },
+    ): BankOperationResult {
+        if (!Number.isFinite(itemId) || itemId <= 0) {
+            return { ok: false };
+        }
+        const hint = opts?.itemIdHint;
+        if (hint !== undefined && hint > 0 && hint !== itemId) {
+            return { ok: false, message: "That item is no longer in your inventory." };
+        }
+
+        const inv = this.services.getInventory(player);
+        const tabNormalized =
+            opts?.tab !== undefined && Number.isFinite(opts.tab) && opts.tab! > 0
+                ? Math.max(0, opts.tab as number)
+                : undefined;
+
+        let moved = false;
+        let bankFull = false;
+
+        for (let slot = 0; slot < inv.length; slot++) {
+            const entry = inv[slot];
+            if (!entry || entry.itemId !== itemId || entry.quantity <= 0) continue;
+
+            const amount = entry.quantity;
+            if (!this.addItemToBank(player, entry.itemId, amount, tabNormalized)) {
+                bankFull = true;
+                break;
+            }
+
+            entry.itemId = -1;
+            entry.quantity = 0;
+            moved = true;
+        }
+
+        if (bankFull) {
+            return {
+                ok: moved,
+                message: moved ? undefined : "Your bank is full.",
+            };
+        }
+
+        if (moved) {
+            this.services.sendInventorySnapshot(player.id);
+            this.queueBankSnapshot(player);
+            if (tabNormalized !== undefined && tabNormalized > 0) {
+                this.sendBankTabVarbits(player);
+            }
+        }
+
+        return { ok: moved };
+    }
+
+    /**
      * Deposit item to a specific bank slot (drag and drop).
      *
      * @param bankSlot - Client slot index (reorganized by tab order)
@@ -1206,14 +1264,18 @@ export class BankingManager implements BankingProvider {
             return { ok: false, message: resolved.message ?? "You can't withdraw that item." };
         }
 
-        const result = this.services.addItemToInventory(
-            player,
-            resolved.itemId,
-            removal.quantity,
-        );
-        if (result.added <= 0) {
+        const addResult = player.items.addItem(resolved.itemId, removal.quantity, {
+            assureFullInsertion: false,
+        });
+        const added = addResult.completed;
+        if (added <= 0) {
             this.restoreBankSlot(player, serverSlot, removal.itemId, removal.quantity);
             return { ok: false, message: "You don't have enough inventory space." };
+        }
+
+        const remainder = removal.quantity - added;
+        if (remainder > 0) {
+            this.restoreBankSlot(player, serverSlot, removal.itemId, remainder);
         }
 
         this.normalizeBankTabs(player);
@@ -1224,7 +1286,13 @@ export class BankingManager implements BankingProvider {
         // (e.g., removing last item from a tab without placeholder mode)
         this.sendBankTabVarbits(player);
 
-        return { ok: true };
+        return {
+            ok: true,
+            message:
+                remainder > 0
+                    ? "You don't have enough inventory space to withdraw that many."
+                    : undefined,
+        };
     }
 
     // ========================================================================

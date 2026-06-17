@@ -736,10 +736,12 @@ export class MusicSystem {
             if (isOggVorbis(audioData)) {
                 try {
                     audioBuf = await decodeOggVorbisToAudioBuffer(audioData, this.context);
-                    if (mySequence !== this.loadSequence) return false;
-                    console.log(
-                        `[MusicSystem] Decoded track ${trackId} via WASM Vorbis (${audioData.length} bytes)`,
-                    );
+                    if (audioBuf) {
+                        if (mySequence !== this.loadSequence) return false;
+                        console.log(
+                            `[MusicSystem] Decoded track ${trackId} via WASM Vorbis (${audioData.length} bytes)`,
+                        );
+                    }
                 } catch (e) {
                     if (mySequence !== this.loadSequence) return false;
                     console.warn(`[MusicSystem] WASM Vorbis decode failed for track ${trackId}`, e);

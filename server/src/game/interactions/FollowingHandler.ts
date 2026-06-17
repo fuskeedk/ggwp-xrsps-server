@@ -19,6 +19,7 @@ import { FollowInteractionKind, FollowInteractionState, PlayerInteractionState }
 
 export interface FollowingCallbacks {
     onTradeHandshake?: (initiator: PlayerState, target: PlayerState, tick: number) => void;
+    onTradeUnreachable?: (player: PlayerState) => void;
     onStopAutoAttack?: (playerId: number) => void;
     onInterruptSkillActions?: (playerId: number) => void;
 }
@@ -458,6 +459,11 @@ export class FollowingHandler {
                 this.interactions.delete(ws);
                 me.clearInteraction();
                 me.clearPath();
+                try {
+                    this.callbacks.onTradeUnreachable?.(me);
+                } catch (err) {
+                    logger.warn("[interaction] trade unreachable callback failed", err);
+                }
             }
         }
     }

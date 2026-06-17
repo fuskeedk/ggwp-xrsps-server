@@ -16,14 +16,14 @@ import {
     removeCacheManifestEntry,
     writeCacheManifestEntry,
 } from "../util/CacheManifest";
-import { isIos, isStandaloneDisplayMode, isTouchDevice } from "../util/DeviceUtil";
+import { isIos, isIosSafari, isStandaloneDisplayMode, isTouchDevice } from "../util/DeviceUtil";
 import {
     describeStorageShortfall,
     ensurePersistentStorage,
     getStorageBudget,
     hasEnoughStorage,
 } from "../util/StorageUtil";
-import { fetchCacheList, loadCacheFiles } from "./Caches";
+import { fetchCacheList, getRequiredIndexIds, loadCacheFiles, loadIndexFile } from "./Caches";
 import { GameContainer } from "./GameContainer";
 import { getAvailableRenderers } from "./GameRenderers";
 import { OsrsClient } from "./OsrsClient";
@@ -162,7 +162,8 @@ function OsrsClientApp() {
     // Two workers build maps in parallel — halves total grid load time.
     // Progressive rendering shows each map as it arrives, no main-thread freeze.
     const workerCount = useMemo(() => {
-        return 2;
+        // iOS: one worker avoids memory pressure from duplicate cache in workers.
+        return isIos ? 1 : 2;
     }, []);
 
     const workerPool = useMemo(() => RenderDataWorkerPool.create(workerCount), [workerCount]);
@@ -292,8 +293,20 @@ function OsrsClientApp() {
                     client.setDownloadProgress(progress.current, progress.total, progress.label);
                 },
                 extraIndexIds,
-                false, // Load all indices upfront for worker compatibility
+                isIos, // On iOS: download dat2 first, then indices one-by-one
             );
+
+            if (isIos) {
+                const indexIds = [
+                    ...getRequiredIndexIds(cacheInfo),
+                    ...extraIndexIds.filter((id) => !getRequiredIndexIds(cacheInfo).includes(id)),
+                ];
+                for (let i = 0; i < indexIds.length; i++) {
+                    const indexId = indexIds[i];
+                    client.setDownloadProgress(i, indexIds.length, `Loading index ${indexId}`);
+                    await loadIndexFile(cache, indexId, abortController.signal);
+                }
+            }
 
             // ========== Ensure renderer is ready before loading ==========
             // Wait for React to render GameContainer/Canvas and for renderer to initialize

@@ -1,17 +1,13 @@
-const serviceWorkerBase =
-    typeof process !== "undefined" && process.env ? process.env.PUBLIC_URL : "";
-const SERVICE_WORKER_URL = `${serviceWorkerBase ?? ""}/service-worker.js`;
-
 export function registerServiceWorker(): void {
     const isProd = typeof process !== "undefined" && process.env?.NODE_ENV === "production";
     if (!isProd) return;
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
 
-    window.addEventListener("load", () => {
-        navigator.serviceWorker.register(SERVICE_WORKER_URL).catch((err) => {
-            console.warn("[sw] registration failed", err);
-        });
-    });
+    // Never register a service worker — legacy SW caused iOS cache/stream failures.
+    navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) => Promise.all(registrations.map((reg) => reg.unregister())))
+        .catch(() => {});
 }
 
 export function unregisterServiceWorker(): void {

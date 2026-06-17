@@ -1,5 +1,8 @@
 import type { PlayerState } from "../../../src/game/player";
+import { SkillId } from "../../../../src/rs/skill/skills";
 import { type IScriptRegistry, type ScriptServices } from "../../../src/game/scripts/types";
+import { skillCapeForSkill } from "../skillCapes/skillCapes";
+import { startSkillCapeExplanation } from "../skillCapes/skillCapePurchases";
 
 const AUBURY_NPC_TYPE_IDS = [2886, 11434];
 const COMBAT_PATH_VOUCHER_ITEM_ID = 24131;
@@ -70,27 +73,22 @@ function openAuburyStandardOptions(
                     const options = buildOptions();
                     const selected = options[choice];
                     switch (selected) {
-                        case "Can you tell me about your cape?":
-                            openNpcDialog(
-                                player,
-                                services,
-                                `${dialogBaseId}_cape_info`,
-                                npcTypeId,
-                                "Aubury",
-                                [
-                                    "Certainly! Skillcapes are a symbol of achievement.",
-                                    "Only people who have mastered a skill and reached level 99 can get their hands on them and gain the benefits they carry.",
-                                    "The Cape of Runecrafting has been upgraded with each talisman, allowing you to access all Runecrafting altars. Is there anything else I can help you with?",
-                                ],
-                                () =>
-                                    openAuburyStandardOptions(
-                                        player,
-                                        services,
-                                        npcTypeId,
-                                        canTeleport,
-                                    ),
+                        case "Can you tell me about your cape?": {
+                            const cape = skillCapeForSkill(SkillId.Runecraft);
+                            if (!cape) break;
+                            startSkillCapeExplanation(
+                                {
+                                    player,
+                                    services,
+                                    base: `${dialogBaseId}_cape`,
+                                    npcName: "Aubury",
+                                },
+                                cape,
+                                "The Cape of Runecrafting lets you access any runic altar without talismans or tiaras. Only someone who has achieved the highest possible level in a skill can wear one.",
+                                () => openAuburyStandardOptions(player, services, npcTypeId, canTeleport),
                             );
                             break;
+                        }
                         case "I'd like to view your store please.":
                         case "Yes please!":
                             services.shopping?.openShop?.(player, { npcTypeId });

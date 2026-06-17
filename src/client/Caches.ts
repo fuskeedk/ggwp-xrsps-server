@@ -2,10 +2,14 @@ import { CacheFiles, ProgressListener } from "../rs/cache/CacheFiles";
 import { CacheInfo, getLatestCache } from "../rs/cache/CacheInfo";
 import { CacheType, detectCacheType } from "../rs/cache/CacheType";
 import { IndexType } from "../rs/cache/IndexType";
+import { isIos } from "../util/DeviceUtil";
 
 const CACHE_PATH = "/caches/";
 
 function shouldSkipDat2MainCacheWrite(): boolean {
+    if (isIos) {
+        return true;
+    }
     if (typeof navigator === "undefined") return false;
     const ua = navigator.userAgent || "";
     const vendor = navigator.vendor || "";
@@ -89,9 +93,10 @@ export async function loadCacheFiles(
     const xteasPromise = fetchXteas(cachePath + "keys.json", signal);
 
     const cacheType = detectCacheType(info);
-    // Use SharedArrayBuffer only when it's truly available and the context is isolated.
     const useSharedArrayBuffer =
-        typeof SharedArrayBuffer !== "undefined" && globalThis.crossOriginIsolated === true;
+        !isIos &&
+        typeof SharedArrayBuffer !== "undefined" &&
+        globalThis.crossOriginIsolated === true;
     let files: CacheFiles;
     if (cacheType === "dat2") {
         // Safari/WebKit can crash tab processes when writing huge dat2 blobs to CacheStorage.
@@ -158,7 +163,9 @@ export async function loadIndexFile(
 ): Promise<ArrayBuffer | null> {
     const cachePath = CACHE_PATH + cache.info.name + "/";
     const useSharedArrayBuffer =
-        typeof SharedArrayBuffer !== "undefined" && globalThis.crossOriginIsolated === true;
+        !isIos &&
+        typeof SharedArrayBuffer !== "undefined" &&
+        globalThis.crossOriginIsolated === true;
 
     const indexName = getIndexName(indexId);
 

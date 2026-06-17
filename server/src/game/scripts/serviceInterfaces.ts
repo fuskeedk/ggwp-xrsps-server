@@ -142,6 +142,11 @@ export interface BankingServices {
         quantity: number,
         opts?: { itemIdHint?: number; tab?: number },
     ) => { ok: boolean; message?: string };
+    depositAllMatchingInventoryItems?: (
+        player: PlayerState,
+        itemId: number,
+        opts?: { itemIdHint?: number; tab?: number },
+    ) => { ok: boolean; message?: string };
     withdrawFromBankSlot?: (
         player: PlayerState,
         slotIndex: number,

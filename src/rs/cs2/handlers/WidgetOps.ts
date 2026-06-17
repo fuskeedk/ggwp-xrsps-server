@@ -2264,7 +2264,6 @@ export function registerWidgetOps(handlers: HandlerMap): void {
         const scrollX = ctx.intStack[ctx.intStackSize];
         const scrollY = ctx.intStack[ctx.intStackSize + 1];
         const w = getTargetWidget(ctx, intOp);
-        if (w && ctx.widgetManager.isServerOwnedWidget(w.uid)) return;
         if (w) {
             // scroll clamping uses the widget's current computed width/height.
             ensureWidgetLayout(ctx, w);
@@ -2285,7 +2284,6 @@ export function registerWidgetOps(handlers: HandlerMap): void {
         const scrollX = ctx.intStack[ctx.intStackSize];
         const scrollY = ctx.intStack[ctx.intStackSize + 1];
         const w = ctx.widgetManager.getWidgetByUid(uid);
-        if (w && ctx.widgetManager.isServerOwnedWidget(uid)) return;
         if (w) {
             // scroll clamping uses the widget's current computed width/height.
             ensureWidgetLayout(ctx, w);
@@ -2303,7 +2301,6 @@ export function registerWidgetOps(handlers: HandlerMap): void {
         const width = ctx.intStack[ctx.intStackSize];
         const height = ctx.intStack[ctx.intStackSize + 1];
         const w = getTargetWidget(ctx, intOp);
-        if (w && ctx.widgetManager.isServerOwnedWidget(w.uid)) return;
         if (w) {
             const sizeChanged = w.scrollWidth !== width || w.scrollHeight !== height;
             if (sizeChanged) {
@@ -2331,7 +2328,6 @@ export function registerWidgetOps(handlers: HandlerMap): void {
         const width = ctx.intStack[ctx.intStackSize];
         const height = ctx.intStack[ctx.intStackSize + 1];
         const w = ctx.widgetManager.getWidgetByUid(uid);
-        if (w && ctx.widgetManager.isServerOwnedWidget(uid)) return;
         if (w) {
             const sizeChanged = w.scrollWidth !== width || w.scrollHeight !== height;
             if (sizeChanged) {

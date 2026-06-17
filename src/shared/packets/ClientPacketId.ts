@@ -78,6 +78,9 @@ export const enum ClientPacketId {
     RESUME_NAMEDIALOG = 193,
     RESUME_STRINGDIALOG = 194,
     MAP_EDIT = 195,
+    SOCIAL_FRIEND = 196,
+    SOCIAL_IGNORE = 197,
+    SOCIAL_PRIVATE_MESSAGE = 198,
 }
 
 /**
@@ -129,6 +132,10 @@ export const CLIENT_PACKET_LENGTHS: Record<ClientPacketId, number> = {
     [ClientPacketId.RESUME_NAMEDIALOG]: -1, // value(string)
     [ClientPacketId.RESUME_STRINGDIALOG]: -1, // value(string)
     [ClientPacketId.MAP_EDIT]: -1, // action(1) + tile(4) + level/type/rotation/id(var)
+
+    [ClientPacketId.SOCIAL_FRIEND]: -1,
+    [ClientPacketId.SOCIAL_IGNORE]: -1,
+    [ClientPacketId.SOCIAL_PRIVATE_MESSAGE]: -1,
 
     [ClientPacketId.DEBUG]: -2,
 };

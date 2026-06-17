@@ -137,6 +137,7 @@ import type { TickFrame, TickPhaseOrchestrator } from "./tick";
 import type { GameTicker } from "./ticker";
 // ── Game – trade ────────────────────────────────────────────────────────────
 import type { TradeManager } from "./trade/TradeManager";
+import type { FriendsService } from "./social/FriendsService";
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -219,6 +220,7 @@ export interface ServerServices {
     projectileSystem?: ProjectileSystem;
     movementSystem?: MovementSystem;
     tradeManager?: TradeManager;
+    friendsService?: FriendsService;
     followerManager?: FollowerManager;
     followerCombatManager?: FollowerCombatManager;
     interfaceService?: InterfaceService;

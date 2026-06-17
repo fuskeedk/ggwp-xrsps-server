@@ -14,8 +14,11 @@ import {
     sendInventoryUseOn,
     sendNpcInteract,
     sendPlayerDesignConfirm,
+    sendTradeAcceptRequest,
+    sendTradeDeclineRequest,
     sendVarpTransmit,
     sendWidgetAction,
+    sendWidgetActionMessage,
     sendWidgetClose,
     sendWidgetDrag,
     setClientCycleProvider,
@@ -25,8 +28,10 @@ import {
     subscribeCollectionLog,
     subscribeCombat,
     subscribeDisconnect,
+    subscribeFriendList,
     subscribeGroundItems,
     subscribeHandshake,
+    subscribeIgnoreList,
     subscribeInventory,
     subscribeNotifications,
     subscribeNpcInfo,
@@ -67,6 +72,8 @@ import {
     sendLogout,
     sendResumeNameDialog,
     sendResumeStringDialog,
+    sendTradeOffer,
+    sendTradeRemove,
     subscribeLogoutResponse,
     suppressReconnection,
 } from "../network/ServerConnection";
@@ -241,6 +248,7 @@ import {
     getTransmitCycles,
     isTransmitProcessingNeeded,
     markChatTransmit,
+    markFriendTransmit,
     markInvTransmit,
     markMiscTransmit,
     markStatTransmit,
@@ -260,6 +268,11 @@ import { NpcEcs } from "./ecs/NpcEcs";
 import { PlayerEcs } from "./ecs/PlayerEcs";
 import { TileHighlightManager } from "./highlights/TileHighlightManager";
 import { PlayerInteractionSystem } from "./interactions/PlayerInteractionSystem";
+import {
+    TRADE_MAIN_INTERFACE,
+    TRADE_SIDE_INTERFACE,
+    TradeBridge,
+} from "./trade/TradeBridge";
 import { IProjectileManager } from "./interfaces/IProjectileManager";
 import {
     GameState,
@@ -267,11 +280,14 @@ import {
     LoginErrorCode,
     LoginIndex,
     LoginRenderer,
+    GGWP_REGISTER_URL,
+    GGWP_LAUNCHER_URL,
     LoginState,
     isLoginMusicState,
     shouldFadeOutLoginMusicForTransition,
     shouldStartScheduledLoginMusic,
 } from "./login";
+import type { FriendEntry, IgnoreEntry } from "../rs/cs2/handlers/HandlerTypes";
 import { NpcMovementSync } from "./movement/NpcMovementSync";
 import { PlayerMovementSync } from "./movement/PlayerMovementSync";
 import { createBrowserGroundItemsPluginPersistence } from "./plugins/grounditems/BrowserGroundItemsPluginPersistence";
@@ -361,6 +377,34 @@ const VARBIT_POPOUT_OPEN = 13090;
 const VARBIT_POPOUT_PANEL_DESKTOP_DISABLED = 13982;
 const ACCOUNT_TYPE_MAIN = 0;
 const SCRIPT_HIGHLIGHT_SCREEN_COMPONENT = 2463;
+const SCRIPT_CHATBOX_OPEN_INPUT = 2251;
+/** OSRS meslayer count dialog (RSMod mesLayerMode7 / countDialog). */
+const SCRIPT_MESLAYER_COUNT_DIALOG = 108;
+
+/** OSRS chatbox interface group — trade request accept/decline meslayer. */
+const CHATBOX_INTERFACE_GROUP = 162;
+/** MES_LAYER container inside chatbox (hidden until a meslayer flow is active). */
+const CHATBOX_MES_LAYER_CHILD = 54;
+const CHATBOX_MES_LAYER_UID = (CHATBOX_INTERFACE_GROUP << 16) | CHATBOX_MES_LAYER_CHILD;
+const TRADE_ACCEPT_CHAT_TEXT = "<col=0000ff>Accept trade</col>";
+const TRADE_DECLINE_CHAT_TEXT = "<col=0000ff>Decline trade</col>";
+
+function stripChatTags(value: string): string {
+    return value.replace(/<[^>]+>/g, "").trim();
+}
+
+function activateCountInputDialog(
+    vm: { inputDialogType: number; inputDialogWidgetId: number; inputDialogString: string },
+    varManager: { setVarcString: (id: number, value: string) => void },
+    prompt: string,
+    onPromptSet?: (prompt: string) => void,
+): void {
+    vm.inputDialogType = 1;
+    vm.inputDialogWidgetId = -1;
+    vm.inputDialogString = "";
+    varManager.setVarcString(335, "");
+    onPromptSet?.(prompt);
+}
 const SCRIPT_HIGHLIGHT_TEXTBOX_DEFAULT = 2465;
 
 const ITEM_SPAWNER_SCROLLBAR_INIT_SCRIPT_ID = 31;
@@ -750,9 +794,15 @@ export class OsrsClient {
     // Pending widget action for input dialogs (Withdraw-X, Deposit-X, etc.)
     // When a CS2 script opens an input dialog, the widget action is deferred until dialog completion
     private pendingInputDialogAction: {
-        payload: any;
+        payload?: any;
         option: string;
+        trade?: { kind: "offer" | "remove"; slot: number; itemId?: number };
     } | null = null;
+    private countInputPrompt = "Enter amount";
+    private countInputChatUid: number | null = null;
+    private pendingTradeRequest: { fromPlayerId: number; fromName: string } | null = null;
+    private tradeRequestOptionUids: number[] = [];
+    private lastTradeRequestFromId: number | null = null;
     private itemSpawnerSearchFocused: boolean = false;
     private itemSpawnerSearchQuery: string = "";
     private itemSpawnerSearchIndex?: CacheItemSearchIndex;
@@ -773,6 +823,8 @@ export class OsrsClient {
     private clientTickLastNowMs: number = 0;
     private clientTickAccumulatedMs: number = 0;
     private loginMusicStartTimer?: ReturnType<typeof setTimeout>;
+    private loadingGameTimeoutTimer?: ReturnType<typeof setTimeout>;
+    private mapLoadingMarkedFromSync: boolean = false;
 
     // Appearance is server-driven; no client defaults.
 
@@ -837,6 +889,11 @@ export class OsrsClient {
     collectionInventory: Inventory = new Inventory(2048);
     /** Shop stock inventory (ID 516) - stores shop items for CS2 inv queries */
     shopInventory: Inventory = new Inventory(40);
+    /** Your trade offer inventory (ID 149). */
+    tradeSelfInventory: Inventory = new Inventory(28);
+    /** Other player's trade offer inventory (INVOTHER map key 150 + 32768). */
+    tradeOtherInventory: Inventory = new Inventory(28);
+    private tradeBridge!: TradeBridge;
     private inventorySeededFromServer: boolean = false;
 
     // Track last layout dimensions to avoid re-running layout every frame
@@ -917,6 +974,10 @@ export class OsrsClient {
     private unsubscribePathDebug?: () => void;
     private unsubscribeGroundItems?: () => void;
     private unsubscribeChatMessages?: () => void;
+    private unsubscribeFriendList?: () => void;
+    private unsubscribeIgnoreList?: () => void;
+    private readonly friendListEntries: FriendEntry[] = [];
+    private readonly ignoreListEntries: IgnoreEntry[] = [];
     private unsubscribeSkills?: () => void;
     private unsubscribeRunEnergy?: () => void;
     private unsubscribeNotifications?: () => void;
@@ -1270,15 +1331,18 @@ export class OsrsClient {
         inventoriesMap.set(95, this.bankInventory); // Bank
         inventoriesMap.set(516, this.shopInventory); // Shop stock
         inventoriesMap.set(620, this.collectionInventory); // collection_transmit
+        if (this.tradeBridge) {
+            this.tradeBridge.registerInventories(inventoriesMap);
+        }
 
         this.cs2Vm = new Cs2Vm({
             widgetManager: this.widgetManager,
             varManager: this.varManager,
             objTypeLoader: this.objTypeLoader,
             inventories: inventoriesMap,
-            // Initialize empty social lists (will be populated by server)
-            friendList: [],
-            ignoreList: [],
+            // Initialize empty social lists (populated by server friend_list / ignore_list)
+            friendList: this.friendListEntries,
+            ignoreList: this.ignoreListEntries,
             clanMembers: [],
             clanName: "",
             clanOwner: "",
@@ -1321,6 +1385,9 @@ export class OsrsClient {
             getRunEnergy: () => {
                 // Return 0-10000 units as expected by CS2 opcodes
                 return self.runEnergyUnits;
+            },
+            getStaffModLevel: () => {
+                return self.localPlayerIsAdmin ? 2 : 0;
             },
             getIdleTimerRemainingMs: () => {
                 return self.inputManager.getIdleLogoutRemainingMs();
@@ -1776,6 +1843,20 @@ export class OsrsClient {
             // Callback for cc_resume_pausebutton / if_resume_pausebutton
             // Sends RESUME_PAUSEBUTTON packet to server for dialog continuation
             sendResumePauseButton: (widgetUid: number, childIndex: number) => {
+                const pending = self.pendingTradeRequest;
+                if (pending) {
+                    const group = (widgetUid >>> 16) & 0xffff;
+                    if (group === CHATBOX_INTERFACE_GROUP) {
+                        if (childIndex === 1) {
+                            sendTradeDeclineRequest(pending.fromPlayerId);
+                        } else {
+                            sendTradeAcceptRequest(pending.fromPlayerId);
+                        }
+                        self.clearTradeRequestMeslayer();
+                        return;
+                    }
+                }
+
                 let w = self.widgetManager?.getWidgetByUid(widgetUid);
                 if (
                     w &&
@@ -1854,15 +1935,35 @@ export class OsrsClient {
         this.cs2Vm.onInputDialogComplete = (type, value) => {
             console.log(`[InputDialog] Complete: type=${type}, value=${value}`);
             if (type === "count") {
+                this.clearCountInputChatLine();
                 const raw = typeof value === "number" ? value : parseInt(String(value), 10) || 0;
                 const amount = Number.isFinite(raw)
                     ? Math.max(-2147483648, Math.min(2147483647, raw | 0))
                     : 0;
+
+                const pending = this.pendingInputDialogAction;
+                if (pending?.trade) {
+                    const tradeAction = pending.trade;
+                    this.pendingInputDialogAction = null;
+                    if (amount > 0) {
+                        if (tradeAction.kind === "offer") {
+                            sendTradeOffer(
+                                tradeAction.slot | 0,
+                                tradeAction.itemId ?? 0,
+                                amount,
+                            );
+                        } else {
+                            sendTradeRemove(tradeAction.slot | 0, amount);
+                        }
+                    }
+                    return;
+                }
+
                 sendBankCustomQuantity(amount);
 
                 // If there's a pending widget action (e.g., Withdraw-X), send it now
-                if (this.pendingInputDialogAction) {
-                    const { payload, option } = this.pendingInputDialogAction;
+                if (pending?.payload) {
+                    const { payload, option } = pending;
                     this.pendingInputDialogAction = null;
                     console.log(
                         `[InputDialog] Sending deferred ${option} action with quantity ${amount}`,
@@ -1872,6 +1973,8 @@ export class OsrsClient {
                     } catch (err) {
                         console.warn("[InputDialog] Deferred widget action failed", err);
                     }
+                } else if (pending) {
+                    this.pendingInputDialogAction = null;
                 }
             } else if (type === "name") {
                 const text = String(value ?? "");
@@ -2135,6 +2238,33 @@ export class OsrsClient {
         });
         this.npcMovementSync = new NpcMovementSync(this.npcEcs);
         this.widgetSessionManager = new WidgetSessionManager();
+        this.tradeBridge = new TradeBridge({
+            tradeSelfInventory: this.tradeSelfInventory,
+            tradeOtherInventory: this.tradeOtherInventory,
+            widgetSessionManager: this.widgetSessionManager,
+            inventory: this.inventory,
+            promptTradeQuantity: (request) => {
+                this.pendingInputDialogAction = {
+                    option: request.kind === "offer" ? "offer-x" : "remove-x",
+                    trade: {
+                        kind: request.kind,
+                        slot: request.slot | 0,
+                        itemId: request.itemId,
+                    },
+                };
+                this.countInputPrompt = request.prompt ?? "Enter amount";
+                this.beginCountInputDialog(this.countInputPrompt);
+            },
+            invalidateTradeWidgets: () => {
+                this.widgetManager?.invalidateAll();
+            },
+            onTradeRequest: (fromName, fromPlayerId) => {
+                this.showTradeRequestMeslayer(fromName, fromPlayerId | 0);
+            },
+            onTradeSessionOpen: () => {
+                this.clearTradeRequestMeslayer();
+            },
+        });
         this.unsubscribeWidgetEvents = subscribeWidgetEvents((payload) => {
             if (payload.action !== "set_text" && (payload as any).uid !== 10616865) {
                 console.log("[OsrsClient] widget event", payload);
@@ -2173,6 +2303,12 @@ export class OsrsClient {
                             // Notify server when user closes the widget
                             if (reason === "user") {
                                 sendWidgetClose(payload.groupId);
+                            }
+                            if (
+                                (payload.groupId | 0) === TRADE_MAIN_INTERFACE ||
+                                (payload.groupId | 0) === TRADE_SIDE_INTERFACE
+                            ) {
+                                this.tradeBridge.handleTradeCloseByUser(payload.groupId | 0);
                             }
                         },
                     });
@@ -2606,6 +2742,17 @@ export class OsrsClient {
                             if (this.widgetManager) {
                                 this.widgetManager.invalidateAll();
                             }
+                            if (
+                                (scriptId === SCRIPT_CHATBOX_OPEN_INPUT ||
+                                    scriptId === SCRIPT_MESLAYER_COUNT_DIALOG) &&
+                                this.varManager
+                            ) {
+                                const prompt =
+                                    scriptId === SCRIPT_MESLAYER_COUNT_DIALOG
+                                        ? stringArgs[0] || "Enter amount"
+                                        : "Enter level";
+                                this.beginCountInputDialog(prompt);
+                            }
                         } catch (err) {
                             console.error(
                                 `[OsrsClient] run_script error for script ${scriptId}:`,
@@ -2793,6 +2940,18 @@ export class OsrsClient {
             ) => {
                 this.cs2Vm?.context?.onNotificationDisplay?.(title, message, color | 0);
             };
+        } catch {}
+        try {
+            this.unsubscribeFriendList = subscribeFriendList((friends) => {
+                this.friendListEntries.length = 0;
+                this.friendListEntries.push(...friends);
+                markFriendTransmit();
+            });
+            this.unsubscribeIgnoreList = subscribeIgnoreList((ignores) => {
+                this.ignoreListEntries.length = 0;
+                this.ignoreListEntries.push(...ignores);
+                markFriendTransmit();
+            });
         } catch {}
         // Subscribe to loot notifications and display via CS2 notification system
         try {
@@ -3215,6 +3374,7 @@ export class OsrsClient {
                         ? frame.localIndex | 0
                         : this.lastPlayerSyncLocalIndex;
                     this.playerSyncManager.handleFrame(frame);
+                    this.tryMarkMapLoadedFromPlayerSync();
                 } catch (err) {
                     console.warn("[OsrsClient] player_sync frame error", err);
                 }
@@ -3266,6 +3426,7 @@ export class OsrsClient {
                     console.warn("shop update dispatch failed", err);
                 }
             });
+            this.tradeBridge.start();
             this.unsubscribeGroundItems = subscribeGroundItems((payload) => {
                 try {
                     this.groundItems.update(payload);
@@ -4070,6 +4231,10 @@ export class OsrsClient {
         /** 1-based submenu entry index when invoked from an op submenu */
         opSubIndex?: number;
     }): void {
+        if (this.tryHandlePendingTradeChatClick(event)) {
+            return;
+        }
+
         // for dynamic children (CC_CREATE), the click packet identifies the parent widget
         // plus a childIndex ("slot"). Our menu/hit-test layers sometimes surface the parent widget with
         // `slot` set to the dynamic child index. For CS2, we must execute onOp/onClick on the DYNAMIC
@@ -4137,12 +4302,22 @@ export class OsrsClient {
         }
 
         // PlayerDesign (679): handle locally (appearance changes are client-side).
-        // The interface widgets themselves are largely CS2-driven containers; server should only
-        // receive the final selection, not each arrow click.
         if ((groupId | 0) === 679) {
             if (this.handlePlayerDesignWidgetAction(childId | 0)) {
                 return;
             }
+        }
+
+        if (
+            this.tradeBridge.handleWidgetAction(
+                groupId | 0,
+                childId | 0,
+                event.option,
+                typeof event.slot === "number" ? event.slot : undefined,
+                typeof event.itemId === "number" ? event.itemId : undefined,
+            )
+        ) {
+            return;
         }
 
         if (w) {
@@ -4706,13 +4881,8 @@ export class OsrsClient {
                 const result = this.cs2Vm.runScriptEvent(scriptEvent);
                 console.log(`[handleWidgetAction] Script execution result: ${result}`);
 
-                // Manually enable key input capture (opcode 3138 sets inputDialogType=0 which allows all widgets to receive input)
-                this.cs2Vm.inputDialogType = 0;
-                this.cs2Vm.inputDialogString = "";
-                this.varManager.setVarcString(335, "");
-                console.log(
-                    `[handleWidgetAction] inputDialogType set to: ${this.cs2Vm.inputDialogType}`,
-                );
+                // Manually enable key input capture for quantity prompts.
+                this.beginCountInputDialog("Enter amount");
             }
             return;
         }
@@ -4754,10 +4924,23 @@ export class OsrsClient {
                 }
             }
 
-            sendWidgetAction(payload);
+            this.dispatchWidgetActionToServer(payload, widgetGroupId);
         } catch (err) {
             console.warn("[OsrsClient] widget action dispatch failed", err);
         }
+    }
+
+    private dispatchWidgetActionToServer(
+        payload: WidgetActionClientPayload,
+        widgetGroupId?: number,
+    ): void {
+        const groupId = widgetGroupId ?? (((payload.widgetId ?? 0) >>> 16) & 0xffff);
+        const isBankInterface = groupId === 12 || groupId === 15;
+        if (isBankInterface && payload.option) {
+            sendWidgetActionMessage(payload);
+            return;
+        }
+        sendWidgetAction(payload);
     }
 
     private runClientScriptWithInts(scriptId: number, args: number[]): void {
@@ -4787,6 +4970,114 @@ export class OsrsClient {
                     return value;
             }
         });
+    }
+
+    private refreshCountInputChatLine(): void {
+        const typed = this.cs2Vm.inputDialogString;
+        const text =
+            typed.length > 0 ? `${this.countInputPrompt}: ${typed}_` : `${this.countInputPrompt}_`;
+        if (this.countInputChatUid !== null) {
+            if (!chatHistory.updateMessageText(this.countInputChatUid, text)) {
+                this.countInputChatUid = chatHistory.addMessage("game", text);
+            }
+            return;
+        }
+        this.countInputChatUid = chatHistory.addMessage("game", text);
+    }
+
+    private clearCountInputChatLine(): void {
+        if (this.countInputChatUid === null) {
+            return;
+        }
+        chatHistory.removeMessage(this.countInputChatUid);
+        this.countInputChatUid = null;
+    }
+
+    private clearTradeRequestMeslayer(): void {
+        for (const uid of this.tradeRequestOptionUids) {
+            chatHistory.removeMessage(uid);
+        }
+        this.tradeRequestOptionUids = [];
+        this.pendingTradeRequest = null;
+        this.lastTradeRequestFromId = null;
+        this.setChatboxMesLayerVisible(false);
+        markChatTransmit();
+    }
+
+    private setChatboxMesLayerVisible(visible: boolean): void {
+        const wm = this.widgetManager;
+        if (!wm) return;
+        const mesLayer = wm.getWidgetByUid(CHATBOX_MES_LAYER_UID);
+        if (!mesLayer) return;
+        const hidden = !visible;
+        if (mesLayer.hidden === hidden && mesLayer.isHidden === hidden) return;
+        mesLayer.hidden = hidden;
+        mesLayer.isHidden = hidden;
+        if (hidden) {
+            wm.invalidateWidgetRender(mesLayer, "trade-meslayer-hide");
+        } else {
+            wm.invalidateWidget(mesLayer, "trade-meslayer-show");
+            markWidgetsLoaded();
+        }
+    }
+
+    private tryHandlePendingTradeChatClick(event: {
+        widget?: any;
+        option?: string;
+    }): boolean {
+        const pending = this.pendingTradeRequest;
+        if (!pending) return false;
+
+        const candidates: string[] = [];
+        if (event.option) candidates.push(stripChatTags(event.option));
+        const widget = event.widget;
+        if (widget) {
+            for (const field of ["text", "opBase", "dataText", "buttonText", "name"] as const) {
+                const value = widget[field];
+                if (typeof value === "string" && value.length > 0) {
+                    candidates.push(stripChatTags(value));
+                }
+            }
+        }
+
+        for (const raw of candidates) {
+            const normalized = raw.toLowerCase();
+            if (normalized === "accept trade" || normalized === "accept") {
+                sendTradeAcceptRequest(pending.fromPlayerId);
+                this.clearTradeRequestMeslayer();
+                return true;
+            }
+            if (normalized === "decline trade" || normalized === "decline") {
+                sendTradeDeclineRequest(pending.fromPlayerId);
+                this.clearTradeRequestMeslayer();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private showTradeRequestMeslayer(fromName: string, fromPlayerId: number): void {
+        if (this.lastTradeRequestFromId === fromPlayerId) {
+            return;
+        }
+        this.clearTradeRequestMeslayer();
+        this.lastTradeRequestFromId = fromPlayerId;
+        this.pendingTradeRequest = { fromPlayerId, fromName };
+
+        // Server sends "<name> wishes to trade with you." on the trade channel.
+        // OSRS shows blue meslayer links on the All tab — use game messages so they are visible everywhere.
+        this.setChatboxMesLayerVisible(true);
+        this.tradeRequestOptionUids.push(chatHistory.addMessage(0, TRADE_ACCEPT_CHAT_TEXT, ""));
+        this.tradeRequestOptionUids.push(chatHistory.addMessage(0, TRADE_DECLINE_CHAT_TEXT, ""));
+        markChatTransmit();
+    }
+
+    private beginCountInputDialog(prompt: string): void {
+        this.countInputPrompt = prompt;
+        activateCountInputDialog(this.cs2Vm, this.varManager, prompt, (nextPrompt) => {
+            this.countInputPrompt = nextPrompt;
+        });
+        this.refreshCountInputChatLine();
     }
 
     private runWidgetScopedClientScript(
@@ -6866,6 +7157,15 @@ export class OsrsClient {
                         // Non-draggable widgets: Fire onClick immediately on press
                         const meslayerBeforePrimaryClick =
                             this.widgetManager?.meslayerContinueWidget ?? null;
+                        if (
+                            this.tryHandlePendingTradeChatClick({
+                                widget: w,
+                                option: primaryAction?.option,
+                            })
+                        ) {
+                            this.clickedWidgetHandled = true;
+                            break;
+                        }
                         const clickCtx: Partial<ScriptEvent> = {
                             mouseX: this.clickedWidgetX,
                             mouseY: this.clickedWidgetY,
@@ -7340,50 +7640,62 @@ export class OsrsClient {
                 const sourceGroupId = (w.uid >>> 16) & 0xffff;
                 const sourceSlot = (w as any).childIndex ?? -1;
 
-                if (sourceGroupId === 149 && sourceSlot >= 0) {
-                    // Prefer OSRS-style targeting via draggedOnWidget (destination slot widget).
-                    const targetSlotFromWidget = (dragTarget as any)?.childIndex;
+                if (
+                    (sourceGroupId === 149 || sourceGroupId === TRADE_SIDE_INTERFACE) &&
+                    sourceSlot >= 0
+                ) {
                     const targetGroupId = dragTarget ? (dragTarget.uid >>> 16) & 0xffff : -1;
                     if (
-                        typeof targetSlotFromWidget === "number" &&
-                        targetGroupId === 149 &&
-                        targetSlotFromWidget >= 0 &&
-                        targetSlotFromWidget < 28
+                        this.tradeBridge.isTradeOpen() &&
+                        (targetGroupId === TRADE_MAIN_INTERFACE ||
+                            targetGroupId === TRADE_SIDE_INTERFACE)
                     ) {
-                        const targetSlot = targetSlotFromWidget | 0;
-                        if (targetSlot !== sourceSlot) {
-                            this.handleInventorySlotMove(sourceSlot, targetSlot);
-                        }
+                        const sourceItemId = (w as any).itemId ?? -1;
+                        this.tradeBridge.handleInventoryDragToTrade(sourceSlot, sourceItemId);
                     } else {
-                        // Fallback: derive slot from mouse position (legacy behaviour, less accurate).
-                        const invContainer = this.widgetManager.getWidgetByUid(9764864); // 149 << 16
-                        const firstSlot = invContainer?.children?.[0];
+                        // Prefer OSRS-style targeting via draggedOnWidget (destination slot widget).
+                        const targetSlotFromWidget = (dragTarget as any)?.childIndex;
                         if (
-                            invContainer &&
-                            firstSlot &&
-                            invContainer._absX !== undefined &&
-                            invContainer._absY !== undefined
+                            typeof targetSlotFromWidget === "number" &&
+                            targetGroupId === 149 &&
+                            targetSlotFromWidget >= 0 &&
+                            targetSlotFromWidget < 28
                         ) {
-                            const gridOriginX = invContainer._absX + (firstSlot.x || 0);
-                            const gridOriginY = invContainer._absY + (firstSlot.y || 0);
-                            const relX = mx - gridOriginX;
-                            const relY = my - gridOriginY;
-                            const slotWidth = 42; // 36px slot + 6px gap
-                            const slotHeight = 36; // 32px slot + 4px gap
-                            const cols = 4;
-                            const rows = 7;
+                            const targetSlot = targetSlotFromWidget | 0;
+                            if (targetSlot !== sourceSlot) {
+                                this.handleInventorySlotMove(sourceSlot, targetSlot);
+                            }
+                        } else {
+                            // Fallback: derive slot from mouse position (legacy behaviour, less accurate).
+                            const invContainer = this.widgetManager.getWidgetByUid(9764864); // 149 << 16
+                            const firstSlot = invContainer?.children?.[0];
+                            if (
+                                invContainer &&
+                                firstSlot &&
+                                invContainer._absX !== undefined &&
+                                invContainer._absY !== undefined
+                            ) {
+                                const gridOriginX = invContainer._absX + (firstSlot.x || 0);
+                                const gridOriginY = invContainer._absY + (firstSlot.y || 0);
+                                const relX = mx - gridOriginX;
+                                const relY = my - gridOriginY;
+                                const slotWidth = 42; // 36px slot + 6px gap
+                                const slotHeight = 36; // 32px slot + 4px gap
+                                const cols = 4;
+                                const rows = 7;
 
-                            const col = Math.floor(relX / slotWidth);
-                            const row = Math.floor(relY / slotHeight);
+                                const col = Math.floor(relX / slotWidth);
+                                const row = Math.floor(relY / slotHeight);
 
-                            if (col >= 0 && col < cols && row >= 0 && row < rows) {
-                                const targetSlot = row * cols + col;
-                                if (
-                                    targetSlot !== sourceSlot &&
-                                    targetSlot >= 0 &&
-                                    targetSlot < 28
-                                ) {
-                                    this.handleInventorySlotMove(sourceSlot, targetSlot);
+                                if (col >= 0 && col < cols && row >= 0 && row < rows) {
+                                    const targetSlot = row * cols + col;
+                                    if (
+                                        targetSlot !== sourceSlot &&
+                                        targetSlot >= 0 &&
+                                        targetSlot < 28
+                                    ) {
+                                        this.handleInventorySlotMove(sourceSlot, targetSlot);
+                                    }
                                 }
                             }
                         }
@@ -7522,21 +7834,20 @@ export class OsrsClient {
                             );
                             // Update VarC string 335 (chatbox input) for CS2 scripts to read
                             this.varManager.setVarcString(335, this.cs2Vm.inputDialogString);
-                            // Update display
-                            chatHistory.addMessage(
-                                "game",
-                                `Enter amount: ${this.cs2Vm.inputDialogString}_`,
-                            );
+                            this.refreshCountInputChatLine();
                         }
                     } else if (keyEvent.keyTyped === OSRS_KEY_ESCAPE) {
                         // Escape - cancel dialog
+                        if (this.cs2Vm.inputDialogType > 0 && this.cs2Vm.onInputDialogComplete) {
+                            this.cs2Vm.onInputDialogComplete("count", -1);
+                        }
                         this.cs2Vm.inputDialogType = 0;
                         this.cs2Vm.inputDialogWidgetId = -1;
                         this.cs2Vm.inputDialogString = "";
                         this.varManager.setVarcString(335, "");
+                        this.clearCountInputChatLine();
                         // Clear any pending widget action since user cancelled
                         if (this.pendingInputDialogAction) {
-                            chatHistory.addMessage("game", "Input cancelled.");
                             console.log("[InputDialog] Cancelled, clearing pending action");
                             this.pendingInputDialogAction = null;
                         }
@@ -7551,19 +7862,24 @@ export class OsrsClient {
                             this.cs2Vm.onInputDialogComplete("count", value);
                         } else if (this.pendingInputDialogAction) {
                             // No input but pending action - cancel
-                            chatHistory.addMessage("game", "No amount entered.");
                             this.pendingInputDialogAction = null;
+                        } else if (this.cs2Vm.inputDialogType > 0 && this.cs2Vm.onInputDialogComplete) {
+                            this.cs2Vm.onInputDialogComplete("count", -1);
                         }
                         // Clear dialog state
                         this.cs2Vm.inputDialogType = 0;
                         this.cs2Vm.inputDialogWidgetId = -1;
                         this.cs2Vm.inputDialogString = "";
                         this.varManager.setVarcString(335, "");
+                        this.clearCountInputChatLine();
                     } else if (keyEvent.keyPressed > 0) {
                         // Regular character input - only accept digits for quantity dialogs
                         const char = String.fromCharCode(keyEvent.keyPressed);
-                        // For bank quantity dialogs, only accept digits
-                        if (this.pendingInputDialogAction && !/^\d$/.test(char)) {
+                        // For bank quantity dialogs, only accept digits for quantity prompts
+                        if (
+                            (this.pendingInputDialogAction || this.cs2Vm.inputDialogType > 0) &&
+                            !/^\d$/.test(char)
+                        ) {
                             continue; // Skip non-digit characters
                         }
                         // Limit input length (OSRS limits vary by dialog type, 12 for counts, 80 for names)
@@ -7572,11 +7888,7 @@ export class OsrsClient {
                             this.cs2Vm.inputDialogString += char;
                             // Update VarC string 335 for CS2 scripts to read
                             this.varManager.setVarcString(335, this.cs2Vm.inputDialogString);
-                            // Update display
-                            chatHistory.addMessage(
-                                "game",
-                                `Enter amount: ${this.cs2Vm.inputDialogString}_`,
-                            );
+                            this.refreshCountInputChatLine();
                         }
                     }
                 }
@@ -7810,7 +8122,8 @@ export class OsrsClient {
         if (option.length) payload.option = option;
         if (target.length) payload.target = target;
         const opId =
-            event.opIndex ?? this.inferWidgetOpId(widget, option.length ? option : undefined);
+            event.opIndex ??
+            this.resolveWidgetOpIdForAction(widget, option.length ? option : undefined);
         if (typeof opId === "number") payload.opId = opId;
         if (typeof event.opSubIndex === "number" && event.opSubIndex >= 1) {
             payload.subOpId = event.opSubIndex | 0;
@@ -8079,6 +8392,16 @@ export class OsrsClient {
             }
         }
         return undefined;
+    }
+
+    private resolveWidgetOpIdForAction(widget: any, option?: string): number | undefined {
+        const direct = this.inferWidgetOpId(widget, option);
+        if (direct !== undefined) return direct;
+        if ((widget?.fileId | 0) !== -1) return undefined;
+        const parentUid = (widget as any)?.parentUid;
+        if (typeof parentUid !== "number" || parentUid === -1) return undefined;
+        const parent = this.widgetManager?.getWidgetByUid?.(parentUid);
+        return parent ? this.inferWidgetOpId(parent, option) : undefined;
     }
 
     setRunMode(on: boolean, force: boolean = false): void {
@@ -9227,6 +9550,7 @@ export class OsrsClient {
         // Setup new state
         if (newState === GameState.LOGIN_SCREEN) {
             this.loginState.networkState = 0;
+            this.cancelLoadingGameTimeout();
             // Reset loading tracker on return to login
             this.loadingTracker.reset();
             // Full reset when returning to login screen (clears chat, vars, transmit cycles)
@@ -9235,10 +9559,12 @@ export class OsrsClient {
             try {
                 this.inputManager.flushInput();
             } catch {}
-            // Apply persisted server URL so sendLogin connects to the right place
-            setServerUrl(
-                `${this.loginState.serverSecure ? "wss" : "ws"}://${this.loginState.serverAddress}`,
-            );
+            void this.loginRenderer.fetchServerList().then(() => {
+                this.applyProductionServerIfNeeded();
+                setServerUrl(
+                    `${this.loginState.serverSecure ? "wss" : "ws"}://${this.loginState.serverAddress}`,
+                );
+            });
         }
 
         if (newState === GameState.CONNECTING) {
@@ -9261,7 +9587,29 @@ export class OsrsClient {
         }
 
         // AFTER transition: set up callbacks that depend on the new state
+        if (newState === GameState.LOGGED_IN) {
+            this.syncSidebarPlugins(true);
+        }
+
         if (newState === GameState.LOADING_GAME) {
+            this.mapLoadingMarkedFromSync = false;
+            this.cancelLoadingGameTimeout();
+            try {
+                (this.renderer as any)?.resetMapLoadingState?.();
+            } catch {}
+
+            // Safety net: never stay stuck on the loading overlay indefinitely.
+            this.loadingGameTimeoutTimer = setTimeout(() => {
+                this.loadingGameTimeoutTimer = undefined;
+                if (this.gameState !== GameState.LOADING_GAME) {
+                    return;
+                }
+                console.warn("[LoadingTracker] Loading timeout — forcing completion");
+                for (const requirement of this.loadingTracker.getPendingRequirements()) {
+                    this.loadingTracker.markComplete(requirement);
+                }
+            }, 10000);
+
             // Set callback for when all requirements are met
             // Use a minimum display time so the loading message is visible
             const minDisplayTime = 500; // ms - minimum time to show "Loading please wait"
@@ -9274,6 +9622,7 @@ export class OsrsClient {
                 // Delay transition to ensure loading message is visible
                 setTimeout(() => {
                     if (this.gameState === GameState.LOADING_GAME) {
+                        this.cancelLoadingGameTimeout();
                         this.updateGameState(GameState.LOGGED_IN);
                     }
                 }, remaining);
@@ -9286,6 +9635,42 @@ export class OsrsClient {
             clearTimeout(this.loginMusicStartTimer);
             this.loginMusicStartTimer = undefined;
         }
+    }
+
+    private cancelLoadingGameTimeout(): void {
+        if (this.loadingGameTimeoutTimer) {
+            clearTimeout(this.loadingGameTimeoutTimer);
+            this.loadingGameTimeoutTimer = undefined;
+        }
+    }
+
+    private tryMarkMapLoadedFromPlayerSync(): void {
+        if (this.gameState !== GameState.LOADING_GAME || this.mapLoadingMarkedFromSync) {
+            return;
+        }
+        if (this.loadingTracker.isRequirementComplete(LoadingRequirement.MAP_DATA_LOADED)) {
+            this.mapLoadingMarkedFromSync = true;
+            return;
+        }
+        const serverId = this.controlledPlayerServerId | 0;
+        if (serverId <= 0) {
+            return;
+        }
+        const ecsIndex = this.playerEcs.getIndexForServerId(serverId);
+        if (ecsIndex === undefined) {
+            return;
+        }
+        const px = this.playerEcs.getX(ecsIndex) | 0;
+        const py = this.playerEcs.getY(ecsIndex) | 0;
+        if (px === 0 && py === 0) {
+            return;
+        }
+        this.mapLoadingMarkedFromSync = true;
+        setTimeout(() => {
+            if (this.gameState === GameState.LOADING_GAME) {
+                this.loadingTracker.markComplete(LoadingRequirement.MAP_DATA_LOADED);
+            }
+        }, 400);
     }
 
     private scheduleLoginMusicStart(delayMs: number): void {
@@ -9473,6 +9858,14 @@ export class OsrsClient {
                 break;
 
             case LoginErrorCode.USE_LAUNCHER:
+                this.loginState.loginIndex = LoginIndex.DOWNLOAD_LAUNCHER;
+                this.loginState.setResponse(
+                    "",
+                    "Please download the launcher",
+                    "to play on this world.",
+                    "",
+                );
+                break;
             case LoginErrorCode.GENERAL_ERROR:
                 this.loginState.loginIndex = LoginIndex.TRY_AGAIN;
                 this.loginState.setResponse("", "Failed to login.", "Please try again.", "");
@@ -9565,9 +9958,18 @@ export class OsrsClient {
     ): "new_user" | "existing_user" | "login" | "cancel" | "connect" | undefined {
         switch (action.type) {
             case "new_user":
-                console.log("[Login] New user clicked - would open registration");
+                if (typeof window !== "undefined") {
+                    window.open(GGWP_REGISTER_URL, "_blank", "noopener,noreferrer");
+                }
                 this.loginState.virtualKeyboardVisible = false;
                 return "new_user";
+
+            case "download_launcher":
+                if (typeof window !== "undefined") {
+                    window.open(GGWP_LAUNCHER_URL, "_blank", "noopener,noreferrer");
+                }
+                this.loginState.virtualKeyboardVisible = false;
+                return undefined;
 
             case "existing_user":
                 this.loginState.promptCredentials();
@@ -9756,6 +10158,37 @@ export class OsrsClient {
             default:
                 return undefined;
         }
+    }
+
+    /**
+     * Attempt auto-login if credentials were provided via URL params (?username=X&password=Y).
+     * Called after loading completes.
+     */
+    private applyProductionServerIfNeeded(): void {
+        const list = this.loginRenderer.serverList;
+        if (!list.length) {
+            return;
+        }
+
+        const isLocalDev =
+            this.loginState.serverAddress === "localhost:43594" ||
+            this.loginState.serverAddress.startsWith("localhost:") ||
+            this.loginState.serverAddress.startsWith("127.0.0.1");
+        const known = list.some((server) => server.address === this.loginState.serverAddress);
+        if (!isLocalDev && known) {
+            return;
+        }
+
+        const server = list[0];
+        if (!server) {
+            return;
+        }
+
+        this.loginState.serverAddress = server.address;
+        this.loginState.serverName = server.name;
+        this.loginState.serverSecure = server.secure;
+        setServerUrl(`${server.secure ? "wss" : "ws"}://${server.address}`);
+        this.loginState.saveLastServer();
     }
 
     /**

@@ -244,6 +244,12 @@ export interface HandlerContext {
     // Run energy (0-10000 internal units)
     getRunEnergy?: () => number;
 
+    /** Staff moderator level for CS2 command scripts (0 = player, 1+ = staff). */
+    getStaffModLevel?: () => number;
+
+    /** Optional hook for RuneLite runelite_callback scripts. */
+    onRuneliteCallback?: (eventName: string) => void;
+
     /**
      * Milliseconds remaining until the client considers the session idle (AFK logout warning timer).
      * Used by `IDLETIMER_GET` (opcode 3328).

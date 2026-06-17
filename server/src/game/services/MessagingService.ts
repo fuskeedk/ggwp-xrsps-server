@@ -37,7 +37,8 @@ export class MessagingService {
             messageType:
                 message.messageType === "public" ||
                 message.messageType === "server" ||
-                message.messageType === "private"
+                message.messageType === "private" ||
+                message.messageType === "trade"
                     ? message.messageType
                     : "game",
         };

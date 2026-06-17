@@ -41,6 +41,8 @@ export interface QuestDefinition {
     name: string;
     /** Quest progress varp */
     varpId: number;
+    /** When varpId is -1, quest progress is tracked via this varbit instead */
+    progressVarbitId?: number;
     /** Varp value once the quest has been started */
     startedValue: number;
     /** Varp value once the quest is complete */

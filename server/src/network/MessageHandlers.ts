@@ -92,6 +92,12 @@ export interface MessageHandlerServices {
         payload: MessagePayload<"trade_action">,
         tick: number,
     ) => void;
+    handleTradeResumePauseButton: (
+        player: PlayerState,
+        widgetId: number,
+        childIndex: number,
+        tick: number,
+    ) => boolean;
 
     // Movement
     setPendingWalkCommand: (
@@ -279,6 +285,7 @@ export interface MessageHandlerServices {
         autoChat?: boolean;
         targetPlayerIds?: number[];
     }) => void;
+    friendsService?: import("../game/social/FriendsService").FriendsService;
     getPublicChatPlayerType: (player: PlayerState) => number;
     eventBus?: import("../game/events/GameEventBus").GameEventBus;
     findScriptCommand: (

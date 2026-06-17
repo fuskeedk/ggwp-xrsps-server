@@ -29,6 +29,7 @@ export type LoginAction =
     | { type: "world_page_right" }
     | { type: "world_sort"; column: number }
     | { type: "toggle_music" }
+    | { type: "download_launcher" }
     | { type: "field_click"; field: number };
 
 /**
@@ -58,6 +59,7 @@ export const LoginActions = {
     WORLD_PAGE_LEFT: { type: "world_page_left" } as const,
     WORLD_PAGE_RIGHT: { type: "world_page_right" } as const,
     TOGGLE_MUSIC: { type: "toggle_music" } as const,
+    DOWNLOAD_LAUNCHER: { type: "download_launcher" } as const,
     FIELD_USERNAME: { type: "field_click", field: 0 } as const,
     FIELD_PASSWORD: { type: "field_click", field: 1 } as const,
 } as const;

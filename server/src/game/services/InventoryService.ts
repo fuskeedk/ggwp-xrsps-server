@@ -37,11 +37,10 @@ export class InventoryService {
         const inv = this.getInventory(p);
         const slotEntry = inv[slotIndex];
         if (!slotEntry || slotEntry.itemId <= 0 || slotEntry.quantity <= 0) return false;
-        slotEntry.quantity = Math.max(0, slotEntry.quantity - 1);
-        if (slotEntry.quantity <= 0) {
-            slotEntry.itemId = -1;
-            slotEntry.quantity = 0;
-        }
+        const nextQuantity = Math.max(0, slotEntry.quantity - 1);
+        const nextItemId = nextQuantity > 0 ? slotEntry.itemId : -1;
+        // Route through setInventorySlot so inventory dirty state is always tracked.
+        this.setInventorySlot(p, slotIndex, nextItemId, nextQuantity);
         return true;
     }
 

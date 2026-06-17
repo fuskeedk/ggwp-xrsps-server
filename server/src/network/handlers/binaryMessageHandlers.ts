@@ -48,6 +48,9 @@ function normalizeActionText(action: string | null | undefined): string | undefi
     return text.length > 0 ? text : undefined;
 }
 
+/** Bank main (12) and bank side (15) inventory ops must not be routed as item actions. */
+const BANK_INTERFACE_GROUP_IDS = new Set([12, 15]);
+
 function resolveInventoryAction(
     actionDef: InventoryActionDef | undefined,
     opId: number,
@@ -104,6 +107,7 @@ function createWidgetActionHandler(services: BinaryHandlerExtServices): MessageH
             widgetId: number;
             groupId?: number;
             buttonNum?: number;
+            opId?: number;
             subOpId?: number;
             slot?: number;
             option?: string;
@@ -111,7 +115,7 @@ function createWidgetActionHandler(services: BinaryHandlerExtServices): MessageH
         };
         const groupId = payload.groupId ?? (payload.widgetId >> 16) & 0xffff;
         const componentId = payload.widgetId & 0xffff;
-        const opId = payload.buttonNum ?? 1;
+        const opId = payload.buttonNum ?? payload.opId ?? 1;
         const subOpId = payload.subOpId;
         const slotVal = payload.slot;
         const hasValidSlot = slotVal !== undefined && slotVal >= 0 && slotVal !== 65535;
@@ -154,7 +158,14 @@ function createWidgetActionHandler(services: BinaryHandlerExtServices): MessageH
         if (groupId === 219) {
             services.getWidgetDialogHandler().handleDialogOptionClick(ctx.ws, player.id, childId);
         } else {
-            if (payload.itemId !== undefined && payload.itemId > 0 && hasValidSlot && opId >= 1) {
+            const isBankInterface = BANK_INTERFACE_GROUP_IDS.has(groupId);
+            if (
+                !isBankInterface &&
+                payload.itemId !== undefined &&
+                payload.itemId > 0 &&
+                hasValidSlot &&
+                opId >= 1
+            ) {
                 const actionDef = getItemActionDef(payload.itemId, services);
                 const resolved = resolveInventoryAction(actionDef, opId, subOpId);
                 if (resolved) {
@@ -271,6 +282,17 @@ function createResumePauseButtonHandler(services: BinaryHandlerExtServices): Mes
             childIndex: number;
         };
         const widgetGroup = (widgetId >> 16) & 0xffff;
+
+        if (
+            services.handleTradeResumePauseButton(
+                player,
+                widgetId,
+                childIndex,
+                services.currentTick(),
+            )
+        ) {
+            return;
+        }
 
         const gamemode = services.getGamemode();
         if (gamemode?.onResumePauseButton?.(player, widgetId, childIndex)) {

@@ -32,6 +32,13 @@ yarn start               # terminal 2
 
 See the [full setup guide](https://xrsps.com/setup) for details.
 
+## GGWP Case Study
+
+If you want to see how a live browser-OSRS deployment is structured, read:
+
+- [`docs/GGWP_SERVER.md`](docs/GGWP_SERVER.md) — GGWP server architecture, deploy flow, persistence, and ops
+- [`GGWP.md`](GGWP.md) — Danish internal operations notes
+
 ---
 
 <p align="center">

@@ -7,10 +7,6 @@ import type {
     ScriptServices,
 } from "../../../../src/game/scripts/types";
 import {
-    MAX_BATCH,
-    MAX_DIALOG_OPTIONS,
-    SKILL_DIALOG_META,
-    type SkillDialogChoice,
     buildMessageEffect,
     buildSkillFailure,
     clampBatchCount,
@@ -188,19 +184,36 @@ export function executeSmeltAction(ctx: ScriptActionHandlerContext): ActionExecu
     return { ok: true, cooldownTicks: delay, groups: ["skill.smelt"], effects };
 }
 
-export function registerSmeltingInteractions(registry: IScriptRegistry, services: ScriptServices) {
-    const requestAction = services.combat.requestAction;
-    const openDialogOptions = services.dialog.openDialogOptions;
-    const closeDialog = services.dialog.closeDialog;
+export function openSmeltingSkillMulti(player: PlayerState, services: ScriptServices, tick?: number): void {
+    const smithLevel = services.skills.getSkill(player, SkillId.Smithing)?.baseLevel ?? 1;
+    const inventory = getInventory(services, player);
+    const craftableRecipes = SMELTING_RECIPES.filter((recipe) => {
+        const available = clampBatchCount(computeSmeltingBatchCount(inventory, recipe));
+        return available > 0 && smithLevel >= recipe.level;
+    });
 
-    const trySmeltRecipe = (
-        player: PlayerState,
+    if (craftableRecipes.length === 0) {
+        const hasAnyOre = SMELTING_RECIPES.some(
+            (recipe) => clampBatchCount(computeSmeltingBatchCount(inventory, recipe)) > 0,
+        );
+        if (!hasAnyOre) {
+            services.messaging.sendGameMessage(player, "You need ores to smelt any bars.");
+            return;
+        }
+        services.messaging.sendGameMessage(
+            player,
+            "You need a higher Smithing level or more ores to smelt bars.",
+        );
+        return;
+    }
+
+    const trySmelt = (
         recipe: SmeltingRecipe,
-        tick?: number,
-        opts?: { desiredCount?: number },
+        desiredCount?: number,
     ) => {
-        const smithLevel = services.skills.getSkill(player, SkillId.Smithing)?.baseLevel ?? 1;
-        if (smithLevel < recipe.level) {
+        const requestAction = services.combat.requestAction;
+        const smithLvl = services.skills.getSkill(player, SkillId.Smithing)?.baseLevel ?? 1;
+        if (smithLvl < recipe.level) {
             services.messaging.sendGameMessage(
                 player,
                 `You need Smithing level ${recipe.level} to smelt that.`,
@@ -216,7 +229,7 @@ export function registerSmeltingInteractions(registry: IScriptRegistry, services
             );
             return;
         }
-        const desired = Math.max(1, Math.min(batch, opts?.desiredCount ?? batch));
+        const desired = Math.max(1, Math.min(batch, desiredCount ?? batch));
         if (services.production?.smeltBars) {
             services.production.smeltBars(player, { recipeId: recipe.id, count: desired });
             return;
@@ -233,76 +246,39 @@ export function registerSmeltingInteractions(registry: IScriptRegistry, services
         );
     };
 
-    registry.registerLocAction("smelt", (event) => {
-        if (services.production?.openSmeltingInterface) {
-            services.production.openSmeltingInterface(event.player);
-            return;
-        }
-        const smithLevel = services.skills.getSkill(event.player, SkillId.Smithing)?.baseLevel ?? 1;
-        const inventory = getInventory(services, event.player);
-        const smeltChoices: SkillDialogChoice<SmeltingRecipe>[] = SMELTING_RECIPES.map((recipe) => {
-            const available = clampBatchCount(computeSmeltingBatchCount(inventory, recipe));
-            const levelMet = smithLevel >= recipe.level;
-            const craftable = levelMet && available > 0;
-            const ready = Math.max(1, Math.min(MAX_BATCH, available));
-            const label = craftable
-                ? `${recipe.name} (${ready}x ready)`
-                : !levelMet
-                  ? `${recipe.name} (Lvl ${recipe.level})`
-                  : `${recipe.name} (${recipe.ingredientsLabel ?? "Need ores"})`;
-            return { recipe, label, craftable, batch: Math.max(1, ready) };
-        });
-        const craftableChoices = smeltChoices.filter((c) => c.craftable);
-        const orderedChoices = craftableChoices
-            .concat(smeltChoices.filter((c) => !c.craftable))
-            .slice(0, MAX_DIALOG_OPTIONS);
-        if (!orderedChoices.length) {
-            services.messaging.sendGameMessage(event.player, "You need ores to smelt any bars.");
-            return;
-        }
-        const meta = SKILL_DIALOG_META.smelt;
-        const openedDialog =
-            openDialogOptions &&
-            openDialogOptions(event.player, {
-                id: meta.id,
-                title: meta.title,
-                modal: true,
-                options: orderedChoices.map((c) => c.label),
-                disabledOptions: orderedChoices.map((c) => !c.craftable),
-                onSelect: (idx) => {
-                    const selected = orderedChoices[idx];
-                    if (!selected) {
-                        services.messaging.sendGameMessage(
-                            event.player,
-                            "You decide not to smelt anything.",
-                        );
-                        return;
-                    }
-                    if (!selected.craftable) {
-                        services.messaging.sendGameMessage(
-                            event.player,
-                            "You can't smelt that yet.",
-                        );
-                        return;
-                    }
-                    closeDialog?.(event.player, meta.id);
-                    trySmeltRecipe(event.player, selected.recipe, event.tick, {
-                        desiredCount: selected.batch,
-                    });
-                },
-            });
-        if (!openedDialog) {
-            const fallback = craftableChoices[0];
-            if (!fallback) {
-                services.messaging.sendGameMessage(
-                    event.player,
-                    "You need more ores to smelt bars.",
-                );
+    if (!services.dialog.openSkillMulti) {
+        trySmelt(craftableRecipes[0]!);
+        return;
+    }
+
+    const maxQuantity = Math.max(
+        ...craftableRecipes.map((recipe) =>
+            clampBatchCount(computeSmeltingBatchCount(inventory, recipe)),
+        ),
+    );
+    services.dialog.openSkillMulti(player, {
+        id: `smelt_skillmulti_${player.id}`,
+        title: "What would you like to make?",
+        products: craftableRecipes.map((recipe) => ({
+            itemId: recipe.outputItemId,
+            label: recipe.name,
+            maxQuantity: clampBatchCount(computeSmeltingBatchCount(inventory, recipe)),
+        })),
+        maxQuantity,
+        defaultQuantity: 1,
+        onSelect: (index, quantity) => {
+            const recipe = craftableRecipes[index];
+            if (!recipe) {
+                services.messaging.sendGameMessage(player, "You decide not to smelt anything.");
                 return;
             }
-            trySmeltRecipe(event.player, fallback.recipe, event.tick, {
-                desiredCount: fallback.batch,
-            });
-        }
+            trySmelt(recipe, Math.max(1, quantity | 0));
+        },
+    });
+}
+
+export function registerSmeltingInteractions(registry: IScriptRegistry, services: ScriptServices) {
+    registry.registerLocAction("smelt", (event) => {
+        openSmeltingSkillMulti(event.player, services, event.tick);
     });
 }

@@ -451,6 +451,39 @@ function mergeStates(
         };
     }
 
+    const socialSource = pick("social");
+    if (socialSource) {
+        const socialOut: NonNullable<PlayerPersistentVars["social"]> = {};
+        if (Array.isArray(socialSource.friends)) {
+            socialOut.friends = socialSource.friends
+                .filter((name): name is string => typeof name === "string" && name.trim().length > 0)
+                .map((name) => name.trim().replace(/_/g, " "));
+        }
+        if (Array.isArray(socialSource.ignores)) {
+            socialOut.ignores = socialSource.ignores
+                .filter((name): name is string => typeof name === "string" && name.trim().length > 0)
+                .map((name) => name.trim().replace(/_/g, " "));
+        }
+        if (socialSource.ranks && typeof socialSource.ranks === "object") {
+            const ranks: Record<string, number> = {};
+            for (const [key, rank] of Object.entries(socialSource.ranks)) {
+                if (typeof rank === "number" && Number.isFinite(rank)) {
+                    ranks[key.toLowerCase()] = rank | 0;
+                }
+            }
+            if (Object.keys(ranks).length > 0) {
+                socialOut.ranks = ranks;
+            }
+        }
+        if (
+            (socialOut.friends && socialOut.friends.length > 0) ||
+            (socialOut.ignores && socialOut.ignores.length > 0) ||
+            socialOut.ranks
+        ) {
+            result.social = socialOut;
+        }
+    }
+
     // Collection log: merge items and category stats from both sources
     const collectionLogSource = pick("collectionLog");
     const sanitizedCollectionLog = sanitizeCollectionLogSnapshot(collectionLogSource);

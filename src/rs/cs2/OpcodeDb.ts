@@ -603,6 +603,7 @@ export function loadOpcodeDbOsrs(_baseDir: string): OpcodeDb {
     add(6524, "mobile_batterylevel");
     add(6525, "mobile_batterycharging");
     add(6526, "mobile_wifiavailable");
+    add(6599, "runelite_callback");
     add(6600, "worldmap_init");
     add(6601, "worldmap_getmapname");
     add(6602, "worldmap_setmap");

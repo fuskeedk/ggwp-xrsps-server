@@ -91,9 +91,14 @@ function getQuestStatus(player: PlayerState, quest: ResolvedQuestListQuest): Que
 
     if (completionEntry.varpId >= 0) {
         const currentValue = player.varps.getVarpValue(completionEntry.varpId);
-        return currentValue >= completionEntry.completionValue
-            ? QUEST_LIST_STATUS_COMPLETE
-            : QUEST_LIST_STATUS_NOT_STARTED;
+        if (currentValue >= completionEntry.completionValue) {
+            return QUEST_LIST_STATUS_COMPLETE;
+        }
+        const startedValue = completionEntry.startedValue ?? 1;
+        if (currentValue >= startedValue) {
+            return QUEST_LIST_STATUS_IN_PROGRESS;
+        }
+        return QUEST_LIST_STATUS_NOT_STARTED;
     }
 
     if (completionEntry.varbitEntries) {

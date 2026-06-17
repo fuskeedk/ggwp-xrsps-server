@@ -69,20 +69,38 @@ function splitArrow(raw: string): { left: string; right: string } | null {
     return { left, right };
 }
 
+function formatTargetNameWithLevel(
+    name: string,
+    combatLevel: number,
+    localPlayerCombatLevel?: number,
+    includeLevel?: boolean,
+): string {
+    let out = name;
+    if (includeLevel && (combatLevel | 0) > 0) {
+        const lp = typeof localPlayerCombatLevel === "number" ? localPlayerCombatLevel | 0 : 0;
+        const tag = lp ? combatLevelColorTag(combatLevel | 0, lp) : colorStartTag(16776960);
+        // Reference (yes, double-space): tag + " " + " (" + "level-" + level + ")"
+        out += `${tag}  (level-${combatLevel | 0})`;
+    }
+    return out;
+}
+
 function formatNpcNameWithLevel(
     name: string,
     npcLevel: number,
     localPlayerCombatLevel?: number,
     includeLevel?: boolean,
 ): string {
-    let out = name;
-    if (includeLevel && (npcLevel | 0) > 0) {
-        const lp = typeof localPlayerCombatLevel === "number" ? localPlayerCombatLevel | 0 : 0;
-        const tag = lp ? combatLevelColorTag(npcLevel | 0, lp) : colorStartTag(16776960);
-        // Reference (yes, double-space): tag + " " + " (" + "level-" + level + ")"
-        out += `${tag}  (level-${npcLevel | 0})`;
-    }
-    return out;
+    return formatTargetNameWithLevel(name, npcLevel, localPlayerCombatLevel, includeLevel);
+}
+
+function formatPlayerNameWithLevel(
+    name: string,
+    combatLevel: number,
+    localPlayerCombatLevel?: number,
+    includeLevel?: boolean,
+): string {
+    return formatTargetNameWithLevel(name, combatLevel, localPlayerCombatLevel, includeLevel);
 }
 
 function appendDebugIdLabel(target: string | undefined, itemId: number | undefined): string | undefined {
@@ -140,7 +158,14 @@ export function osrsTargetLabel(e: OsrsMenuEntry, opts: TargetLabelOptions = {})
                       opts.localPlayerCombatLevel,
                       includeLevels,
                   )
-                : arrow.right;
+                : e.targetType === MenuTargetType.PLAYER
+                  ? formatPlayerNameWithLevel(
+                        arrow.right,
+                        e.targetLevel | 0,
+                        opts.localPlayerCombatLevel,
+                        includeLevels,
+                    )
+                  : arrow.right;
         const right = rightBase.length ? `${colorStartTag(baseColor)}${rightBase}` : "";
         t = left.length && right.length ? `${left} -> ${right}` : `${left}${right}`;
     } else {
@@ -152,7 +177,14 @@ export function osrsTargetLabel(e: OsrsMenuEntry, opts: TargetLabelOptions = {})
                       opts.localPlayerCombatLevel,
                       includeLevels,
                   )
-                : rawName;
+                : e.targetType === MenuTargetType.PLAYER
+                  ? formatPlayerNameWithLevel(
+                        rawName,
+                        e.targetLevel | 0,
+                        opts.localPlayerCombatLevel,
+                        includeLevels,
+                    )
+                  : rawName;
         t = base.length ? `${colorStartTag(baseColor)}${base}` : "";
     }
     if (

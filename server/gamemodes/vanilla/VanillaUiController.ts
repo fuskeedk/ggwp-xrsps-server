@@ -1,10 +1,5 @@
 import {
-    ACCOUNT_SUMMARY_COLLECTION_ACTION_FLAGS,
-    ACCOUNT_SUMMARY_COLLECTION_LOG_CHILD_INDEX,
-    ACCOUNT_SUMMARY_ENTRY_LIST_UID,
     ACCOUNT_SUMMARY_GROUP_ID,
-    ACCOUNT_SUMMARY_PLAYTIME_ACTION_FLAGS,
-    ACCOUNT_SUMMARY_PLAYTIME_CHILD_INDEX,
 } from "../../../src/shared/ui/accountSummary";
 import {
     DIARY_LIST_ENTRY_EVENT_FLAGS,
@@ -32,6 +27,7 @@ import type {
 import type { PlayerState } from "../../src/game/player";
 import { GameframeTab, SCRIPT_FOCUS_TAB } from "../../src/widgets/InterfaceService";
 import { queuePlayerQuestListUi } from "./widgets/questListUi";
+import { queueAccountSummaryEntryFlags } from "./widgets/sideJournalTabSwitch";
 
 function normalizeVanillaSideJournalTab(tab: number): number {
     return tab >= SIDE_JOURNAL_CHARACTER_SUMMARY_TAB && tab <= SIDE_JOURNAL_ACHIEVEMENT_DIARY_TAB
@@ -101,20 +97,7 @@ export class VanillaUiController implements GamemodeUiController {
         }
 
         if (contentGroup === ACCOUNT_SUMMARY_GROUP_ID) {
-            this.bridge.queueWidgetEvent(player.id, {
-                action: "set_flags_range",
-                uid: ACCOUNT_SUMMARY_ENTRY_LIST_UID,
-                fromSlot: ACCOUNT_SUMMARY_COLLECTION_LOG_CHILD_INDEX,
-                toSlot: ACCOUNT_SUMMARY_COLLECTION_LOG_CHILD_INDEX,
-                flags: ACCOUNT_SUMMARY_COLLECTION_ACTION_FLAGS,
-            });
-            this.bridge.queueWidgetEvent(player.id, {
-                action: "set_flags_range",
-                uid: ACCOUNT_SUMMARY_ENTRY_LIST_UID,
-                fromSlot: ACCOUNT_SUMMARY_PLAYTIME_CHILD_INDEX,
-                toSlot: ACCOUNT_SUMMARY_PLAYTIME_CHILD_INDEX,
-                flags: ACCOUNT_SUMMARY_PLAYTIME_ACTION_FLAGS,
-            });
+            queueAccountSummaryEntryFlags(player.id, this.bridge);
         }
     }
 

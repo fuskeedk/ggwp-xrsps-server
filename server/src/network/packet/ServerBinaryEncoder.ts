@@ -697,6 +697,39 @@ export class ServerBinaryEncoder {
         return this.buffer.toPacket(ServerPacketId.CHAT_MESSAGE);
     }
 
+    encodeFriendList(
+        friends: Array<{
+            name: string;
+            previousName: string;
+            world: number;
+            rank: number;
+            isOnline: boolean;
+        }>,
+    ): Uint8Array {
+        this.buffer.reset();
+        this.buffer.writeShort(friends.length);
+        for (const friend of friends) {
+            this.buffer.writeString(friend.name);
+            this.buffer.writeString(friend.previousName);
+            this.buffer.writeShort(friend.world);
+            this.buffer.writeByte(friend.rank);
+            this.buffer.writeByte(friend.isOnline ? 1 : 0);
+        }
+        return this.buffer.toPacket(ServerPacketId.FRIEND_LIST);
+    }
+
+    encodeIgnoreList(
+        ignores: Array<{ name: string; previousName: string }>,
+    ): Uint8Array {
+        this.buffer.reset();
+        this.buffer.writeShort(ignores.length);
+        for (const ignore of ignores) {
+            this.buffer.writeString(ignore.name);
+            this.buffer.writeString(ignore.previousName);
+        }
+        return this.buffer.toPacket(ServerPacketId.IGNORE_LIST);
+    }
+
     // ========================================
     // SOUND
     // ========================================
@@ -1221,6 +1254,30 @@ export class ServerBinaryEncoder {
         this.buffer.writeByte(buyMode ?? 0);
         this.buffer.writeByte(sellMode ?? 0);
         return this.buffer.toPacket(ServerPacketId.SHOP_MODE);
+    }
+
+    encodeGeOffersSync(
+        slots: Array<{
+            slot: number;
+            type: 0 | 1 | 2;
+            itemId: number;
+            quantity: number;
+            quantityTraded: number;
+            priceEach: number;
+        }>,
+    ): Uint8Array {
+        this.buffer.reset();
+        this.buffer.writeByte(Math.min(8, slots.length));
+        for (let i = 0; i < Math.min(8, slots.length); i++) {
+            const entry = slots[i];
+            this.buffer.writeByte(entry.slot | 0);
+            this.buffer.writeByte(entry.type | 0);
+            this.buffer.writeShort(entry.itemId | 0);
+            this.buffer.writeInt(entry.quantity | 0);
+            this.buffer.writeInt(entry.quantityTraded | 0);
+            this.buffer.writeInt(entry.priceEach | 0);
+        }
+        return this.buffer.toPacket(ServerPacketId.GE_OFFERS_SYNC);
     }
 
     // ========================================

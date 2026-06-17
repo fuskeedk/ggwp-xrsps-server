@@ -32,6 +32,7 @@ import {
 import { PlayerCombatState } from "./state/PlayerCombatState";
 import { PlayerEquipmentAccessor } from "./state/PlayerEquipmentAccessor";
 import { PlayerFollowerPersistState } from "./state/PlayerFollowerPersistState";
+import { PlayerSocialState } from "./state/PlayerSocialState";
 import { PlayerInventoryState } from "./state/PlayerInventoryState";
 import {
     type InventoryEntry,
@@ -143,6 +144,8 @@ export interface PlayerFollowerPersistentEntry {
     npcTypeId: number;
 }
 
+import type { PlayerSocialPersistentEntry } from "./state/PlayerSocialState";
+
 export type { CollectionLogUnlockEntry } from "./state/PlayerCollectionLogState";
 
 /**
@@ -208,6 +211,7 @@ export interface PlayerPersistentVars {
         }>;
     };
     follower?: PlayerFollowerPersistentEntry;
+    social?: PlayerSocialPersistentEntry;
     playTimeSeconds?: number;
 }
 
@@ -227,6 +231,8 @@ export class PlayerState extends Actor {
     lastNpcHealthBarScaled: Map<number, Map<number, number>> = new Map();
     /** Composed follower persistence state (pet item/npc tracking) */
     readonly followers = new PlayerFollowerPersistState();
+    /** Friends, ignores, and friend ranks */
+    readonly social = new PlayerSocialState();
     /** Composed skill system (levels, XP, hitpoints, status effects, restoration) */
     readonly skillSystem: PlayerSkillSystem;
 
@@ -466,6 +472,11 @@ export class PlayerState extends Actor {
      */
     queueTask(generatorFn: TaskGenerator<PlayerState>): void {
         this.taskQueue.queueStandard(generatorFn);
+    }
+
+    /** Alias for {@link queueTask} — matches QueueTaskSet.queueStandard naming. */
+    queueStandard(generatorFn: TaskGenerator<PlayerState>): void {
+        this.queueTask(generatorFn);
     }
 
     /**

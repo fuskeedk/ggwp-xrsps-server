@@ -1,4 +1,5 @@
 /// <reference lib="DOM" />
+import { isIos } from "../../util/DeviceUtil";
 import { crc32 } from "../util/Crc32";
 import { CacheType } from "./CacheType";
 import { SectorCluster } from "./store/SectorCluster";
@@ -30,12 +31,59 @@ type StoredResponseRecord = {
 
 let idbDatabasePromise: Promise<IDBDatabase> | undefined;
 let idbInitializationFailureLogged = false;
+let iosLegacyCachePurged = false;
+let iosIdbCachePurged = false;
+
+async function purgeIosIdbCache(): Promise<void> {
+    if (!isIos || iosIdbCachePurged) {
+        return;
+    }
+    iosIdbCachePurged = true;
+    const factory = getIndexedDBFactory();
+    if (!factory) {
+        return;
+    }
+    try {
+        await new Promise<void>((resolve, reject) => {
+            const request = factory.deleteDatabase(IDB_CACHE_DB_NAME);
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+            request.onblocked = () => resolve();
+        });
+    } catch {}
+    idbDatabasePromise = undefined;
+}
+
+async function purgeLegacyCacheStorageOnIos(): Promise<void> {
+    if (!isIos || iosLegacyCachePurged) {
+        return;
+    }
+    iosLegacyCachePurged = true;
+    if (typeof (globalThis as any).caches === "undefined") {
+        return;
+    }
+    try {
+        const cacheNames: string[] = await (globalThis as any).caches.keys();
+        await Promise.allSettled(
+            cacheNames
+                .filter((name) => name.startsWith(CACHE_STORAGE_PREFIX) || name.includes("osrs-typescript"))
+                .map((name) => (globalThis as any).caches.delete(name)),
+        );
+    } catch {}
+}
 
 function resolveCacheKey(cacheName: string): string {
     return `${CACHE_STORAGE_PREFIX}${cacheName}`;
 }
 
 async function openCache(cacheName: string): Promise<CacheLike> {
+    // iOS: skip persistent cache layers — large buffers + IDB cause OOM and corrupt resumes.
+    if (isIos) {
+        await purgeLegacyCacheStorageOnIos();
+        await purgeIosIdbCache();
+        return createMemoryCache(cacheName);
+    }
+
     if (typeof (globalThis as any).caches !== "undefined") {
         return (await (globalThis as any).caches.open(resolveCacheKey(cacheName))) as CacheLike;
     }
@@ -538,7 +586,7 @@ export class CacheFiles {
             baseUrl,
             CacheFiles.DAT2_FILE_NAME,
             shared,
-            true,
+            !isIos,
             cache,
             signal,
             createLabeledListener("Loading data"),
@@ -589,6 +637,37 @@ export class CacheFiles {
                         shared,
                         false,
                         cache,
+                    );
+                    if (indexFile) {
+                        files.set(indexFile.name, indexFile.data);
+                    }
+                } catch (e) {
+                    console.error(`Failed to load index ${indexId}:`, e);
+                }
+            }
+        } else if (isIos && indicesToLoad.length > 0) {
+            const dataFile = await dataFilePromise;
+            if (dataFile) {
+                files.set(dataFile.name, dataFile.data);
+            }
+
+            for (const indexId of indicesToLoad) {
+                if (progressListener) {
+                    progressListener({
+                        total: indicesToLoad.length,
+                        current: indicesToLoad.indexOf(indexId),
+                        part: new Uint8Array(0),
+                        label: `Loading index ${indexId}`,
+                    });
+                }
+                try {
+                    const indexFile = await fetchCachedFile(
+                        baseUrl,
+                        CacheFiles.INDEX_FILE_PREFIX + indexId,
+                        shared,
+                        false,
+                        cache,
+                        signal,
                     );
                     if (indexFile) {
                         files.set(indexFile.name, indexFile.data);
@@ -674,13 +753,22 @@ export type DownloadProgress = {
 
 export type ProgressListener = (progress: DownloadProgress) => void;
 
-function ReadableBufferStream(ab: ArrayBuffer): ReadableStream<Uint8Array> {
-    return new ReadableStream({
-        start(controller) {
-            controller.enqueue(new Uint8Array(ab));
-            controller.close();
-        },
-    });
+function bufferResponse(
+    buffer: ArrayBuffer,
+    init: { status: number; headers: Record<string, string> },
+): Response {
+    return new Response(buffer, init);
+}
+
+function validateCachedFile(name: string, data: ArrayBuffer): void {
+    if (data.byteLength === 0) {
+        throw new Error(`Cache file "${name}" is empty`);
+    }
+    if (name.endsWith(".dat2") && data.byteLength < 1024 * 1024) {
+        throw new Error(
+            `Cache file "${name}" looks truncated (${data.byteLength} bytes)`,
+        );
+    }
 }
 
 async function toBufferParts(
@@ -688,14 +776,50 @@ async function toBufferParts(
     offset: number,
     progressListener?: ProgressListener,
 ): Promise<Uint8Array[]> {
+    const contentLength = offset + Number(response.headers.get("Content-Length") || 0);
+    const parts: Uint8Array[] = [];
+    let currentLength = offset;
+
+    // På iOS Safari: brug altid arrayBuffer() i stedet for streaming
+    // Dette omgår "Unable to convert chunk to Uint8Array" fejlen
+    if (isIos) {
+        if (progressListener) {
+            progressListener({
+                total: contentLength || 1,
+                current: currentLength,
+                part: new Uint8Array(0),
+                label: "Loading data...",
+            });
+        }
+        try {
+            const buffer = await response.arrayBuffer();
+            if (buffer.byteLength === 0) {
+                throw new Error("Empty response body");
+            }
+            const chunk = new Uint8Array(buffer);
+            parts.push(chunk);
+            currentLength += chunk.byteLength;
+
+            if (progressListener) {
+                progressListener({
+                    total: contentLength || currentLength,
+                    current: currentLength,
+                    part: chunk,
+                });
+            }
+        } catch (e) {
+            console.error("[CacheFiles] Failed to read response on iOS:", e);
+            throw e;
+        }
+        return parts;
+    }
+
+    // Andre browsere: brug streaming
     if (!response.body) {
         return [];
     }
-    const contentLength = offset + Number(response.headers.get("Content-Length") || 0);
 
     const reader = response.body.getReader();
-    const parts: Uint8Array[] = [];
-    let currentLength = offset;
 
     if (progressListener) {
         progressListener({
@@ -705,17 +829,43 @@ async function toBufferParts(
         });
     }
 
-    for (let res = await reader.read(); !res.done && res.value; res = await reader.read()) {
-        parts.push(res.value);
-        currentLength += res.value.byteLength;
-        if (progressListener) {
-            progressListener({
-                total: contentLength,
-                current: currentLength,
-                part: res.value,
-            });
+    try {
+        for (let res = await reader.read(); !res.done; res = await reader.read()) {
+            if (!res.value) continue;
+            
+            let chunk: Uint8Array;
+            if (res.value instanceof Uint8Array) {
+                chunk = res.value;
+            } else if (Array.isArray(res.value)) {
+                chunk = new Uint8Array(res.value);
+            } else {
+                const arr = Array.from(res.value as Iterable<number>);
+                chunk = new Uint8Array(arr);
+            }
+            
+            parts.push(chunk);
+            currentLength += chunk.byteLength;
+            
+            if (progressListener) {
+                progressListener({
+                    total: contentLength,
+                    current: currentLength,
+                    part: chunk,
+                });
+            }
+        }
+    } catch (e) {
+        console.warn("[CacheFiles] Error reading stream:", e);
+        // Fallback til arrayBuffer
+        try {
+            const buffer = await response.arrayBuffer();
+            const chunk = new Uint8Array(buffer);
+            parts.push(chunk);
+        } catch (e2) {
+            console.error("[CacheFiles] Failed to read response:", e2);
         }
     }
+    
     return parts;
 }
 
@@ -758,6 +908,9 @@ async function fetchCachedFile(
     cacheWriteOptions: Partial<CacheWriteOptions> = {},
 ): Promise<CachedFile> {
     const { skipFinalCacheWrite = false, keepPartCacheAfterSuccess = false } = cacheWriteOptions;
+    if (isIos) {
+        shared = false;
+    }
 
     const path = baseUrl + name;
     const manifestUrl = path + "/part/manifest";
@@ -766,7 +919,7 @@ async function fetchCachedFile(
         const parts = await toBufferParts(cachedResp, 0, progressListener);
         return {
             name,
-            data: partsToBuffer(parts, shared),
+            data: validateAndReturnCachedFile(name, partsToBuffer(parts, shared)),
         };
     }
     const partUrls: RequestInfo[] = [];
@@ -890,7 +1043,7 @@ async function fetchCachedFile(
 
         const partUrl = path + "/part/?p=" + partCount;
         partUrls.push(partUrl);
-        const partResp = new Response(ReadableBufferStream(partsToBuffer(chunkParts, false)), {
+        const partResp = bufferResponse(partsToBuffer(chunkParts, false), {
             status: 200,
             headers: {
                 "Content-Type": "application/octet-stream",
@@ -945,7 +1098,7 @@ async function fetchCachedFile(
     if (!skipFinalCacheWrite) {
         await cache.put(
             path,
-            new Response(ReadableBufferStream(buffer), {
+            bufferResponse(buffer, {
                 status: 200,
                 headers: {
                     "Content-Type": "application/octet-stream",
@@ -986,6 +1139,11 @@ async function fetchCachedFile(
 
     return {
         name,
-        data: buffer,
+        data: validateAndReturnCachedFile(name, buffer),
     };
+}
+
+function validateAndReturnCachedFile(name: string, buffer: ArrayBuffer): ArrayBuffer {
+    validateCachedFile(name, buffer);
+    return buffer;
 }

@@ -1,0 +1,890 @@
+{
+  "meta": {
+    "generatedAt": "2026-06-16T20:08:09.076Z",
+    "count": 126
+  },
+  "quests": {
+    "below ice mountain": {
+      "varpId": -1,
+      "progressVarbitId": 12063,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_BELOW_ICE_MOUNTAIN"
+    },
+    "demon slayer": {
+      "varpId": -1,
+      "progressVarbitId": 2561,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_DEMON_SLAYER"
+    },
+    "goblin diplomacy": {
+      "varpId": -1,
+      "progressVarbitId": 2378,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_GOBLIN_DIPLOMACY"
+    },
+    "misthalin mystery": {
+      "varpId": -1,
+      "progressVarbitId": 3468,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_MISTHALIN_MYSTERY"
+    },
+    "the corsair curse": {
+      "varpId": -1,
+      "progressVarbitId": 6071,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_CORSAIR_CURSE"
+    },
+    "the ides of milk": {
+      "varpId": -1,
+      "progressVarbitId": 20106,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_IDES_OF_MILK"
+    },
+    "x marks the spot": {
+      "varpId": -1,
+      "progressVarbitId": 8063,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_X_MARKS_THE_SPOT"
+    },
+    "animal magnetism": {
+      "varpId": -1,
+      "progressVarbitId": 3185,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_ANIMAL_MAGNETISM"
+    },
+    "beneath cursed sands": {
+      "varpId": -1,
+      "progressVarbitId": 13841,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_BENEATH_CURSED_SANDS"
+    },
+    "between a rock": {
+      "varpId": -1,
+      "progressVarbitId": 299,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_BETWEEN_A_ROCK"
+    },
+    "contact": {
+      "varpId": -1,
+      "progressVarbitId": 3274,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_CONTACT"
+    },
+    "zogre flesh eaters": {
+      "varpId": -1,
+      "progressVarbitId": 487,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_ZOGRE_FLESH_EATERS"
+    },
+    "darkness of hallowvale": {
+      "varpId": -1,
+      "progressVarbitId": 2573,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_DARKNESS_OF_HALLOWVALE"
+    },
+    "death to the dorgeshuun": {
+      "varpId": -1,
+      "progressVarbitId": 2258,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_DEATH_TO_THE_DORGESHUUN"
+    },
+    "desert treasure i": {
+      "varpId": -1,
+      "progressVarbitId": 358,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_DESERT_TREASURE"
+    },
+    "desert treasure ii the fallen empire": {
+      "varpId": -1,
+      "progressVarbitId": 14862,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_DESERT_TREASURE_II"
+    },
+    "devious minds": {
+      "varpId": -1,
+      "progressVarbitId": 1465,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_DEVIOUS_MINDS"
+    },
+    "eagles' peak": {
+      "varpId": -1,
+      "progressVarbitId": 2780,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_EAGLES_PEAK"
+    },
+    "elemental workshop ii": {
+      "varpId": -1,
+      "progressVarbitId": 2639,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_ELEMENTAL_WORKSHOP_II"
+    },
+    "enlightened journey": {
+      "varpId": -1,
+      "progressVarbitId": 2866,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_ENLIGHTENED_JOURNEY"
+    },
+    "the eyes of glouphrie": {
+      "varpId": -1,
+      "progressVarbitId": 2497,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_EYES_OF_GLOUPHRIE"
+    },
+    "the path of glouphrie": {
+      "varpId": -1,
+      "progressVarbitId": 15288,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_PATH_OF_GLOUPHRIE"
+    },
+    "fairytale i growing pains": {
+      "varpId": -1,
+      "progressVarbitId": 1803,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_FAIRYTALE_I_GROWING_PAINS"
+    },
+    "fairytale ii cure a queen": {
+      "varpId": -1,
+      "progressVarbitId": 2326,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_FAIRYTALE_II_CURE_A_QUEEN"
+    },
+    "the feud": {
+      "varpId": -1,
+      "progressVarbitId": 334,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_FEUD"
+    },
+    "forgettable tale": {
+      "varpId": -1,
+      "progressVarbitId": 822,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_FORGETTABLE_TALE"
+    },
+    "garden of tranquillity": {
+      "varpId": -1,
+      "progressVarbitId": 961,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_GARDEN_OF_TRANQUILLITY"
+    },
+    "ghosts ahoy": {
+      "varpId": -1,
+      "progressVarbitId": 217,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_GHOSTS_AHOY"
+    },
+    "the giant dwarf": {
+      "varpId": -1,
+      "progressVarbitId": 571,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_GIANT_DWARF"
+    },
+    "the golem": {
+      "varpId": -1,
+      "progressVarbitId": 346,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_GOLEM"
+    },
+    "the hand in the sand": {
+      "varpId": -1,
+      "progressVarbitId": 1527,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_HAND_IN_THE_SAND"
+    },
+    "horror from the deep": {
+      "varpId": -1,
+      "progressVarbitId": 34,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_HORROR_FROM_THE_DEEP"
+    },
+    "icthlarin's little helper": {
+      "varpId": -1,
+      "progressVarbitId": 418,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_ICTHLARINS_LITTLE_HELPER"
+    },
+    "in aid of the myreque": {
+      "varpId": -1,
+      "progressVarbitId": 1990,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_IN_AID_OF_THE_MYREQUE"
+    },
+    "land of the goblins": {
+      "varpId": -1,
+      "progressVarbitId": 13599,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_LAND_OF_THE_GOBLINS"
+    },
+    "the lost tribe": {
+      "varpId": -1,
+      "progressVarbitId": 532,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_LOST_TRIBE"
+    },
+    "lunar diplomacy": {
+      "varpId": -1,
+      "progressVarbitId": 2448,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_LUNAR_DIPLOMACY"
+    },
+    "making history": {
+      "varpId": -1,
+      "progressVarbitId": 1383,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_MAKING_HISTORY"
+    },
+    "mountain daughter": {
+      "varpId": -1,
+      "progressVarbitId": 260,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_MOUNTAIN_DAUGHTER"
+    },
+    "mourning's end part ii": {
+      "varpId": -1,
+      "progressVarbitId": 1103,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_MOURNINGS_END_PART_II"
+    },
+    "my arm's big adventure": {
+      "varpId": -1,
+      "progressVarbitId": 2790,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_MY_ARMS_BIG_ADVENTURE"
+    },
+    "ratcatchers": {
+      "varpId": -1,
+      "progressVarbitId": 1404,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_RATCATCHERS"
+    },
+    "recipe for disaster": {
+      "varpId": -1,
+      "progressVarbitId": 1850,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_RECIPE_FOR_DISASTER"
+    },
+    "recipe for disaster freeing the mountain dwarf": {
+      "varpId": -1,
+      "progressVarbitId": 1892,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_RECIPE_FOR_DISASTER_DWARF"
+    },
+    "recipe for disaster freeing the goblin generals": {
+      "varpId": -1,
+      "progressVarbitId": 1867,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_RECIPE_FOR_DISASTER_WARTFACE_AND_BENTNOZE"
+    },
+    "recipe for disaster freeing pirate pete": {
+      "varpId": -1,
+      "progressVarbitId": 1895,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_RECIPE_FOR_DISASTER_PIRATE_PETE"
+    },
+    "recipe for disaster freeing the lumbridge guide": {
+      "varpId": -1,
+      "progressVarbitId": 1896,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_RECIPE_FOR_DISASTER_LUMBRIDGE_GUIDE"
+    },
+    "recipe for disaster freeing evil dave": {
+      "varpId": -1,
+      "progressVarbitId": 1878,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_RECIPE_FOR_DISASTER_EVIL_DAVE"
+    },
+    "recipe for disaster freeing sir amik varze": {
+      "varpId": -1,
+      "progressVarbitId": 1910,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_RECIPE_FOR_DISASTER_SIR_AMIK_VARZE"
+    },
+    "recipe for disaster freeing skrach uglogwee": {
+      "varpId": -1,
+      "progressVarbitId": 1904,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_RECIPE_FOR_DISASTER_SKRACH_UGLOGWEE"
+    },
+    "recipe for disaster freeing king awowogei": {
+      "varpId": -1,
+      "progressVarbitId": 1914,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_RECIPE_FOR_DISASTER_MONKEY_AMBASSADOR"
+    },
+    "recruitment drive": {
+      "varpId": -1,
+      "progressVarbitId": 657,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_RECRUITMENT_DRIVE"
+    },
+    "royal trouble": {
+      "varpId": -1,
+      "progressVarbitId": 2140,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_ROYAL_TROUBLE"
+    },
+    "the slug menace": {
+      "varpId": -1,
+      "progressVarbitId": 2610,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_SLUG_MENACE"
+    },
+    "shadow of the storm": {
+      "varpId": -1,
+      "progressVarbitId": 3330,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_GENERALS_SHADOW"
+    },
+    "spirits of the elid": {
+      "varpId": -1,
+      "progressVarbitId": 1444,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_SPIRITS_OF_THE_ELID"
+    },
+    "swan song": {
+      "varpId": -1,
+      "progressVarbitId": 2098,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_SWAN_SONG"
+    },
+    "a tail of two cats": {
+      "varpId": -1,
+      "progressVarbitId": 1028,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_A_TAIL_OF_TWO_CATS"
+    },
+    "tears of guthix": {
+      "varpId": -1,
+      "progressVarbitId": 451,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_TEARS_OF_GUTHIX"
+    },
+    "wanted": {
+      "varpId": -1,
+      "progressVarbitId": 1051,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_WANTED"
+    },
+    "cold war": {
+      "varpId": -1,
+      "progressVarbitId": 3293,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_COLD_WAR"
+    },
+    "the fremennik isles": {
+      "varpId": -1,
+      "progressVarbitId": 3311,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_FREMENNIK_ISLES"
+    },
+    "tower of life": {
+      "varpId": -1,
+      "progressVarbitId": 3337,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_TOWER_OF_LIFE"
+    },
+    "what lies below": {
+      "varpId": -1,
+      "progressVarbitId": 3523,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_WHAT_LIES_BELOW"
+    },
+    "olaf's quest": {
+      "varpId": -1,
+      "progressVarbitId": 3534,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_OLAFS_QUEST"
+    },
+    "another slice of h a m": {
+      "varpId": -1,
+      "progressVarbitId": 3550,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_ANOTHER_SLICE_OF_HAM"
+    },
+    "dream mentor": {
+      "varpId": -1,
+      "progressVarbitId": 3618,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_DREAM_MENTOR"
+    },
+    "grim tales": {
+      "varpId": -1,
+      "progressVarbitId": 2783,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_GRIM_TALES"
+    },
+    "king's ransom": {
+      "varpId": -1,
+      "progressVarbitId": 3888,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_KINGS_RANSOM"
+    },
+    "monkey madness ii": {
+      "varpId": -1,
+      "progressVarbitId": 5027,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_MONKEY_MADNESS_II"
+    },
+    "client of kourend": {
+      "varpId": -1,
+      "progressVarbitId": 5619,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_CLIENT_OF_KOUREND"
+    },
+    "bone voyage": {
+      "varpId": -1,
+      "progressVarbitId": 5795,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_BONE_VOYAGE"
+    },
+    "the queen of thieves": {
+      "varpId": -1,
+      "progressVarbitId": 6037,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_QUEEN_OF_THIEVES"
+    },
+    "the depths of despair": {
+      "varpId": -1,
+      "progressVarbitId": 6027,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_DEPTHS_OF_DESPAIR"
+    },
+    "dragon slayer ii": {
+      "varpId": -1,
+      "progressVarbitId": 6104,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_DRAGON_SLAYER_II"
+    },
+    "tale of the righteous": {
+      "varpId": -1,
+      "progressVarbitId": 6358,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_TALE_OF_THE_RIGHTEOUS"
+    },
+    "a taste of hope": {
+      "varpId": -1,
+      "progressVarbitId": 6396,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_A_TASTE_OF_HOPE"
+    },
+    "making friends with my arm": {
+      "varpId": -1,
+      "progressVarbitId": 6528,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_MAKING_FRIENDS_WITH_MY_ARM"
+    },
+    "the ascent of arceuus": {
+      "varpId": -1,
+      "progressVarbitId": 7856,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_ASCENT_OF_ARCEUUS"
+    },
+    "the forsaken tower": {
+      "varpId": -1,
+      "progressVarbitId": 7796,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_FORSAKEN_TOWER"
+    },
+    "song of the elves": {
+      "varpId": -1,
+      "progressVarbitId": 9016,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_SONG_OF_THE_ELVES"
+    },
+    "the fremennik exiles": {
+      "varpId": -1,
+      "progressVarbitId": 9459,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_FREMENNIK_EXILES"
+    },
+    "sins of the father": {
+      "varpId": -1,
+      "progressVarbitId": 7255,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_SINS_OF_THE_FATHER"
+    },
+    "a porcine of interest": {
+      "varpId": -1,
+      "progressVarbitId": 10582,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_A_PORCINE_OF_INTEREST"
+    },
+    "getting ahead": {
+      "varpId": -1,
+      "progressVarbitId": 693,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_GETTING_AHEAD"
+    },
+    "a kingdom divided": {
+      "varpId": -1,
+      "progressVarbitId": 12296,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_A_KINGDOM_DIVIDED"
+    },
+    "a night at the theatre": {
+      "varpId": -1,
+      "progressVarbitId": 12276,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_A_NIGHT_AT_THE_THEATRE"
+    },
+    "temple of the eye": {
+      "varpId": -1,
+      "progressVarbitId": 13738,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_TEMPLE_OF_THE_EYE"
+    },
+    "sleeping giants": {
+      "varpId": -1,
+      "progressVarbitId": 13902,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_SLEEPING_GIANTS"
+    },
+    "the garden of death": {
+      "varpId": -1,
+      "progressVarbitId": 14609,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_GARDEN_OF_DEATH"
+    },
+    "secrets of the north": {
+      "varpId": -1,
+      "progressVarbitId": 14722,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_SECRETS_OF_THE_NORTH"
+    },
+    "children of the sun": {
+      "varpId": -1,
+      "progressVarbitId": 9632,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_CHILDREN_OF_THE_SUN"
+    },
+    "defender of varrock": {
+      "varpId": -1,
+      "progressVarbitId": 9655,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_DEFENDER_OF_VARROCK"
+    },
+    "at first light": {
+      "varpId": -1,
+      "progressVarbitId": 9835,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_AT_FIRST_LIGHT"
+    },
+    "perilous moons": {
+      "varpId": -1,
+      "progressVarbitId": 9819,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_PERILOUS_MOONS"
+    },
+    "the ribbiting tale of a lily pad labour dispute": {
+      "varpId": -1,
+      "progressVarbitId": 9844,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_RIBBITING_TALE_OF_A_LILY_PAD_LABOUR_DISPUTE"
+    },
+    "twilight's promise": {
+      "varpId": -1,
+      "progressVarbitId": 9649,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual:VMQ2"
+    },
+    "while guthix sleeps": {
+      "varpId": -1,
+      "progressVarbitId": 9653,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_WHILE_GUTHIX_SLEEPS"
+    },
+    "ethically acquired antiquities": {
+      "varpId": -1,
+      "progressVarbitId": 11193,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_ETHICALLY_ACQUIRED_ANTIQUITIES"
+    },
+    "death on the isle": {
+      "varpId": -1,
+      "progressVarbitId": 11210,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_DEATH_ON_THE_ISLE"
+    },
+    "meat and greet": {
+      "varpId": -1,
+      "progressVarbitId": 11182,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_MEAT_AND_GREET"
+    },
+    "the heart of darkness": {
+      "varpId": -1,
+      "progressVarbitId": 11117,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_HEART_OF_DARKNESS"
+    },
+    "the curse of arrav": {
+      "varpId": -1,
+      "progressVarbitId": 11479,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_CURSE_OF_ARRAV"
+    },
+    "the final dawn": {
+      "varpId": -1,
+      "progressVarbitId": 16663,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_FINAL_DAWN"
+    },
+    "shadows of custodia": {
+      "varpId": -1,
+      "progressVarbitId": 16632,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_SHADOWS_OF_CUSTODIA"
+    },
+    "scrambled": {
+      "varpId": -1,
+      "progressVarbitId": 16758,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_SCRAMBLED"
+    },
+    "pandemonium": {
+      "varpId": -1,
+      "progressVarbitId": 18314,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_PANDEMONIUM"
+    },
+    "prying times": {
+      "varpId": -1,
+      "progressVarbitId": 18317,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_PRYING_TIMES"
+    },
+    "current affairs": {
+      "varpId": -1,
+      "progressVarbitId": 18282,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_CURRENT_AFFAIRS"
+    },
+    "troubled tortugans": {
+      "varpId": -1,
+      "progressVarbitId": 18321,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_TROUBLED_TORTUGANS"
+    },
+    "the red reef": {
+      "varpId": -1,
+      "progressVarbitId": 18335,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_RED_REEF"
+    },
+    "bear your soul": {
+      "varpId": -1,
+      "progressVarbitId": 5078,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_BEAR_YOUR_SOUL"
+    },
+    "curse of the empty lord": {
+      "varpId": -1,
+      "progressVarbitId": 821,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_CURSE_OF_THE_EMPTY_LORD"
+    },
+    "the enchanted key": {
+      "varpId": -1,
+      "progressVarbitId": 1391,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_ENCHANTED_KEY"
+    },
+    "skippy and the mogres": {
+      "varpId": -1,
+      "progressVarbitId": 1344,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_SKIPPY_AND_THE_MOGRES"
+    },
+    "lair of tarn razorlor": {
+      "varpId": -1,
+      "progressVarbitId": 3290,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_LAIR_OF_TARN_RAZORLOR"
+    },
+    "family pest": {
+      "varpId": -1,
+      "progressVarbitId": 5347,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_FAMILY_PEST"
+    },
+    "mage arena ii": {
+      "varpId": -1,
+      "progressVarbitId": 6067,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_THE_MAGE_ARENA_II"
+    },
+    "in search of knowledge": {
+      "varpId": -1,
+      "progressVarbitId": 8403,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_IN_SEARCH_OF_KNOWLEDGE"
+    },
+    "daddy's home": {
+      "varpId": -1,
+      "progressVarbitId": 10570,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_DADDYS_HOME"
+    },
+    "vale totems miniquest": {
+      "varpId": -1,
+      "progressVarbitId": 17227,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:QUEST_VALE_TOTEMS"
+    },
+    "his faithful servants": {
+      "varpId": -1,
+      "progressVarbitId": 14973,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "quest-helper:HIS_FAITHFUL_SERVANTS"
+    },
+    "into the tombs": {
+      "varpId": -1,
+      "progressVarbitId": 13836,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual:ITT"
+    },
+    "recipe for disaster another cook's quest": {
+      "varpId": -1,
+      "progressVarbitId": 1850,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual:RFD-intro"
+    },
+    "recipe for disaster defeating the culinaromancer": {
+      "varpId": -1,
+      "progressVarbitId": 1850,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual:RFD-finale"
+    },
+    "the frozen door": {
+      "varpId": -1,
+      "progressVarbitId": 13175,
+      "startedValue": 1,
+      "completionValue": 100,
+      "source": "manual:FROZEN_DOOR"
+    }
+  }
+}

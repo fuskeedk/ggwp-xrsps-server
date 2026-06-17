@@ -222,13 +222,23 @@ export class ByteBuffer {
     }
 
     readBytes(amount: number): Int8Array {
+        if (amount < 0 || this.offset + amount > this._data.length) {
+            throw new RangeError(
+                `readBytes out of range: need=${amount} offset=${this.offset} len=${this._data.length}`,
+            );
+        }
         const bytes = this._data.subarray(this.offset, this.offset + amount);
         this.offset += amount;
         return bytes;
     }
 
     readUnsignedBytes(amount: number): Uint8Array {
-        const bytes = new Uint8Array(this._data.buffer).subarray(this.offset, this.offset + amount);
+        if (amount < 0 || this.offset + amount > this._data.length) {
+            throw new RangeError(
+                `readUnsignedBytes out of range: need=${amount} offset=${this.offset} len=${this._data.length}`,
+            );
+        }
+        const bytes = new Uint8Array(this._data.buffer, this._data.byteOffset + this.offset, amount);
         this.offset += amount;
         return bytes;
     }

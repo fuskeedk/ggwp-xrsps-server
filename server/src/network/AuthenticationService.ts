@@ -30,6 +30,7 @@ export interface PlayerLookup {
  */
 export class AuthenticationService {
     private loginAttempts = new Map<string, { count: number; resetTime: number }>();
+    private readonly sessionAdmins = new Set<string>();
     private readonly MAX_LOGIN_ATTEMPTS = 5;
     private readonly LOGIN_ATTEMPT_WINDOW_MS = 60000;
 
@@ -71,11 +72,18 @@ export class AuthenticationService {
         return (name ?? "").trim().toLowerCase();
     }
 
+    registerSessionAdmin(name: string): void {
+        const normalized = this.normalizePlayerNameForAuth(name);
+        if (normalized.length > 0) {
+            this.sessionAdmins.add(normalized);
+        }
+    }
+
     isAdminPlayer(player: PlayerState | undefined): boolean {
         if (!player) return false;
         const normalizedName = this.normalizePlayerNameForAuth(player.name);
         if (normalizedName.length === 0) return false;
-        return ADMIN_USERNAMES.has(normalizedName);
+        return ADMIN_USERNAMES.has(normalizedName) || this.sessionAdmins.has(normalizedName);
     }
 
     normalizeAccountType(value: number): number {

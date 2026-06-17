@@ -1,6 +1,10 @@
 /**
  * Social operations: Friends, Ignore, Clan chat
  */
+import {
+    sendFriendAction,
+    sendIgnoreAction,
+} from "../../../network/ServerConnection";
 import { Opcodes } from "../Opcodes";
 import type { HandlerMap } from "./HandlerTypes";
 
@@ -48,12 +52,16 @@ export function registerSocialOps(handlers: HandlerMap): void {
 
     handlers.set(Opcodes.FRIEND_ADD, (ctx) => {
         const name = ctx.stringStack[--ctx.stringStackSize];
-        // Server would handle actual addition - this is client-side request
+        if (name && name.trim()) {
+            sendFriendAction("add", name);
+        }
     });
 
     handlers.set(Opcodes.FRIEND_DEL, (ctx) => {
         const name = ctx.stringStack[--ctx.stringStackSize];
-        // Server would handle actual removal - this is client-side request
+        if (name && name.trim()) {
+            sendFriendAction("del", name);
+        }
     });
 
     handlers.set(Opcodes.FRIEND_TEST, (ctx) => {
@@ -119,12 +127,16 @@ export function registerSocialOps(handlers: HandlerMap): void {
 
     handlers.set(Opcodes.IGNORE_ADD, (ctx) => {
         const name = ctx.stringStack[--ctx.stringStackSize];
-        // Server would handle actual addition - this is client-side request
+        if (name && name.trim()) {
+            sendIgnoreAction("add", name);
+        }
     });
 
     handlers.set(Opcodes.IGNORE_DEL, (ctx) => {
         const name = ctx.stringStack[--ctx.stringStackSize];
-        // Server would handle actual removal - this is client-side request
+        if (name && name.trim()) {
+            sendIgnoreAction("del", name);
+        }
     });
 
     handlers.set(Opcodes.IGNORE_TEST, (ctx) => {

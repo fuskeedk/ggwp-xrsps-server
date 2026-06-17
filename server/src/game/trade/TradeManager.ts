@@ -1,5 +1,13 @@
 import { getItemDefinition } from "../../data/items";
 import {
+    buildTradeConfirmPostScripts,
+    buildTradeMainPostScripts,
+} from "../../../gamemodes/vanilla/trade/TradeInterfaceHooks";
+import {
+    TRADE_CONFIRM_INTERFACE_ID,
+    TRADE_MAIN_INTERFACE_ID,
+} from "../../../gamemodes/vanilla/trade/tradeConstants";
+import {
     TradeAction,
     TradeActionClientPayload,
     TradeServerPayload,
@@ -8,6 +16,10 @@ import {
 import { logger } from "../../utils/logger";
 import type { ServerServices } from "../ServerServices";
 import { type InventoryEntry, PlayerState } from "../player";
+import {
+    CHATBOX_GROUP_ID,
+    CHATBOX_MES_LAYER_HIDE,
+} from "../../widgets/InterfaceService";
 
 type TradeOfferState = {
     itemId: number;
@@ -34,6 +46,7 @@ type TradeRequestState = {
 };
 
 const REQUEST_TIMEOUT_TICKS = 64; // ~38.4 seconds at 600ms ticks
+const MAX_TRADE_QUANTITY = 2_147_483_647;
 
 export class TradeManager {
     private readonly requests = new Map<string, TradeRequestState>();
@@ -41,19 +54,95 @@ export class TradeManager {
     private readonly sessionByPlayer = new Map<number, TradeSession>();
     private sessionCounter = 1;
 
-    constructor(private readonly svc: ServerServices) {}
+    constructor(private readonly svc: ServerServices) {
+        this.registerInterfaceCloseHooks();
+    }
+
+    /** ESC / IF_CLOSE must end the trade and return offered items (OSRS behaviour). */
+    private registerInterfaceCloseHooks(): void {
+        const iface = this.svc.interfaceService;
+        if (!iface) return;
+        const onTradeUiClosed = (player: PlayerState) => this.handleInterfaceClosed(player);
+        iface.onInterfaceClose(TRADE_MAIN_INTERFACE_ID, onTradeUiClosed);
+        iface.onInterfaceClose(TRADE_CONFIRM_INTERFACE_ID, onTradeUiClosed);
+    }
+
+    handleInterfaceClosed(player: PlayerState): void {
+        const session = this.sessionByPlayer.get(player.id);
+        if (!session) return;
+        const other = this.getCounterparty(session, player.id);
+        this.closeSession(session, "You decline the trade.");
+        if (other) {
+            this.svc.messagingService.sendGameMessageToPlayer(
+                other.player,
+                `${this.resolveName(player)} declined the trade.`,
+            );
+        }
+    }
+
+    private currentTick(): number {
+        return this.svc.ticker?.currentTick?.() ?? 0;
+    }
 
     private queueInventorySnapshot(player: PlayerState): void {
         const sock = this.svc.players?.getSocketByPlayerId(player.id);
         if (sock) this.svc.inventoryService.sendInventorySnapshot(sock, player);
     }
 
-    private openTradeWidget(player: PlayerState): void {
-        player.widgets.open(335, { modal: true });
+    private openTradeWidget(player: PlayerState, partner: PlayerState): void {
+        const iface = this.svc.interfaceService;
+        if (!iface) {
+            logger.warn("[trade] interfaceService unavailable; trade UI will not mount");
+            return;
+        }
+        this.queueInventorySnapshot(player);
+        iface.openModal(
+            player,
+            335,
+            {
+                partnerName: this.resolveName(partner),
+            },
+            { postScripts: buildTradeMainPostScripts() },
+        );
     }
 
     private closeTradeWidget(player: PlayerState): void {
+        const iface = this.svc.interfaceService;
+        player.widgets.close(334);
+        if (iface) {
+            iface.restoreNormalInventory(player);
+            iface.closeModal(player);
+            return;
+        }
+        player.widgets.close(336);
         player.widgets.close(335);
+    }
+
+    private syncConfirmWidget(player: PlayerState, stage: TradeStage, partner?: PlayerState): void {
+        const iface = this.svc.interfaceService;
+        if (!iface) return;
+        if (stage === TradeStage.Confirm) {
+            const partnerName = partner ? this.resolveName(partner) : "Player";
+            iface.openModal(
+                player,
+                334,
+                { partnerName },
+                { postScripts: buildTradeConfirmPostScripts() },
+            );
+            return;
+        }
+        if (player.widgets.isOpen(334)) {
+            player.widgets.close(334);
+        }
+        if (!player.widgets.isOpen(335)) {
+            const session = this.sessionByPlayer.get(player.id);
+            const other = session ? this.getCounterparty(session, player.id) : undefined;
+            if (other) {
+                this.openTradeWidget(player, other.player);
+            } else {
+                iface.openModal(player, 335, undefined, { postScripts: buildTradeMainPostScripts() });
+            }
+        }
     }
 
     requestTrade(initiator: PlayerState, target: PlayerState, currentTick: number): void {
@@ -88,15 +177,33 @@ export class TradeManager {
         });
         const name = this.resolveName(initiator);
         this.svc.messagingService.sendGameMessageToPlayer(initiator, "Sending trade offer...");
-        this.svc.messagingService.sendGameMessageToPlayer(
-            target,
-            `${name} wishes to trade with you.`,
-        );
+        this.svc.messagingService.queueChatMessage({
+            messageType: "trade",
+            from: name,
+            text: "wishes to trade with you.",
+            targetPlayerIds: [target.id],
+        });
+        this.setTradeRequestMeslayerVisible(target.id, true);
         this.svc.broadcastService.queueTradeMessage(target.id, {
             kind: "request",
             fromId: initiator.id,
             fromName: name,
         });
+    }
+
+    /** OSRS-style accept/decline from chat meslayer (widget 162). */
+    handleResumePauseButton(
+        player: PlayerState,
+        widgetId: number,
+        childIndex: number,
+        currentTick: number,
+    ): boolean {
+        const group = (widgetId >>> 16) & 0xffff;
+        if (group !== 162) return false;
+        const fromId = this.findIncomingRequestFrom(player.id);
+        if (fromId === undefined) return false;
+        this.respondToTradeRequest(player, fromId, childIndex !== 1, currentTick);
+        return true;
     }
 
     handlePlayerLogout(
@@ -117,6 +224,7 @@ export class TradeManager {
         for (const [key, req] of Array.from(this.requests.entries())) {
             if (req.expireTick <= currentTick) {
                 this.requests.delete(key);
+                this.clearTradeRequestMeslayer(req.toId);
                 const fromPlayer = this.svc.players?.getById(req.fromId);
                 if (fromPlayer) {
                     this.svc.messagingService.sendGameMessageToPlayer(
@@ -129,6 +237,14 @@ export class TradeManager {
     }
 
     handleAction(player: PlayerState, action: TradeActionClientPayload, currentTick: number): void {
+        if (action.action === TradeAction.AcceptRequest) {
+            this.respondToTradeRequest(player, action.fromPlayerId, true, currentTick);
+            return;
+        }
+        if (action.action === TradeAction.DeclineRequest) {
+            this.respondToTradeRequest(player, action.fromPlayerId, false, currentTick);
+            return;
+        }
         const session = this.sessionByPlayer.get(player.id);
         if (!session) {
             this.svc.messagingService.sendGameMessageToPlayer(
@@ -169,12 +285,84 @@ export class TradeManager {
         return `${fromId}->${toId}`;
     }
 
+    private findIncomingRequestFrom(playerId: number): number | undefined {
+        for (const req of this.requests.values()) {
+            if (req.toId === playerId) {
+                return req.fromId;
+            }
+        }
+        return undefined;
+    }
+
+    private setTradeRequestMeslayerVisible(playerId: number, visible: boolean): void {
+        const uid = (CHATBOX_GROUP_ID << 16) | CHATBOX_MES_LAYER_HIDE;
+        this.svc.queueWidgetEvent(playerId, {
+            action: "set_hidden",
+            uid,
+            hidden: !visible,
+        });
+    }
+
+    private clearTradeRequestMeslayer(playerId: number): void {
+        this.setTradeRequestMeslayerVisible(playerId, false);
+    }
+
+    private respondToTradeRequest(
+        responder: PlayerState,
+        fromId: number,
+        accept: boolean,
+        currentTick: number,
+    ): void {
+        const key = this.buildRequestKey(fromId, responder.id);
+        const req = this.requests.get(key);
+        if (!req || req.toId !== responder.id) {
+            this.svc.messagingService.sendGameMessageToPlayer(
+                responder,
+                "Unable to find that player to trade with.",
+            );
+            return;
+        }
+        this.requests.delete(key);
+        this.requests.delete(this.buildRequestKey(responder.id, fromId));
+
+        const initiator = this.svc.players?.getById(fromId);
+        if (!initiator) {
+            this.svc.messagingService.sendGameMessageToPlayer(
+                responder,
+                "Unable to find that player to trade with.",
+            );
+            return;
+        }
+
+        if (!accept) {
+            this.clearTradeRequestMeslayer(responder.id);
+            this.svc.messagingService.sendGameMessageToPlayer(
+                initiator,
+                `${this.resolveName(responder)} declined the trade.`,
+            );
+            return;
+        }
+
+        this.clearTradeRequestMeslayer(responder.id);
+
+        if (this.sessionByPlayer.has(initiator.id) || this.sessionByPlayer.has(responder.id)) {
+            this.svc.messagingService.sendGameMessageToPlayer(
+                responder,
+                "That player is currently busy.",
+            );
+            return;
+        }
+
+        this.startSession(initiator, responder);
+    }
+
     private clearRequestsFor(playerId: number): void {
         for (const [key, req] of Array.from(this.requests.entries())) {
             if (req.fromId === playerId || req.toId === playerId) {
                 this.requests.delete(key);
             }
         }
+        this.clearTradeRequestMeslayer(playerId);
     }
 
     private startSession(a: PlayerState, b: PlayerState): void {
@@ -187,17 +375,24 @@ export class TradeManager {
         this.sessionByPlayer.set(a.id, session);
         this.sessionByPlayer.set(b.id, session);
         try {
-            this.openTradeWidget(a);
-            this.openTradeWidget(b);
+            this.openTradeWidget(a, b);
+            this.openTradeWidget(b, a);
         } catch (err) {
             logger.warn("[trade] failed to open trade widget", err);
         }
         this.broadcastSession(session, "open");
     }
 
-    private closeSession(session: TradeSession, reason: string, blamedId?: number): void {
+    private closeSession(session: TradeSession, reason: string, _blamedId?: number): void {
         this.returnOffers(session.parties[0]);
         this.returnOffers(session.parties[1]);
+
+        // Drop session before closing widgets so close hooks cannot re-enter.
+        this.sessions.delete(session.id);
+        for (const party of session.parties) {
+            this.sessionByPlayer.delete(party.player.id);
+        }
+
         for (const party of session.parties) {
             try {
                 this.closeTradeWidget(party.player);
@@ -209,9 +404,7 @@ export class TradeManager {
                 kind: "close",
                 reason,
             });
-            this.sessionByPlayer.delete(party.player.id);
         }
-        this.sessions.delete(session.id);
     }
 
     private createParty(player: PlayerState): TradePartyState {
@@ -276,11 +469,16 @@ export class TradeManager {
             );
             return;
         }
-        if (!this.ensureTradeable(player, entry.itemId)) return;
-        const def = getItemDefinition(entry.itemId);
+        const offeredItemId = entry.itemId;
+        if (!this.ensureTradeable(player, offeredItemId)) return;
+        const def = getItemDefinition(offeredItemId);
         const isStackable = !!def?.stackable;
-        const desired = Math.max(1, requestedQty);
-        const amount = isStackable ? Math.min(entry.quantity, desired) : 1;
+        const desiredRaw = Number.isFinite(requestedQty) ? Math.floor(requestedQty) : 1;
+        const desired = Math.max(1, Math.min(MAX_TRADE_QUANTITY, desiredRaw));
+        const available = isStackable
+            ? entry.quantity
+            : this.svc.inventoryService.countInventoryItem(player, offeredItemId);
+        const amount = Math.min(available, desired);
         if (!(amount > 0)) {
             this.svc.messagingService.sendGameMessageToPlayer(
                 player,
@@ -288,8 +486,14 @@ export class TradeManager {
             );
             return;
         }
-        this.removeFromInventorySlot(player, slot, entry, amount);
-        this.addOffer(party, entry.itemId, amount);
+        if (!this.removeItemQuantityFromInventory(player, offeredItemId, amount, slot)) {
+            this.svc.messagingService.sendGameMessageToPlayer(
+                player,
+                "That item is no longer in your inventory.",
+            );
+            return;
+        }
+        this.addOffer(party, offeredItemId, amount);
         this.resetAcceptances(session);
         this.queueInventorySnapshot(player);
         this.broadcastSession(session);
@@ -359,64 +563,110 @@ export class TradeManager {
 
     private finalizeTrade(session: TradeSession): void {
         const [a, b] = session.parties;
-        if (!this.transferOffers(a, b)) {
+        if (!this.canReceiveItems(a.player, b.offers)) {
+            this.svc.messagingService.sendGameMessageToPlayer(
+                b.player,
+                "Other player doesn't have enough space.",
+            );
+            this.svc.messagingService.sendGameMessageToPlayer(
+                a.player,
+                "You don't have enough space in your inventory.",
+            );
             session.stage = TradeStage.Offer;
             this.resetAcceptances(session);
             this.broadcastSession(session);
             return;
         }
-        if (!this.transferOffers(b, a)) {
+        if (!this.canReceiveItems(b.player, a.offers)) {
+            this.svc.messagingService.sendGameMessageToPlayer(
+                a.player,
+                "Other player doesn't have enough space.",
+            );
+            this.svc.messagingService.sendGameMessageToPlayer(
+                b.player,
+                "You don't have enough space in your inventory.",
+            );
             session.stage = TradeStage.Offer;
             this.resetAcceptances(session);
             this.broadcastSession(session);
             return;
         }
+        if (
+            !this.applyOffersToInventory(a.player, b.offers) ||
+            !this.applyOffersToInventory(b.player, a.offers)
+        ) {
+            logger.warn(`[trade] finalize apply failed for session ${session.id}`);
+            this.svc.messagingService.sendGameMessageToPlayer(
+                a.player,
+                "Trade failed. Please try again.",
+            );
+            this.svc.messagingService.sendGameMessageToPlayer(
+                b.player,
+                "Trade failed. Please try again.",
+            );
+            session.stage = TradeStage.Offer;
+            this.resetAcceptances(session);
+            this.broadcastSession(session);
+            return;
+        }
+        a.offers = [];
+        b.offers = [];
         this.queueInventorySnapshot(a.player);
         this.queueInventorySnapshot(b.player);
         this.closeSession(session, "Trade completed.");
     }
 
-    private transferOffers(from: TradePartyState, to: TradePartyState): boolean {
-        if (!this.canReceiveItems(to.player, from.offers)) {
-            this.svc.messagingService.sendGameMessageToPlayer(
-                from.player,
-                "Other player doesn't have enough space.",
-            );
-            this.svc.messagingService.sendGameMessageToPlayer(
-                to.player,
-                "You don't have enough space in your inventory.",
-            );
-            return false;
-        }
-        for (const offer of from.offers) {
-            if (!this.addItemsToInventory(to.player, offer.itemId, offer.quantity)) {
-                this.svc.messagingService.sendGameMessageToPlayer(
-                    from.player,
-                    "Other player doesn't have enough space.",
-                );
-                this.svc.messagingService.sendGameMessageToPlayer(
-                    to.player,
-                    "You don't have enough space in your inventory.",
-                );
+    private applyOffersToInventory(player: PlayerState, offers: TradeOfferState[]): boolean {
+        for (const offer of offers) {
+            if (offer.quantity <= 0) continue;
+            if (!this.addItemsToInventory(player, offer.itemId, offer.quantity)) {
                 return false;
             }
         }
-        from.offers = [];
         return true;
     }
 
-    private removeFromInventorySlot(
+    private removeItemQuantityFromInventory(
         player: PlayerState,
-        slot: number,
-        entry: InventoryEntry,
-        amount: number,
-    ): void {
-        const remaining = entry.quantity - amount;
-        if (remaining > 0) {
-            this.svc.inventoryService.setInventorySlot(player, slot, entry.itemId, remaining);
-        } else {
-            this.svc.inventoryService.setInventorySlot(player, slot, -1, 0);
+        itemId: number,
+        quantity: number,
+        preferredSlot?: number,
+    ): boolean {
+        const quantityRaw = Number.isFinite(quantity) ? Math.floor(quantity) : 1;
+        const needed = Math.max(1, Math.min(MAX_TRADE_QUANTITY, quantityRaw));
+        if (this.svc.inventoryService.countInventoryItem(player, itemId) < needed) {
+            return false;
         }
+
+        const inventory = this.svc.inventoryService.getInventory(player);
+        let remaining = needed;
+
+        const takeFromSlot = (slot: number): void => {
+            if (remaining <= 0) return;
+            if (slot < 0 || slot >= inventory.length) return;
+            const entry = inventory[slot];
+            if (!entry || entry.itemId !== itemId || entry.quantity <= 0) return;
+
+            const take = Math.min(remaining, entry.quantity);
+            const nextQty = entry.quantity - take;
+            if (nextQty > 0) {
+                this.svc.inventoryService.setInventorySlot(player, slot, itemId, nextQty);
+            } else {
+                this.svc.inventoryService.setInventorySlot(player, slot, -1, 0);
+            }
+            remaining -= take;
+        };
+
+        if (typeof preferredSlot === "number") {
+            takeFromSlot(preferredSlot | 0);
+        }
+        for (let i = 0; i < inventory.length && remaining > 0; i++) {
+            if (typeof preferredSlot === "number" && i === (preferredSlot | 0)) {
+                continue;
+            }
+            takeFromSlot(i);
+        }
+        return remaining <= 0;
     }
 
     private addOffer(party: TradePartyState, itemId: number, amount: number): void {
@@ -429,7 +679,10 @@ export class TradeManager {
         const def = getItemDefinition(itemId);
         const isStackable = !!def?.stackable;
         if (isStackable) {
-            return this.svc.inventoryService.addItemToInventory(player, itemId, quantity).added > 0;
+            return (
+                this.svc.inventoryService.addItemToInventory(player, itemId, quantity).added ===
+                quantity
+            );
         }
         for (let i = 0; i < quantity; i++) {
             const result = this.svc.inventoryService.addItemToInventory(player, itemId, 1);
@@ -442,12 +695,32 @@ export class TradeManager {
 
     private returnOffers(party: TradePartyState): void {
         if (party.offers.length === 0) return;
+        const player = party.player;
+        const tick = this.currentTick();
         for (const offer of party.offers) {
             if (offer.quantity <= 0) continue;
-            if (!this.addItemsToInventory(party.player, offer.itemId, offer.quantity)) {
-                // As a fallback, drop the items on the ground? For now, just log and discard.
+            if (this.addItemsToInventory(player, offer.itemId, offer.quantity)) {
+                continue;
+            }
+            const spawned = this.svc.groundItems.spawn(
+                offer.itemId,
+                offer.quantity,
+                { x: player.tileX, y: player.tileY, level: player.level },
+                tick,
+                { ownerId: player.id },
+                player.worldViewId,
+            );
+            if (spawned) {
                 this.svc.messagingService.sendGameMessageToPlayer(
-                    party.player,
+                    player,
+                    "Some traded items were dropped beneath you.",
+                );
+            } else {
+                logger.warn(
+                    `[trade] failed to return offer player=${player.id} item=${offer.itemId} qty=${offer.quantity}`,
+                );
+                this.svc.messagingService.sendGameMessageToPlayer(
+                    player,
                     "Could not return some traded items due to lack of space.",
                 );
             }
@@ -497,6 +770,7 @@ export class TradeManager {
     private broadcastSession(session: TradeSession, kind: "open" | "update" = "update"): void {
         for (const party of session.parties) {
             const other = this.getCounterparty(session, party.player.id);
+            this.syncConfirmWidget(party.player, session.stage, other?.player);
             const payload: TradeServerPayload = {
                 kind,
                 sessionId: session.id,

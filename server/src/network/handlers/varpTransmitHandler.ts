@@ -21,6 +21,7 @@ import {
     markInstantUtilitySpecialHandledAtTick,
     wasInstantUtilitySpecialHandledAtTick,
 } from "../../game/combat/InstantUtilitySpecialProvider";
+import { getSpecialAttack } from "../../game/combat/SpecialAttackProvider";
 import type { PlayerState } from "../../game/player";
 import { logger } from "../../utils/logger";
 import type { MessageHandlerServices } from "../MessageHandlers";
@@ -118,7 +119,11 @@ function handleSpecialAttackVarp(
     const desired = value !== 0;
     const equip = services.ensureEquipArray(p);
     const weaponId = equip[EquipmentSlot.WEAPON];
-    const weaponCost = weaponId > 0 ? services.getWeaponSpecialCostPercent(weaponId) : undefined;
+    const weaponSpecialDef = weaponId > 0 ? getSpecialAttack(weaponId) : undefined;
+    const weaponCost =
+        weaponId > 0
+            ? (services.getWeaponSpecialCostPercent(weaponId) ?? weaponSpecialDef?.energyCost)
+            : undefined;
 
     const utilitySpecial = desired ? getInstantUtilitySpecial(weaponId) : undefined;
 

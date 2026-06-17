@@ -1,4 +1,5 @@
 import { PlayerType } from "../../../src/rs/chat/PlayerType";
+import { getAccountTypePlayerTypes } from "../vanilla/account/accountType";
 import { LEAGUE_SUMMARY_GROUP_ID } from "../../../src/shared/ui/leagueSummary";
 import { decodeSideJournalTabFromStateVarp } from "../../../src/shared/ui/sideJournal";
 import {
@@ -380,6 +381,7 @@ export class LeaguesVGamemode extends VanillaGamemode {
     override getPlayerTypes(player: PlayerState, isAdmin: boolean): PlayerType[] {
         const types: PlayerType[] = [];
         if (isAdmin) types.push(PlayerType.JagexModerator);
+        types.push(...getAccountTypePlayerTypes(player));
         if (isLeagueWorld(player)) {
             types.push(PlayerType.LeagueWorld);
         }

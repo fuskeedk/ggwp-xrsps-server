@@ -5,11 +5,35 @@ import {
     registerQuestCompletedWidgetHandlers,
     setQuestStage,
 } from "./QuestService";
+import { cooksAssistantQuest } from "./definitions/cooksAssistant";
+import { additionalMembersQuests } from "./definitions/additionalMembersQuests";
+import { dragonSlayerIQuest } from "./definitions/dragonSlayerI";
+import { gardenOfDeathQuest } from "./definitions/gardenOfDeath";
 import { doricsQuest } from "./definitions/dorics";
+import { f2pRemainingQuests } from "./definitions/f2pRemainingQuests";
+import { knightsSwordQuest } from "./definitions/knightsSword";
+import { membersQuestPack } from "./definitions/membersQuestPack";
+import { membersQuestPack2 } from "./definitions/membersQuestPack2";
+import { membersQuestPack3 } from "./definitions/membersQuestPack3";
+// Auto-generated quest stubs disabled — use hand-crafted F2P/members packs only.
+// import { generatedAutoQuests } from "./definitions/generatedAutoQuests";
 import { sheepShearerQuest } from "./definitions/sheepShearer";
 import type { QuestDefinition } from "./types";
+import { buildQuestMap, setAllCacheQuestDisplayNames } from "../widgets/questListData";
 
-const QUEST_DEFINITIONS: QuestDefinition[] = [doricsQuest, sheepShearerQuest];
+const QUEST_DEFINITIONS: QuestDefinition[] = [
+    cooksAssistantQuest,
+    doricsQuest,
+    sheepShearerQuest,
+    ...f2pRemainingQuests,
+    knightsSwordQuest,
+    dragonSlayerIQuest,
+    ...membersQuestPack,
+    ...additionalMembersQuests,
+    ...membersQuestPack2,
+    ...membersQuestPack3,
+    gardenOfDeathQuest,
+];
 
 /**
  * Register all implemented quests: their interaction handlers, the shared
@@ -20,6 +44,11 @@ const QUEST_DEFINITIONS: QuestDefinition[] = [doricsQuest, sheepShearerQuest];
  * (e.g. Doric's anvils wrapping the generic smith action).
  */
 export function registerQuestHandlers(registry: IScriptRegistry, services: ScriptServices): void {
+    const questMap = buildQuestMap(services);
+    if (questMap.size > 0) {
+        setAllCacheQuestDisplayNames([...questMap.values()].map((entry) => entry.displayName));
+    }
+
     registerQuestCompletedWidgetHandlers(registry, services);
     for (const quest of QUEST_DEFINITIONS) {
         registerQuestDefinition(quest);

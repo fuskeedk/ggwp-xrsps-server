@@ -1,5 +1,7 @@
 import { parseOutgoingPublicChat, sanitizeChatText } from "../chat/chatFormatting";
 import { ClientState } from "../client/ClientState";
+import { setGrandExchangeOffers } from "../client/grandexchange/GrandExchangeOffers";
+import { markStockTransmit } from "../client/TransmitCycles";
 import { PlayerSyncContext } from "../client/sync/PlayerSyncContext";
 import type { PlayerSyncFrame } from "../client/sync/PlayerSyncTypes";
 import { PlayerUpdateDecoder } from "../client/sync/PlayerUpdateDecoder";
@@ -228,7 +230,9 @@ export type TradeActionClientPayload =
     | { action: "accept" }
     | { action: "decline" }
     | { action: "confirm_accept" }
-    | { action: "confirm_decline" };
+    | { action: "confirm_decline" }
+    | { action: "accept_request"; fromPlayerId: number }
+    | { action: "decline_request"; fromPlayerId: number };
 
 export type ChatMessageEvent = {
     messageType: string;
@@ -777,6 +781,21 @@ const bankListeners = new Set<(payload: BankServerUpdate) => void>();
 const shopListeners = new Set<(state: ShopWindowState) => void>();
 const tradeListeners = new Set<(state: TradeWindowState) => void>();
 const chatMessageListeners = new Set<(msg: ChatMessageEvent) => void>();
+export type FriendListEntry = {
+    name: string;
+    previousName: string;
+    world: number;
+    rank: number;
+    isOnline: boolean;
+};
+export type IgnoreListEntry = {
+    name: string;
+    previousName: string;
+};
+const friendListListeners = new Set<(friends: FriendListEntry[]) => void>();
+const ignoreListListeners = new Set<(ignores: IgnoreListEntry[]) => void>();
+let lastFriendList: FriendListEntry[] = [];
+let lastIgnoreList: IgnoreListEntry[] = [];
 const notificationListeners = new Set<(event: NotificationEvent) => void>();
 const groundItemListeners = new Set<(payload: GroundItemsServerPayload) => void>();
 const playerSyncListeners = new Set<(frame: PlayerSyncFrame) => void>();
@@ -2058,6 +2077,12 @@ function processServerMessage(msg: any): void {
         }
     } else if (msg.type === "shop") {
         handleShopPayload(msg.payload as ShopServerPayload);
+    } else if (msg.type === "ge_offers") {
+        const payload = msg.payload as { slots?: Array<Record<string, number>> } | undefined;
+        if (payload?.slots) {
+            setGrandExchangeOffers(payload.slots as any);
+            markStockTransmit();
+        }
     } else if (msg.type === "ground_items") {
         try {
             const normalized = cloneGroundItemsPayload(msg.payload as GroundItemsServerPayload);
@@ -2151,6 +2176,30 @@ function processServerMessage(msg: any): void {
             for (const cb of chatMessageListeners) cb(event);
         } catch (err) {
             console.warn("chat listener error", err);
+        }
+    } else if (msg.type === "friend_list") {
+        const friends = Array.isArray(msg.payload?.friends)
+            ? (msg.payload.friends as FriendListEntry[])
+            : [];
+        lastFriendList = friends.map((friend: FriendListEntry) => ({ ...friend }));
+        for (const cb of friendListListeners) {
+            try {
+                cb(lastFriendList.map((friend) => ({ ...friend })));
+            } catch (err) {
+                console.warn("friend list listener error", err);
+            }
+        }
+    } else if (msg.type === "ignore_list") {
+        const ignores = Array.isArray(msg.payload?.ignores)
+            ? (msg.payload.ignores as IgnoreListEntry[])
+            : [];
+        lastIgnoreList = ignores.map((ignore: IgnoreListEntry) => ({ ...ignore }));
+        for (const cb of ignoreListListeners) {
+            try {
+                cb(lastIgnoreList.map((ignore) => ({ ...ignore })));
+            } catch (err) {
+                console.warn("ignore list listener error", err);
+            }
         }
     } else if (msg.type === "gamemode_data") {
         try {
@@ -2782,7 +2831,10 @@ function sendTradeActionMessage(payload: TradeActionClientPayload): void {
 export function sendTradeOffer(slot: number, itemId: number, quantity: number): void {
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
     const normalizedSlot = Math.max(0, Math.min(INVENTORY_SLOT_COUNT - 1, slot | 0));
-    const normalizedQty = Math.max(1, Math.floor(Number(quantity) || 0));
+    const normalizedQty = Math.max(
+        1,
+        Math.min(2147483647, Math.floor(Number(quantity) || 0)),
+    );
     const payload: TradeActionClientPayload = {
         action: "offer",
         slot: normalizedSlot,
@@ -2795,7 +2847,10 @@ export function sendTradeOffer(slot: number, itemId: number, quantity: number): 
 export function sendTradeRemove(slot: number, quantity: number): void {
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
     const normalizedSlot = Math.max(0, Math.min(INVENTORY_SLOT_COUNT - 1, slot | 0));
-    const normalizedQty = Math.max(1, Math.floor(Number(quantity) || 0));
+    const normalizedQty = Math.max(
+        1,
+        Math.min(2147483647, Math.floor(Number(quantity) || 0)),
+    );
     sendTradeActionMessage({ action: "remove", slot: normalizedSlot, quantity: normalizedQty });
 }
 
@@ -2813,6 +2868,14 @@ export function sendTradeConfirmAccept(): void {
 
 export function sendTradeConfirmDecline(): void {
     sendTradeActionMessage({ action: "confirm_decline" });
+}
+
+export function sendTradeAcceptRequest(fromPlayerId: number): void {
+    sendTradeActionMessage({ action: "accept_request", fromPlayerId: fromPlayerId | 0 });
+}
+
+export function sendTradeDeclineRequest(fromPlayerId: number): void {
+    sendTradeActionMessage({ action: "decline_request", fromPlayerId: fromPlayerId | 0 });
 }
 
 export function sendTeleport(to: { x: number; y: number }, level?: number): void {
@@ -3491,6 +3554,62 @@ export function sendChat(
             pattern: formatting.pattern ? Array.from(formatting.pattern) : undefined,
         },
     } as any);
+}
+
+export function sendFriendAction(action: "add" | "del", name: string): void {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+        return;
+    }
+    const normalized = String(name ?? "").trim();
+    if (!normalized) {
+        return;
+    }
+    send({ type: "social_friend", payload: { action, name: normalized } } as any);
+}
+
+export function sendIgnoreAction(action: "add" | "del", name: string): void {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+        return;
+    }
+    const normalized = String(name ?? "").trim();
+    if (!normalized) {
+        return;
+    }
+    send({ type: "social_ignore", payload: { action, name: normalized } } as any);
+}
+
+export function sendPrivateMessage(recipient: string, text: string): void {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+        return;
+    }
+    const to = String(recipient ?? "")
+        .trim()
+        .replace(/_/g, " ");
+    const message = sanitizeChatText(String(text ?? ""));
+    if (!to || !message) {
+        return;
+    }
+    send({ type: "social_private_message", payload: { recipient: to, text: message } } as any);
+}
+
+export function subscribeFriendList(cb: (friends: FriendListEntry[]) => void): () => void {
+    friendListListeners.add(cb);
+    if (lastFriendList.length > 0) {
+        try {
+            cb(lastFriendList.map((friend) => ({ ...friend })));
+        } catch {}
+    }
+    return () => friendListListeners.delete(cb);
+}
+
+export function subscribeIgnoreList(cb: (ignores: IgnoreListEntry[]) => void): () => void {
+    ignoreListListeners.add(cb);
+    if (lastIgnoreList.length > 0) {
+        try {
+            cb(lastIgnoreList.map((ignore) => ({ ...ignore })));
+        } catch {}
+    }
+    return () => ignoreListListeners.delete(cb);
 }
 
 export function subscribeHandshake(

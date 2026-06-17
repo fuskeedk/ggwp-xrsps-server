@@ -579,6 +579,8 @@ export function decodeClientPacket(data: Uint8Array | ArrayBuffer): DecodedClien
                 "decline",
                 "confirm_accept",
                 "confirm_decline",
+                "accept_request",
+                "decline_request",
             ] as const;
             const action: TradeActionClientPayload["action"] = actions[actionVal] ?? "offer";
             const slot = reader.readShort();
@@ -596,6 +598,8 @@ export function decodeClientPacket(data: Uint8Array | ArrayBuffer): DecodedClien
                 };
             } else if (action === "remove") {
                 result = { action, slot, quantity };
+            } else if (action === "accept_request" || action === "decline_request") {
+                result = { action, fromPlayerId: slot | 0 };
             } else {
                 result = { action };
             }
@@ -614,6 +618,33 @@ export function decodeClientPacket(data: Uint8Array | ArrayBuffer): DecodedClien
                 payload: { text, messageType },
             };
         }
+
+        case ClientPacketId.SOCIAL_FRIEND: {
+            const action = reader.readByte() === 1 ? "del" : "add";
+            const name = reader.readString();
+            return {
+                type: "social_friend",
+                payload: { action, name },
+            };
+        }
+
+        case ClientPacketId.SOCIAL_IGNORE: {
+            const action = reader.readByte() === 1 ? "del" : "add";
+            const name = reader.readString();
+            return {
+                type: "social_ignore",
+                payload: { action, name },
+            };
+        }
+
+        case ClientPacketId.SOCIAL_PRIVATE_MESSAGE:
+            return {
+                type: "social_private_message",
+                payload: {
+                    recipient: reader.readString(),
+                    text: reader.readString(),
+                },
+            };
 
         case ClientPacketId.VARP_TRANSMIT:
             return {

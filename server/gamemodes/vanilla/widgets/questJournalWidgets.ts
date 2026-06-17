@@ -6,6 +6,7 @@ import {
     type WidgetActionHandler,
 } from "../../../src/game/scripts/types";
 import { getQuestDefinition, getQuestDefinitionByKey } from "../quests/QuestRegistry";
+import { getQuestOverviewFallback } from "../quests/questCatalog";
 import {
     buildQuestMap,
     getQuestCompletionInfo,
@@ -107,6 +108,15 @@ function buildJournalLines(
 
         if (isComplete) {
             return ["<str>I have completed this quest.", "", "<col=ff0000>QUEST COMPLETE!"];
+        }
+
+        const startedValue = completionEntry.startedValue ?? 1;
+        if (completionEntry.varpId >= 0 && currentValue >= startedValue) {
+            return [
+                "I have started this quest.",
+                "",
+                "More content for this quest is coming soon.",
+            ];
         }
     }
 
@@ -319,23 +329,29 @@ function openQuestJournal(player: PlayerState, quest: QuestEntry, services: Scri
 function openQuestOverview(player: PlayerState, quest: QuestEntry, services: ScriptServices): void {
     const playerId = player.id;
     const definition = getQuestDefinition(quest.displayName);
-    if (!definition?.overviewStartText) {
+    const overviewStartText =
+        definition?.overviewStartText ?? getQuestOverviewFallback(quest.displayName);
+    if (!overviewStartText) {
         services.system.logger.info?.(
             `[quest-journal] No overview start text for quest="${quest.displayName}" (dbrow=${quest.dbrowId})`,
         );
         return;
     }
-    const overviewStartText = definition.overviewStartText;
 
     player.varps.setVarpValue(VARP_LATEST_QUEST_JOURNAL, quest.dbrowId);
     services.variables.sendVarp?.(player, VARP_LATEST_QUEST_JOURNAL, quest.dbrowId);
 
     const floaterUid = BaseComponentUids.FLOATER_OVERLAY;
+    const progressVarpId =
+        definition?.varpId ?? getQuestCompletionInfo(quest.displayName)?.varpId ?? -1;
+    const openVarps: Record<number, number> = {
+        [VARP_LATEST_QUEST_JOURNAL]: quest.dbrowId,
+    };
+    if (progressVarpId >= 0) {
+        openVarps[progressVarpId] = player.varps.getVarpValue(progressVarpId);
+    }
     services.dialog.openSubInterface(player, floaterUid, QUEST_JOURNAL_OVERVIEW_GROUP_ID, 0, {
-        varps: {
-            [VARP_LATEST_QUEST_JOURNAL]: quest.dbrowId,
-            [definition.varpId]: player.varps.getVarpValue(definition.varpId),
-        },
+        varps: openVarps,
     });
 
     for (const childId of [QJO_CLOSE_CHILD, QJO_BACK_CHILD, QJO_SWITCH_VIEW_CHILD]) {

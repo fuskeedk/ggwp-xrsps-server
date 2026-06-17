@@ -257,7 +257,12 @@ export class InterfaceService {
         player: PlayerState,
         interfaceId: number,
         data?: unknown,
-        options?: { varps?: Record<number, number>; varbits?: Record<number, number> },
+        options?: {
+            varps?: Record<number, number>;
+            varbits?: Record<number, number>;
+            postScripts?: Array<{ scriptId: number; args: (string | number)[] }>;
+            preScripts?: Array<{ scriptId: number; args: (string | number)[] }>;
+        },
     ): void {
         this.closeModalInterfaces(player, { exceptGroupId: interfaceId });
 
@@ -270,6 +275,8 @@ export class InterfaceService {
             varbits: options?.varbits,
             scope: "modal",
             data,
+            postScripts: options?.postScripts,
+            preScripts: options?.preScripts,
         });
 
         // Execute onOpen hooks
@@ -313,6 +320,7 @@ export class InterfaceService {
                 scriptId: number;
                 args: (string | number)[];
             };
+            postScripts?: Array<{ scriptId: number; args: (string | number)[] }>;
             setFlags?: {
                 uid: number;
                 fromSlot: number;
@@ -329,6 +337,16 @@ export class InterfaceService {
         const targetUid = inventoryTab
             ? getInventoryTabUid(player.displayMode)
             : getSidemodalUid(player.displayMode);
+        const postScripts =
+            options.postScripts ??
+            (options.initScript
+                ? [
+                      {
+                          scriptId: options.initScript.scriptId,
+                          args: options.initScript.args,
+                      },
+                  ]
+                : undefined);
         player.widgets.open(options.interfaceId, {
             targetUid,
             type: inventoryTab ? 1 : 3,
@@ -336,16 +354,8 @@ export class InterfaceService {
             varps: options.varps,
             varbits: options.varbits,
             scope: "side_panel",
+            postScripts,
         });
-
-        // Run initialization script if provided
-        if (options.initScript) {
-            this.dispatcher.queueWidgetEvent(player.id, {
-                action: "run_script",
-                scriptId: options.initScript.scriptId,
-                args: options.initScript.args,
-            });
-        }
 
         // Set event flags if provided
         if (options.setFlags) {

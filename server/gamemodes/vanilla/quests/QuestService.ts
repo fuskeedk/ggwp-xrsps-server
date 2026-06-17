@@ -34,6 +34,9 @@ const QUEST_COMPLETE_JINGLE_ID = 152;
 // ============================================================================
 
 export function getQuestStage(player: PlayerState, quest: QuestDefinition): number {
+    if (quest.varpId < 0 && quest.progressVarbitId !== undefined) {
+        return player.varps.getVarbitValue(quest.progressVarbitId);
+    }
     return player.varps.getVarpValue(quest.varpId);
 }
 
@@ -43,8 +46,13 @@ export function setQuestStage(
     services: ScriptServices,
     value: number,
 ): void {
-    player.varps.setVarpValue(quest.varpId, value);
-    services.variables.sendVarp(player, quest.varpId, value);
+    if (quest.varpId < 0 && quest.progressVarbitId !== undefined) {
+        player.varps.setVarbitValue(quest.progressVarbitId, value);
+        services.variables.sendVarbit?.(player, quest.progressVarbitId, value);
+    } else {
+        player.varps.setVarpValue(quest.varpId, value);
+        services.variables.sendVarp(player, quest.varpId, value);
+    }
     queuePlayerQuestListUi(player, services.dialog);
 }
 

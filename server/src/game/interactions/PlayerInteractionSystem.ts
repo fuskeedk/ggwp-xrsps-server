@@ -125,6 +125,8 @@ export class PlayerInteractionSystem {
     ) {
         this.followingHandler = new FollowingHandler(players, pathService, this.interactions, {
             onTradeHandshake: (...args) => this.onTradeHandshake?.(...args),
+            onTradeUnreachable: (player) =>
+                this.onGameMessage?.(player, "I can't reach that player."),
             onStopAutoAttack: (id) => this.onStopAutoAttack?.(id),
             onInterruptSkillActions: (id) => this.onInterruptSkillActions?.(id),
         });

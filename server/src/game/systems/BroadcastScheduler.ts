@@ -78,7 +78,7 @@ export interface LocChangeSnapshot {
  * Chat message types for broadcast scheduling.
  */
 export interface ChatMessageSnapshot {
-    messageType: "public" | "game" | "server" | "private";
+    messageType: "public" | "game" | "server" | "private" | "trade";
     playerId?: number;
     from?: string;
     prefix?: string;

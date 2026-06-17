@@ -107,6 +107,8 @@ import { TEST_HIT_FORCE, testRandFloat } from "../game/testing/TestRng";
 import { TickPhaseOrchestrator } from "../game/tick";
 import { GameTicker } from "../game/ticker";
 import { TradeManager } from "../game/trade/TradeManager";
+import { FriendsService } from "../game/social/FriendsService";
+import { GgwpAdminItemSpawnService } from "../../gamemodes/ggwp/adminItemSpawns";
 import { PathService } from "../pathfinding/PathService";
 import { logger } from "../utils/logger";
 import { InterfaceService } from "../widgets/InterfaceService";
@@ -209,6 +211,8 @@ export class WSServer {
     private followerCombatManager?: FollowerCombatManager;
     private playerCombatManager?: PlayerCombatManager;
     private tradeManager?: TradeManager;
+    private friendsService?: FriendsService;
+    private ggwpAdminItemSpawnService?: GgwpAdminItemSpawnService;
     private interfaceService?: InterfaceService;
     private sailingInstanceManager?: SailingInstanceManager;
     private worldEntityInfoEncoder = new WorldEntityInfoEncoder();
@@ -421,6 +425,7 @@ export class WSServer {
             ["spellCastingService", () => self.spellCastingService],
             ["movementSystem", () => self.movementSystem],
             ["tradeManager", () => self.tradeManager],
+            ["friendsService", () => self.friendsService],
             ["followerManager", () => self.followerManager],
             ["followerCombatManager", () => self.followerCombatManager],
             ["interfaceService", () => self.interfaceService],
@@ -936,6 +941,13 @@ export class WSServer {
                 this.locationService.emitLocChange(oldId, newId, tile, level, opts);
             });
             this.tradeManager = new TradeManager(this.svc);
+            this.friendsService = new FriendsService(this.svc);
+            if (this.gamemode.id === "ggwp") {
+                this.ggwpAdminItemSpawnService = new GgwpAdminItemSpawnService(this.svc);
+                this.gamemodeTickCallbacks.push(() => {
+                    this.ggwpAdminItemSpawnService?.tick();
+                });
+            }
             this.players.setTradeHandshakeCallback((me, target, tick) => {
                 this.tradeManager?.requestTrade(me, target, tick);
             });
