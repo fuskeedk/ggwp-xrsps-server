@@ -1,0 +1,340 @@
+{{External|rs}}
+{{Has quick guide}}
+{{Infobox Quest
+|name = The Path of Glouphrie
+|number = 158
+|image = [[File:The Path of Glouphrie.png]]
+|release = [[13 September]] [[2023]]
+|update = The Path of Glouphrie
+|aka = PoG
+|members = Yes
+|series = [[Quests/Series#Gnome|Gnome]], #3
+|developer = Mods Chihiro and Tytn (original), [[Mod Ed]] (Old School)
+}}
+[[File:The Path of Glouphrie logo.png|left|200px]]
+'''The Path of Glouphrie''' is the sequel to [[The Eyes of Glouphrie]] in the [[Quests/Series#Gnome|gnome quest series]], and the second [[Quests|quest]] to be [[Backporting|backported]] into ''Old School RuneScape''. During the quest, the investigation of [[Glouphrie]]'s plans continues with an attempt to access the hidden city of [[Arposandra]].
+
+==Details==
+{{Quest details
+|start = Speak to [[King Bolren]] in the [[Tree Gnome Village (location)|Tree Gnome Village]].
+|startmap = 2540,3171
+|difficulty = Experienced
+|description = King Bolren has a new pet. Unfortunately, it's another watcher, like the ones unmasked in the Tree Gnome Stronghold during The Eyes of Glouphrie. Has Glouphrie been watching the Tree Gnome Village, too? If you investigate further you'll find out more about Glouphrie, the history of the gnomes (and their unusual monarchy) and maybe you'll get within a hair's breadth of the lost city of Arposandra...
+|length = Medium
+|requirements = * Completion of the following quests:
+** [[The Eyes of Glouphrie]]
+*** [[The Grand Tree]]
+** [[Waterfall Quest]]
+** [[Tree Gnome Village]]
+* {{SCP|Strength|60|link=yes}} {{Boostable|no}} {{Questreqstart|yes}}
+* {{SCP|Slayer|56|link=yes}} {{Boostable|no}} {{Questreqstart|yes}}
+* {{SCP|Thieving|56|link=yes}} {{Boostable|no}} {{Questreqstart|yes}}
+* {{SCP|Ranged|47|link=yes}} {{Boostable|no}} {{Questreqstart|yes}}
+* {{SCP|Agility|45|link=yes}} {{Boostable|no}} {{Questreqstart|yes}}
+|items = * [[Key (Tree Gnome Village Dungeon)|Tree Gnome Village Dungeon key]] (unless [[Roving Elves]] has been started) (obtainable during the quest)
+* Combat equipment and some food
+* [[Mith Grapple]]
+* Any [[Crossbow_(weapon)|crossbow]]
+|recommended = * [[Earmuffs]] or a [[slayer helmet]] to reduce damage dealt by the [[warped terrorbird]]'s ranged attacks
+* [[Grand seed pod|Grand]] or [[royal seed pod]] (for fast access to the [[Gnome Stronghold]])
+* Grand Exchange [[Varrock teleport]]s (for fast access to a [[spirit tree]])
+* Access to [[fairy ring]]s
+* Several [[stamina potion|stamina]] or [[energy potion]]s
+* A [[tangled toad's legs]] to claim an optional [[mint cake]] reward from [[Longramble]] worth {{Coins|{{GEP|mint cake}}}}
+* High healing [[food]]
+* [[Prayer potion]]s
+|kills = *3 [[Warped Terrorbird]]s (level 138)
+*[[Evil Creature]] (level 1)
+|ironman = * {{SCP|Fletching|59|link=yes}} {{Boostable|yes}} to make a [[mith grapple]]
+* {{SCP|Smithing|59|link=yes}} {{Boostable|yes}} to make a [[mith grapple tip]]
+'''OR'''
+* {{SCP|Firemaking|35|link=yes}} {{Boostable|no}} for [[Barbarian Firemaking]], to access the [[Ancient Cavern]], and the means to defeat level 132 enemies for a 1/42.67 chance at a [[mith grapple]] drop (ideally the [[skeleton brute]]).
+|leagueRegion = <poem>
+{{LeagueRegion|Kandarin}} — location requirement
+</poem>
+}}
+
+==Walkthrough==
+===The King's Little Dumpling===
+{{Needed|recommended=10-14 free inventory spaces to make room for crystalline disks.}}
+[[File:King Bolren chathead.png|left]]
+Make your way to the [[Tree Gnome Village (location)|Tree Gnome Village]]; the quickest way to reach it is by [[spirit tree]]. Once there, talk to [[King Bolren]] and you'll notice that he has acquired another [[cute creature]], who he's affectionally named "Dumpling". Recognising it as one of [[Glouphrie]]'s [[evil creature]]s in disguise, you will attempt to warn him about its true nature; as usual, however, Bolren will refuse to believe you without sufficient evidence.
+
+Bolren will mention [[Yewnock]], the son of [[Oaknock the Engineer]], who used to visit the village and brought some unusual objects with him. The objects will remind you of Oaknock's machine, and Bolren will recommend you look underground for a local gnome who might know something about an anti-illusion machine.
+[[File:Path of Glouphrie puzzle path w-disks.png|alt=Path of push box puzzle|thumb|width=300x300|The path for the monoliths puzzle.]]
+Head down to the [[Tree Gnome Village Dungeon]] by squeezing through the loose railing to the south-west and then running east to the dungeon ladder. In the western area of the cave, speak to [[Golrie]] and ask him about a device; if you have not freed him, you will need a [[Key (Tree Gnome Village Dungeon)|key]] to unlock the room he is in, which can be found in the eastern storeroom (inside the crate that looks different than the others).  
+
+Golrie will tell you that his grandfather, [[Bolrie]], used to travel the world collecting elven artefacts and bringing them back to the village, often stashing them in the storeroom nearby. He will tell you that the storeroom is found in the eastern area of the cave, past the tunnel entrance, and that the storeroom's gated strongroom will require a key to enter.
+
+Head to the storeroom by entering the tunnel in the easternmost part of the dungeon, and you will find multiple [[monolith]]s in your way. Push the first monolith north, then search the nearby [[Chest (The Path of Glouphrie, wood)|chest]] for some familiar discs. Next, you will see another four monoliths; push the south-west one north, then the north-west one east. Search the wood chest for more discs, and the silver [[Chest (The Path of Glouphrie, silver)|chest]] for a [[Chest key (The Path of Glouphrie)|chest key]] and [[Yewnock's notes]]. ''You do not need to read the notes, but they will give further lore.''
+
+Push the small monolith south and the north-west monolith west to access the gold [[Chest (The Path of Glouphrie, gold)|chest]], which contains the [[strongroom key]] Golrie mentioned earlier, as well as a [[crystal chime seed]]. Next, inspect the nearby [[singing bowl]] to create the [[crystal chime]], which is needed later in the quest.
+
+===Yewnock's Legacy===
+[[File:Argenthorg chathead.png|left|frameless]]
+Push the south-east monolith west, then use the [[strongroom key]] on the gate to the west to enter a room with a lectern and [[Yewnock's machine]]. The lectern contains a diary belonging to [[King Bolrie]], who formerly ruled the village; all three chapters will trigger cutscenes, which must be watched to move to the next step in the quest. 
+
+The cutscenes will show an [[advisor]] to King Bolrie, who is tired of the aging [[King Healthorg]]'s inaction against the army of [[General Khazard]]. The advisor suggests to Bolrie that he should campaign to replace the king of the Tree Gnome Stronghold; his opponent [[Argenthorg]], the crown prince, will be "revealed" to care more about humans than gnomes, giving the election to Bolrie. However, sensing foul play, Argenthorg will call upon [[Yewnock]] (son of [[Oaknock the Engineer]]) to activate an anti-illusion machine and expose the advisor as [[Glouphrie the Untrusted]]. Having been tricked, Bolrie is forced to stand down as a candidate to the throne and leave the Tree Gnome Stronghold, as well as abdicate the throne of the Tree Gnome Village.<gallery captionalign="center" widths="200">
+The Path of Glouphrie - Bolrie's Diary chapter 1.png|King Bolrie, frustrated at King Healthorg's inaction.
+The Path of Glouphrie - Bolrie's Diary chapter 2.png|Campaign posters for the election to become king of the Tree Gnome Stronghold.
+The Path of Glouphrie - Bolrie's Diary chapter 3 saboteur.png|A saboteur creates illusions of human food.
+The Path of Glouphrie - Bolrie's Diary chapter 3 accused.png|Argenthorg, suspicious of the ruse, gets Yewnock to activate his anti-illusion machine.
+The Path of Glouphrie - Bolrie's Diary chapter 3 exposed.png|King Bolrie's advisor is exposed as Glouphrie.
+</gallery>{{Colour-shape value|align=right}}
+====The Machine====
+[[Yewnock's machine]] is similar to [[Oaknock's Machine]] in that players must solve a disc-based puzzle. This time, instead of being given a number you are given the value of the disc(s) to match. In the machine interface, the value of the discs '''inserted on the left''' need to '''add up to the same total value of the one(s) on the right'''. Use the table to calculate the total value of the disc(s) to match, and then solve as before. You will need to match two different values; first, a single shape that adds up to the value of the two displayed at the top, and second, two shapes that add up to the value of the single shape shown on the bottom. 
+ 
+[[Yewnock's exchanger]], located directly next to Yewnock's machine, can be used by first inserting higher valued discs in exchange for multiple lower valued ones, or by combining two smaller discs into a bigger disc. The total value of the input and output will be the same. To operate the machine, click the desired disc in the inventory and then click the disc slot on the machine interface. Then click the double arrows between the two sides to view what will be exchanged. Note that the exchange has three tiers; exchanging a disc in the second slot will exchange for two shapes, and so on.
+
+''Any items left on the ground will disappear following the cutscene.''
+
+Once the machine puzzle is successfully solved, a brief cutscene will play where Dumpling is revealed to be an evil creature. Head back up to the village and kill the evil creature, then talk to King Bolren. He will tell you of a gnome explorer named [[Longramble]], who went in search of the lost city, [[Arposandra]]. Though no one knows of his current whereabouts, King Bolren suggests asking [[Gianne jnr.|Aluft Gianne jnr.]] at the Grand Tree for help.
+
+Use the [[spirit tree]] and travel to the [[Grand Tree]]. Bank all unnecessary items (you may safely drop the shapes) and stock up on food and armour. If you're going to trade a [[tangled toad's legs]] for the [[mint cake]] (optional, but highly recommended as the tangled toad's legs is worth {{Coins|{{GEP|tangled toad's legs}}}} and a mint cake is worth {{Coins|{{GEP|mint cake}}}}), be sure to bring it along.<gallery captionalign="center" widths="400" perrow="2">
+File:The Path of Glouphrie - Yewnock's machine interface.png|Operating Yewnock's machine
+File:The Path of Glouphrie - Yewnock's machine exchanger.png|Operating Yewnock's exchanger
+</gallery>
+
+===Arbor Incomitata===
+{{Needed|A [[crossbow]] and [[mith grapple]], [[crystal chime]], combat equipment.|recommended=[[Tangled toad's legs]] to receive a [[mint cake]]}}
+[[File:Longramble chathead.png|left|frameless]]
+[[File:The Path of Glouphrie - grappling to Longramble.png|thumb|300px|The player grapples toward Longramble's coordinates.]]
+[[File:The Path of Glouphrie - Incomitatus is healed.png|thumb|300px|Incomitatus is healed to perfect health.]]
+Make your way to the Grand Tree, and climb up the ladder once. In the north-west corner, speak to  [[Gianne jnr.]] to learn about Longramble's whereabouts. He will tell you that gnomes have been trying to deliver a dish of [[tangled toads' legs]] to him, but have not been able to reach him. He tells you the coordinates of the delivery is at 2 degrees 7 minutes south and 3 degrees 7 minutes west.
+
+These coordinates will point toward the [[Galarpos Mountains]], just east of the [[Poison Waste]]. The quickest way to travel there is by using the [[fairy ring]] code {{Fairycode|bkp}} and then running north-west; An alternative way to get there is by teleporting to [[Castle Wars]] via [[ring of dueling]], then heading south-west alongside the river. Equip a [[crossbow]] and [[mith grapple]], and cross to the mountain side via the tree in the middle of the river.
+
+Speak to [[Longramble]], who believes Arposandra is close to the Poison Waste. If you brought a tangled toad's legs, he will automatically take it. After going through the dialogue, head further north, and you will feel a strange voice calling to you; this is the [[Spirit Tree (Incomitatus)|spirit tree]] nearby calling you, who tells you to call it [[Spirit Tree (Incomitatus)|Incomitatus]]. The tree's connection to the [[Anima Mundi]], the life force of the world, has been lost due to the toxic waste nearby corrupting its roots, and thus it has fallen ill.
+
+You will mention that how Incomitatus speaks to you through the mind is reminiscent of [[Hazelmere]]'s, and will unintentionally contact him through Incomitatus as the conduit. He will sense that it is unwell, and conclude that the poison seeping into the soil is a byproduct of powerful magic having separated the Anima Mundi from its source. Hazelmere will suggest that healing the tree requires a spiritual cleansing by way of elven magic; he will then notice that you have a set of chimes that can purify it, and ask that you use it on the tree. This will heal Incomitatus, and connects it with the rest of the spirit trees. From this point forward, players can use the tree as a teleport option.
+
+===The Warped Depths===
+[[File:Terrorbird Guard 21 chathead.png|left|frameless]]
+Head west of the spirit tree, and then run south and enter the sewer entrance. You '''do not need''' to fight the [[Warped Tortoise]] at the entrance. ''Note that if you have not yet healed the spirit tree, warped tree roots will block your path after the second warped tortoise.'' [[File:Poison Waste dungeon map.png|thumb|A map of the Poison Waste Dungeon.]]
+
+Once inside, you will need to run a considerable distance to the end of the dungeon; refer to the table below. It is recommended to wear a set of [[earmuffs]] '''''and''''' activate the [[Protect from Missiles]] prayer while traversing the dungeon, as this will negate almost all damage taken. Without ear protection, the [[Warped Terrorbird]]s inside will be able to '''hit through prayers''' with their ranged attacks.
+
+There is a caged hallway at the half-way point where players are safe if they close the gate behind them. Players can also do so in the hallway just before entering the final area.
+
+The level 121 [[Warped Tortoise]]s in the dungeon are not [[aggressive]], but the level 96 [[Warped Terrorbird]]s are, and they use frequent, highly accurate ranged attacks as well as a fairly accurate melee attack. [[Earmuffs]] or a [[slayer helmet]] will reduce the maximum hit of the ranged attacks, '''but the attacks will remain accurate''', so [[Protect from Missiles]] is recommended. Run past them, and avoid stepping on the tar on the ground, as it will turn off [[run energy]] and force you to walk, signaled by the game message {{Mes|You accidentally step in some sticky tar!|colour=red}}.
+
+Head to the end of the dungeon, in a room with a pit in the centre that is connected to three other rooms. To reach the room from the entrance:
+{| class="wikitable lighttable"
+!Dungeon directions
+|-
+| Enter the sewer entrance.
+|-
+| Climb up the ladder.
+|-
+|Run all the way east. 
+|-
+|Climb down the ladder.
+|-
+|Run north and climb up the ladder.
+|-
+|Run all the way west. 
+|-
+|Enter the north room. Close the gates and rest here if needed.
+|-
+|Climb down the ladder in the northern side of the room.
+|-
+| Run slightly east and climb up the ladder.
+|-
+|Run north to the room with the pit.
+|-
+|Enter the east room and fight the terrorbirds.
+|}
+[[File:The Path of Glouphrie - warped terrorbird fight.png|thumb|300px|Using a pillar to minimise the amount of terrorbirds attacking.]]
+
+The east room contains three [[Warped Terrorbird]]s that must be slain. The terrorbirds use both melee and ranged, and will path towards the player. You must be carrying the [[Crystal chime]] that you sang earlier to harm the birds.
+
+Lower-levelled players can use the pillars around the room to stop the other terrorbirds from attacking. Standing at the door until the three terrorbirds approach you will allow you to engage only one at a time. They may also be poisoned, envenomed, and flinched by trapping them behind the pillars.  They are weakest to crush attacks, and their ranged defence is the strongest defensive stat, but their melee and magic defence is fairly low, and they can be quickly eliminated with any attack style. 
+
+You can also position yourself so that they're not in melee distance (note that they ''can'' melee at a diagonal, unlike most units) so that you only need to pray Ranged. If you are low on prayer and have made sure that all the birds are not in melee distance, you can conserve prayer by only turning it on every 15 ticks once you have successfully prayed against their ranged attack. This is every 5th attack with a shortbow on rapid or every 3rd attack with autocast. ''If you get hit'', they will immediately attack on the 3rd tick after the hit, so be prepared to reset your cycle!
+
+After killing the Warped Terrorbirds, head towards the heavy door on the eastern side of the room to begin a cutscene showing two intelligent terrorbirds, [[Terrorbird Guard 21]] and [[Terrorbird Guard 72|72]], talking to each other. They will lament the boringness of the job, until they notice you and panic, pressing an alarm button that releases tar from the grills. You will try to run but become stuck in the tar, and toxic gases will begin to seep into the room, causing you to become hazy.
+
+As you are about to blackout, [[Hazelmere]] will appear in the nick of time. He activates a special seed pod, the last gift given to him by [[Argento]], which surrounds the both of you with a large aura and teleports you both out to safety. Arriving at his house on the [[Yanille Chain]], he will impart upon you his vision of the future, a vision that heavily involves you and signifies much to come.
+
+<gallery captionalign="center" widths="200">
+The Path of Glouphrie - Terrorbird Guard panic.png|The Terrorbird Guards notice your presence.
+The Path of Glouphrie - player trapped.png|You are tarred and gassed close to death.
+The Path of Glouphrie - Hazelmere appears.png|Hazelmere arrives to rescue the player, activating a special seed pod.
+</gallery>
+
+'''Note :''' ''If there is not enough space in the inventory during completion, you can talk to [[Hazelmere]] again to receive the missing rewards. Destroyed lamps can be reclaimed from Hazelmere at any time.''
+
+'''Congratulations, quest complete!'''
+
+==Rewards==
+{{Quest rewards
+|name = The Path of Glouphrie
+|image = [[File:The Path of Glouphrie reward scroll.png|center]]
+|qp = 2
+|rewards =
+* Four [[Magic lamp (The Path of Glouphrie)|magic lamps]] offering a total of {{SCP|Slayer|20,000}} [[Slayer]] XP,  {{SCP|Thieving|5,000}} [[Thieving]] XP,  {{SCP|Strength|30,000}} [[Strength]] XP, and  {{SCP|Magic|5,000}} [[Magic]] XP
+* Access to the [[Poison Waste Dungeon]]
+* Ability to unlock [[Slayer task/Warped creatures|Warped creatures]] as a [[Slayer task]] which drop the [[warped sceptre]]
+* Access to a new [[spirit tree]] destination in the [[Poison Waste]]
+}}
+
+==Transcript==
+{{Hastranscript|Quest}}
+
+==Required for completing==
+Completion of The Path of Glouphrie is required for the following:
+
+* [[While Guthix Sleeps]]
+
+==Music==
+{| class="wikitable sortable"
+|-
+!Name
+! class="unsortable" |Unlock details
+! class="unsortable" |Music track
+|-
+|[[Storeroom Shuffle]]
+|Unlocked upon entering the [[Tree Gnome Village Dungeon]] storeroom
+|[[File:Storeroom Shuffle.ogg]]
+|-
+|[[Bolrie's Diary]]
+|Unlocked upon viewing a cutscene from [[King Bolrie]]'s diary
+|[[File:Bolrie's Diary.ogg]]
+|-
+|[[The Longramble Scramble]]
+|Unlocked upon entering the [[Galarpos Mountains]]
+|[[File:The Longramble Scramble.ogg]]
+|-
+|[[Healin' Feelin']]
+|Unlocked upon healing [[Spirit Tree (Incomitatus)|Incomitatus]]
+|[[File:Healin' Feelin'.ogg]]
+|-
+|[[Waste Defaced]]
+|Unlocked upon entering the [[Poison Waste Dungeon]]
+|[[File:Waste Defaced.ogg]]
+|-
+|[[Terrorbird Tussle]]
+|Unlocked upon fighting the [[Warped Terrorbird]]s
+|[[File:Terrorbird Tussle.ogg]]
+|}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 25 September 2024
+|update = Varlamore: The Rising Darkness is OUT NOW
+|poll =
+|change = Some dialogue that was cut out from the original RuneScape 2 quest [https://oldschool.runescape.wiki/?title=Transcript%3AThe_Path_of_Glouphrie&diff=14792047&oldid=14520272 has been restored], in addition to some minor grammatical changes.
+}}
+{{Subject changes footer}}
+
+==Historical==
+[[File:Gielinor Gazette - February 2022 (9).png|thumb|Screenshot from the original Path of Glouphrie quest that was featured in the [[Update:Gielinor Gazette - February 2022|February 2022 Gielinor Gazette]], which discussed porting the quest into ''Old School''.]]
+The Path of Glouphrie was originally released in ''RuneScape'' on [[3 September]] [[2007]], 24 days after the [[August 2007 Archive of RuneScape]] that ''Old School'' was built off of. Like other content from the immediate post-backup era (such as the [[God Wars Dungeon]] and [[Land of the Goblins]]), it was present in the archive's files but had not yet been added to the live game.{{CiteTwitter|author=Mod Ash|url=https://twitter.com/JagexAsh/status/718562692177469440|date=8 April 2016|archiveurl=https://reldo.runescape.wiki/i/104933|archivedate=25 May 2020|quote=Yes: Path of Glouphrie and Land of the Goblins. Also Halloween 2007, but we already used that.}}
+
+Jagex first discussed potentially backporting the quest in the [[Update:Gielinor Gazette - February 2022|February 2022 edition of the Gielinor Gazette]]. During the [[April 2023 Game Jam]], it was revealed that [[Mod Ed]] was working on finishing the quest,{{CiteTwitter|author=Mod Ed|url=https://twitter.com/JagexEd/status/1651202744512831489|date=26 April 2023|archiveurl=https://reldo.runescape.wiki/i/107044|archivedate=27 April 2023|quote=Hey @JagexLenny, things are pretty PoG over here! #OSRSGameJam}} and it was later announced during the [[Summer Summit 2023|2023 Summer Summit]] that the quest would be released sometime in September if it passed [[Poll:Summer Summit 2023 - Giga Poll|the poll]].
+
+===Differences from original version ===
+Although identical in premise and concept to the original quest, there are many differences in the ''Old School'' version: 
+
+There are differences in the story and dialogue compared to the original version of the quest.
+* Bolren's initial dialogue originally included significantly more information about Yewnock.
+* Golrie originally joked about his 'pet' hobgoblins when speaking to him if Roving Elves had been started.
+* Speaking to Golrie again after learning about the storeroom from him would originally cause him to talk about how useful items are always found in chests, and how once he explored a temple where the keys to locked doors were always in chests in the rooms he needed them, as a reference to {{wp|The Legend of Zelda}} series.
+[[File:King Healthorg turns to stone.gif|thumb|200px|The representation of King Healthorg's death.]]
+* Bolrie's diary is almost completely different from the original version:
+** In chapter 1, Bolrie was not originally depicted as a king, and did not wear a crown. His advisor originally spoke about how [[General Khazard]] now leads the humans, how they would spell disaster for the gnomes, and how Healthorg and Argenthorg would do nothing to stop them. The advisor advised Bolrie to pre-emptively attack Khazard to win the hearts of all gnomes, and that he would surely be crowned king of the Tree Gnome Stronghold if he did, at which point Bolrie imagined himself wearing a crown.
+** In chapter 2, Healthorg's death was symbolically depicted as him turning into a stone statue. Models for this still exist in the game cache.
+** In chapter 3, the conversation between Bolrie and Argenthorg was longer, with the additional dialogue depicting Argenthorg as more spoiled and childish. After being exposed, Glouphrie originally had a conversation with Bolrie where he spoke about his motivation to protect gnomes from humanity, and his intentions to found Arposandra. As the cutscene ended, Bolrie originally spoke about pleading with Yewnock to build an anti-illusion machine under the Tree Gnome Village to protect his family, explaining why it's there, which is otherwise unexplained. The cutscene also ended with Bolrie staring at a king statue for a beat before leaving the grand tree.
+* As it was originally mentioned in Bolrie's diary, the player character mentioned Arposandra to King Bolren, rather than vice-versa.
+* When talking about how to heal Incomitatus, Hazelmere originally explained that elven magic would be required to heal him because [[Seren]] is the divine aspect of the Anima Mundi that the elves revere.
+* When mind melding with Incomitatus, there was text explaining how his sickness feels. After being healed, Incomitatus had significantly more dialogue thanking the player and explaining what to do next.
+* The final cutscene in the sewers originally had more monologue from the player, as well as more graphical effects, and originally started upon peeking through the door rather than upon defeating all the Terrorbirds.
+** The original began with a zoom in through the doors window, and the Terrorbirds frantically jumped around and squawked before pressing the button.
+** After the gas jets are activated, clouds of gas would remain in the room for the rest of the cutscene, instead of disappearing immediately as in the ''Old School'' version.
+** Players would start being attacked by magic projectiles after the gas was activated, visibly lowering their health. The models and animations for the magic projectiles still exist in the game cache.
+* Hazelmere did not originally start speaking to the player at the end of the quest, continuing to speak in their mind.
+
+Many NPCs have slightly different names compared to the original:
+{| class="wikitable"
+!Original
+!Old School version
+|-
+|Small monolith
+|[[Small Monolith]]
+|-
+|Bolrie
+|[[King Bolrie]]
+|-
+|Spirit advisor
+|[[Advisor]]
+|-
+|Prince Argenthorg
+|[[Argenthorg]]
+|-
+|Yewnock the engineer
+|[[Yewnock the Engineer]]
+|-
+|Warped tortoise
+|[[Warped Tortoise]]
+|-
+|Warped terrorbird
+|[[Warped Terrorbird]]
+|-
+|Guard no. 21
+|[[Terrorbird Guard 21]]
+|-
+|Guard no. 72
+|[[Terrorbird Guard 72]]
+|}
+
+Various changes were made to [[Warped Tortoise]]s and [[Warped Terrorbird]]s:
+* Warped creatures had their stats and drop tables rebalanced, alongside dropping the Old School-exclusive [[warped sceptre]].
+* Warped terrorbirds originally had different defensive stats based on their appearance.
+* Warped terrorbirds and warped tortoises were separate Slayer tasks that were automatically unlocked upon completion. In Old School RuneScape, both creatures share a single warped creature task, similar to [[spiritual creature]]s, and must be unlocked via the [[Slayer_Rewards#Unlock|Slayer Rewards]] shop. They also have their own [[Superior slayer monster|superior]] variants.
+* The crystal chime originally had to be used on the warped creatures to begin fighting them, rather than just attacking them with the item present. Additionally, they would change their appearance and examine text after the chime was used on them. Standard warped terrorbirds now use the appearance they had after having the crystal chime used on them, while the boss versions fought at the end of the quest look like the pre-chime version.
+* The crystal chime was originally made from the same [[crystal saw seed]], which meant players could not have both it and the [[crystal saw]], requiring a visit to the [[singing bowl]] in [[Brimstail's cave]] to switch. In ''Old School'', the chime is made from a separate item.
+* Some of the warped creatures are in different locations. For example, there was not originally a warped tortoise right at the entrance, instead it was found upstairs next to the other tortoise.
+
+The rewards have been slightly updated:
+* The original only awarded one [[quest point]]; two are awarded in ''Old School''.
+* Rather than rewarding experience directly after completion of the quest, players are rewarded with four [[Magic lamp (The Path of Glouphrie)|magic lamps]] instead, allowing players to claim the experience at their discretion.
+*Originally, travelling via [[spirit tree]]s required the player to first travel to either the [[Gnome Stronghold]] or [[Tree Gnome Village (location)|Tree Gnome Village]] spirit trees before they could choose the destination they wanted to go. Completing the quest rewarded the ability to choose a destination from any spirit tree, but ''Old School'' had already implemented this in [[Update:Spirit trees, clues & more!|an update]] on [[1 May]] [[2014]]. Additionally, a new animation would play when using spirit trees after unlocking this ability during the quest. This is not present in ''Old School RuneScape'', but can be found within the game cache.
+
+Other miscellaneous changes:
+* The position of monoliths in the storeroom is now saved between visits, instead of resetting every time like in the original version. 
+* The room with Yewnock's machine is now instanced like the rest of the storeroom.
+* Watching the cutscenes in [[Bolrie]]'s diary is now required, rather than optional.
+*Two [[unlisted music tracks]] were present in the original version, but not the Old School RuneScape version.
+** A [[rsw:File:Mind Melding.ogg|creepy unlisted music track]] played when mind melding with Incomitatus.
+** An [[rsw:File:The Terrorbirds.ogg|unlisted music track]] originally played when observing the terrorbirds at the end of the quest, before changing back to [[Terrorbird Tussle]] after being spotted.
+* Walking close to the sewer exit would originally automatically take you outside the dungeon, instead of needing to select "Exit".
+* The [[Poison Waste Dungeon]] did not originally contain any gas jets outside of the ones that appear in the cutscene at the end of the quest. As a result, their ability to damage players is exclusive to ''Old School''.
+
+==Developers==
+'''Original'''
+*'''Developers:''' Mod Chihiro (Project Lead), Mod Tytn
+*'''Graphics:''' Kavi M, Matthew M, Mod Paul B, Matthew S
+*'''Quality Assurance:''' Nick C
+*'''QuestHelp:''' Kevin D, Mod Maylea
+*'''Audio:''' Mod Dan A
+'''''Old School RuneScape'''''
+*'''Developer(s):''' Mod Ed
+
+==Trivia==
+* The Path of Glouphrie was [[Backporting|ported from the original game]] with significant changes, as it was already nearly complete in the [[August 2007 Archive of RuneScape]]. It is the second quest to receive this treatment, after [[Land of the Goblins]].
+**A bug present in the archived version also had to be fixed before The Path of Glouphrie could be released, which enabled players to claim the experience reward for this quest an indefinite number of times.{{CiteTwitter|author=Mod Ash|url=https://twitter.com/JagexAsh/status/1702359492908687660|date=16 September 2023|archiveurl=https://web.archive.org/web/20230916204052/https://twitter.com/JagexAsh/status/1702359492908687660|archivedate=16 September 2023|quote=(...) So this was a matter of merging it in, finishing the unfinished bits, fixing the infinite rewards bug from 2007 and redesigning the Slayer bit.}} By returning to a certain area in the Poison Waste Dungeon, the variable keeping track of the player's quest progression would revert to an earlier state, allowing one to trigger the final cutscene once more, and receive the associated rewards at the end.{{CiteTwitter|author=Mod Ash|url=https://twitter.com/JagexAsh/status/1703036616774762547|date=16 September 2023|archiveurl=https://web.archive.org/web/20230916204312/https://twitter.com/JagexAsh/status/1703036616774762547{{^|https://web.archive.org/web/20230916204457/https://twitter.com/JagexAsh/status/1703116775213122016}}|archivedate=16 September 2023|quote=All the quest rewards - XP mostly. Something to do with walking back into a certain area after completing it, and getting the finale cutscene and quest rewards again. (...) I think it was fixed quickly. There's telemetry that flags quest progression going backwards like that, so quite likely there were only one or two people who encountered it - and social media wasn't such a big thing for RS back then.}}
+* The addition of ''The Path of Glouphrie'' to ''Old School RuneScape'' was first hinted at in the [https://secure.runescape.com/m=news/gielinor-gazette---february-2022?oldschool=1 February 2022 Gielinor Gazette].
+* The campaign posters in the cutscene from Bolrie's diary are written in [[Ancient Gnomish]], translated as "[Bolrie/Argenthorg] for king!"
+* Bolrie's campaign poster appears to reference the [[wikipedia:Lord_Kitchener_Wants_You|''Lord Kitchener Wants You'']] recruitment poster for the British Army.
+* If you examine Yewnock, it will say, "Can he copy it? Yes he can!" This is a reference to Oaknock's examine text, which is a reference to the children's TV show, ''{{wp|Bob the Builder}}''.
+* Longramble mentions searching for the edge of the world in a conversation; this is a reference to the old myth of the world being flat.
+* Gianne Jr. mentions that he couldn't find the coordinates of the delivery to Longramble the explorer on Doogle Maps (since his maps are written on dried [[doogle leaves]]). This is a reference to ''{{wp|Google Maps}}''.
+* When speaking with Longramble for the first time, your character says: "Mr Longramble, I presume?" This mirrors a famous quote supposedly said by explorer [[wikipedia:Henry_Morton_Stanley|Henry Morton Stanley]] when he found the missionary [[wikipedia:David_Livingstone#Stanley_meeting|Dr David Livingstone]] in modern Tanzania after he had lost contact with the outside world.
+
+==References==
+{{reflist}}
+
+{{The Path of Glouphrie}}
+[[Category:Backported and extracted content]]
+{{DEFAULTSORT|Path of Glouphrie, The}}

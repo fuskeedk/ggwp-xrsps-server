@@ -1,0 +1,33 @@
+# seers.toml — city NPC spawns
+
+[[spawn]]
+npc = "npc.hickton"
+coords = "0_44_53_7_50"
+
+[[spawn]]
+npc = "npc.arhein"
+coords = "0_41_52_38_44"
+
+[[spawn]]
+npc = "npc.fur_merchant"
+coords = "0_44_53_12_58"
+
+[[spawn]]
+npc = "npc.pmod_town_crier_seers"
+coords = "0_42_54_38_32"
+
+[[spawn]]
+npc = "npc.banker1"
+coords = "0_42_54_34_37"
+
+[[spawn]]
+npc = "npc.banker2"
+coords = "0_42_54_35_37"
+
+[[spawn]]
+npc = "npc.banker1"
+coords = "0_42_54_36_37"
+
+[[spawn]]
+npc = "npc.banker2"
+coords = "0_42_54_37_37"

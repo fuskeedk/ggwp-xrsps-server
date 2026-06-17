@@ -1,0 +1,10 @@
+{
+  "name": "osrs-quest-system",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "demo": "node examples/demo.js",
+    "test": "node tests/questEngine.test.js"
+  }
+}

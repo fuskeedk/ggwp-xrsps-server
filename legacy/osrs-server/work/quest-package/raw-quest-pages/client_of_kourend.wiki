@@ -1,0 +1,134 @@
+{{Has quick guide}}
+{{Infobox Quest
+|name = Client of Kourend
+|number = 130
+|image = [[File:Client of Kourend.png|300px]]
+|release = [[20 April]] [[2017]]
+|update = Client of Kourend
+|members = Yes
+|series = [[Quests/Series#Kourend|Great Kourend]], #2
+|developer = [[Mod Wolf]]
+}}
+'''Client of Kourend''' is the first [[quest]] which involves the kingdom of [[Great Kourend]], and is the 131st quest on ''[[Old School RuneScape]]''.
+
+==Details==
+{{Quest details
+|start = Speak to [[Veos]] at [[Port Piscarilius]].
+|startmap = 1826,3690
+|difficulty = Novice
+|description = Will you help Veos handle a mysterious client?
+|length = Short
+|requirements = *Completion of the following quest:
+**[[X Marks the Spot]]
+|items = * [[Feather]] ''(a [[Stripy feather|stripy]] or coloured feather can also be used, but a [[magic gold feather]] cannot)''
+|recommended = *[[Weight-reducing clothing]] and [[Stamina potion|stamina]] or [[energy potion]]s
+*Fast travel to several locations
+**[[Port Sarim]] to start the quest - [[Amulet of glory]] to [[Draynor Village]] or [[Explorer's ring]] 2-4 or [[Teleport to House]] (Rimmington) or [[Skills necklace]] to [[Crafting Guild]]
+**[[Hosidius]] (1 trip) - [[Lovakengj Minecart Network]] for {{Coins|20}} or [[Fairy ring]] to {{fairycode|AKR}}
+**[[Shayzien]] (1 trip) - [[Lovakengj Minecart Network]] for {{Coins|20}} or [[Fairy ring]] to {{fairycode|DJR}}
+**[[Lovakengj]] (1 trip) - [[Lovakengj Minecart Network]] for {{Coins|20}} or [[Fairy ring]] to {{fairycode|DJR}}
+**[[Arceuus]] (1 trip) - [[Lovakengj Minecart Network]] for {{Coins|20}} or [[Fairy ring]] to {{fairycode|CIS}}
+**[[Dark Altar]] (1 trip) - [[Games necklace]] or [[Fairy ring]] to {{fairycode|CIS}}
+**[[Port Piscarilius]] (1 trip) - [[Lovakengj Minecart Network]] for {{Coins|20}}
+|kills = 
+|leagueRegion = <poem>
+Unlocking {{LeagueRegion|Kandarin}} {{okay}} will auto-complete the quest
+Unlocking {{LeagueRegion|Kourend}} {{okay}} will auto-complete the quest
+Unlocking {{LeagueRegion|Fremennik}} {{okay}} will auto-complete the quest
+</poem>
+}}
+
+==Walkthrough==
+[[File:Client of Kourend - quest map.png|thumb|300x300px|Map showing locations visited during the quest:<br/>
+'''1:''' Veos<br/>
+'''2:''' Leenz<br/>
+'''3:''' Regath<br/>
+'''4:''' Munty<br/>
+'''5:''' Jennifer<br/>
+'''6:''' Horace<br/>
+'''7:''' Dark Altar]]
+[[File:Veos chathead.png|left]]
+Speak to [[Veos]] at the northernmost dock of [[Port Sarim]] (near the [[Rusty Anchor Inn]]) to sail to [[Great Kourend]]. You will arrive in [[Port Piscarilius]], speak to [[Veos]] again and ask if he has any quests for you. He will say that he has a client from the mainland who is interested in some knowledge surrounding the cities of [[Kourend]], specifically its hierarchy and general social organisation. Agree to help him, and he will give you an [[enchanted scroll]], '''which you must use a [[feather]] on to create an [[enchanted quill]]'''. If you haven't got one already, a feather can be easily obtained from [[Gerrant's Fishy Business]] in [[Port Sarim]]. 
+
+With the [[enchanted quill]] and [[enchanted scroll]] from Veos in your inventory, you will have to speak to the general store owners of Great Kourend. They can be found in buildings marked with the [[File:General store icon.png]] icon. You will need to travel to [[Hosidius]], [[Shayzien]], [[Lovakengj]], and [[Arceuus]] to visit these stores.
+
+[[File:Enchanted Quill Damage.gif|thumb|upright|right|A player taking damage from the enchanted quill.]]
+
+Speak to a store owner, and ask them about their respective city and what there is to do in their respective city. When you are receiving information from the [[Regath]], the [[Arceuus]] general store owner, the quill will mysteriously glow and damage your hand! You will not take any damage, however.
+
+Once you've spoken to every single general store owner, a mysterious voice whispers to you that you must return to [[Veos]]. He will take your quill and scroll. You then tell [[Veos]] about your hand being damaged, and he says the client apologises, as the mention of the [[Dark Altar]] "provoked emotions".
+[[File:Activate the Mysterious orb near the Dark Altar.png|thumb|left|220px|Activating the orb near the Dark Altar.]]
+[[Veos]] will then ask you to take a [[Mysterious orb (Client of Kourend)|mysterious orb]] and activate it when near the [[Dark Altar]]. The Dark Altar is found north of [[Arceuus]] at the end of the area with purple crystals.
+[[File:Client possessing Veos.gif|thumb|upright|right|Veos becomes possessed by his client.]]
+Once you are near the [[Dark Altar]], activate the orb. It will shatter into [[broken glass]]. The mysterious voice will then whisper to you that you must return to [[Veos]] once more.
+
+Return to [[Veos]] in [[Port Piscarilius]] (the quest cannot be completed by talking to him in [[Port Sarim]]). He will then claim that he has not spoken to you since taking you to [[Great Kourend]], and suddenly becomes possessed. [[Veos' Client]] will now speak, with the player questioning him to no avail. Before he releases [[Veos]] from his possession, he will give you your reward.
+
+'''Congratulations, quest complete!'''
+
+==Rewards==
+{{Quest rewards
+|name = Client of Kourend
+|image = [[File:Client of Kourend reward scroll.png|centre]]
+|qp = 1
+|rewards = * Two [[Antique lamp (Client of Kourend)|antique lamps]] which provide 500 experience each in a skill of the player's choosing
+*[[Kharedst's memoirs]]
+*[[Kourend Castle Teleport]] spell
+}}
+
+==Post-quest easter eggs==
+There is one easter egg that can be done during or after completion of the quest, which offers no rewards. However, there was once a second easter egg that was silently removed on [[9 November]] [[2017]], which effectively retconned the lore revealed from it; it is kept here for historical purposes.
+
+===Copper's collar===
+[[File:Copper's crimson collar detail.png|100px|left]]
+A set of [[wolf bones]] can be used on Veos. The bones will remind him of Copper, his pet wolf - a loyal, brave and gentle wolf who wore a crimson collar. When Veos was travelling in the [[Fremennik Province]]s, he and his wolf (who was 19 years old) were ambushed by a group of feral foxes, and suffered fatal wounds. Veos ran away, and he sought to search for his remains, to no avail. Offer to help him, then travel to the Fremennik Province.
+
+[[Fox]]es can be found either east of the [[Hosidius Kitchen]], or north of the [[Sinclair Mansion]], across the river. Kill them until they drop [[Copper's crimson collar]].
+
+Once you obtain the collar, return to Veos in Port Piscarilius, who will be grateful for your help.
+
+===The Client's identity===
+[[File:Ring of charos(a) detail.png|100px|left]]
+'''This dialogue was retconned on [[9 November]] [[2017]], and no longer exists.'''
+
+Previously, players could attempt to charm [[Veos' Client]] using the [[ring of charos(a)|activated ring of Charos]] into revealing his name. However, the client foiled the attempt, asking the player if they truly thought that he could be manipulated by "Charos' feeble magic". He decided to tell the player due to their efforts, and reveals himself to be [[Xeric]], a tyrant who ruled [[Great Kourend]] nearly 1,030 years ago.
+
+==Required for completing==
+Completion of Client of Kourend is required for the following:
+*[[Dragon Slayer II]]
+*[[Tale of the Righteous]]
+*[[The Ascent of Arceuus]]
+*[[The Depths of Despair]]
+*[[The Forsaken Tower]]
+*[[The Queen of Thieves]]
+*[[A Kingdom Divided]]
+
+==Transcript==
+{{Hastranscript|quest}}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 10 January 2024
+|update = Children of the Sun
+|poll = Varlamore Activities & Kourend Changes
+|change = 
+* As [[Kourend Favour]] has been removed, the quest no longer rewards the [[Kourend favour certificate]].
+* Completion of the quest now unlocks the [[Kourend Castle Teleport]] spell.
+}}
+{{Subject changes
+|date = 28 April 2021
+|update = Arceuus Spellbook Beta and A Kingdom Divided Preparation
+|change = Completion of X Marks the Spot is now a requirement for Client of Kourend.
+}}
+{{Subject changes footer}}
+
+==Trivia==
+*After an [[Update:Arceuus Spellbook Beta and A Kingdom Divided Preparation|update]], completion of [[X Marks the Spot]] was made a requirement for Client of Kourend, and thus every other Kourend related quests.
+*Prior to [[Update:Tale of the Righteous and Kourend Favour|an update]] on [[19 April]] [[2018]], the quest permanently doubled the rate of gaining favour in all cities within Great Kourend. After the update, this doubled rate became the new default for gaining favour.
+*The easter egg about Copper was not solved until over a year (407 days) after the quest's release. When the player revealed the solution on Twitter, Mod Wolf revealed that the easter egg was made in honour of his pet dog, who passed away a while before the quest's release.{{CiteTwitter|author=Mod Wolf|url=https://twitter.com/JagexWolf/status/1002428008752349184|date=1 June 2018|archiveurl=https://archive.is/JqlqT|archivedate=28 May 2020|quote=My dog had passed away a little while before the quest was released and I don't think I'd have forgiven myself if I didn't honour him in some way.}}
+
+==References==
+{{reflist}}
+
+{{Client of Kourend}}

@@ -1,0 +1,91 @@
+
+[[object]]
+id = "loc.copperrock1"
+inherit = "loc.copperrock1"
+contentGroup = "content.ore"
+
+[object.params]
+"param.levelrequire" = 1
+"param.skill_productitem" = "obj.copper_ore"
+"param.skill_xp" = 175
+"param.next_loc_stage" = "loc.rocks1"
+"param.respawn_time_low" = 4
+"param.respawn_time_high" = 8
+
+[[object]]
+id = "loc.copperrock2"
+inherit = "loc.copperrock2"
+contentGroup = "content.ore"
+
+[object.params]
+"param.levelrequire" = 1
+"param.skill_productitem" = "obj.copper_ore"
+"param.skill_xp" = 175
+"param.next_loc_stage" = "loc.rocks2"
+"param.respawn_time_low" = 4
+"param.respawn_time_high" = 8
+
+[[object]]
+id = "loc.tinrock1"
+inherit = "loc.tinrock1"
+contentGroup = "content.ore"
+
+[object.params]
+"param.levelrequire" = 1
+"param.skill_productitem" = "obj.tin_ore"
+"param.skill_xp" = 175
+"param.next_loc_stage" = "loc.rocks1"
+"param.respawn_time_low" = 4
+"param.respawn_time_high" = 8
+
+[[object]]
+id = "loc.tinrock2"
+inherit = "loc.tinrock2"
+contentGroup = "content.ore"
+
+[object.params]
+"param.levelrequire" = 1
+"param.skill_productitem" = "obj.tin_ore"
+"param.skill_xp" = 175
+"param.next_loc_stage" = "loc.rocks2"
+"param.respawn_time_low" = 4
+"param.respawn_time_high" = 8
+
+[[object]]
+id = "loc.clayrock1"
+inherit = "loc.clayrock1"
+contentGroup = "content.ore"
+
+[object.params]
+"param.levelrequire" = 1
+"param.skill_productitem" = "obj.clay"
+"param.skill_xp" = 50
+"param.next_loc_stage" = "loc.rocks1"
+"param.respawn_time_low" = 4
+"param.respawn_time_high" = 8
+
+[[object]]
+id = "loc.ironrock1"
+inherit = "loc.ironrock1"
+contentGroup = "content.ore"
+
+[object.params]
+"param.levelrequire" = 15
+"param.skill_productitem" = "obj.iron_ore"
+"param.skill_xp" = 350
+"param.next_loc_stage" = "loc.rocks1"
+"param.respawn_time_low" = 6
+"param.respawn_time_high" = 10
+
+[[object]]
+id = "loc.ironrock2"
+inherit = "loc.ironrock2"
+contentGroup = "content.ore"
+
+[object.params]
+"param.levelrequire" = 15
+"param.skill_productitem" = "obj.iron_ore"
+"param.skill_xp" = 350
+"param.next_loc_stage" = "loc.rocks2"
+"param.respawn_time_low" = 6
+"param.respawn_time_high" = 10

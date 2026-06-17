@@ -1,0 +1,193 @@
+{{External|rs}}
+{{Has quick guide}}
+{{Infobox Quest
+|name = Zogre Flesh Eaters
+|number = 80
+|image = [[File:Zogre Flesh Eaters.png|300px]]
+|release = [[17 May]] [[2005]]
+|update = Zogre Flesh Eaters
+|members = Yes
+|series = None
+|developer = Tytn H
+}}
+'''Zogre Flesh Eaters''' is a [[Feldip Hills]] area [[quest]] in which you must venture into the crypts of [[Gu'Tanoth]], an ogre resting ground, now crawling with undead [[Zogre|zombie]] and [[Skogre|skeleton]] ogres.
+
+==Details==
+{{Quest details
+|start = Speak to [[Grish]] in [[Jiggig]], just south of [[Castle Wars]].
+|startmap = 2444,3051
+|difficulty = Intermediate
+|description = Run for your lives...the zombie ogres are here for your flesh! An ogre ceremonial dance area, used to communicate with ancient ogrish ancestors, has been overrun with diseased undead ogres.
+
+How could something like this have happened? And what sort of rewards could an enterprising adventurer gain from exploring the tombs of such a place?
+|length = Short
+|requirements = * Completion of the following quests:
+** [[Big Chompy Bird Hunting]]
+** [[Jungle Potion]]
+*** [[Druidic Ritual]]
+* You must be able to defeat a level 111 enemy.
+* {{SCP|Smithing|4|link=yes}} {{Boostable|yes}} {{Questreqstart|}}
+* {{SCP|Herblore|8|link=yes}} {{Boostable|yes}} {{Questreqstart|}}
+* {{SCP|Ranged|30|link=yes}} {{Boostable|no}} {{Questreqstart|}}
+|items = * 5 free inventory spaces are needed to receive items near the start of the quest
+* [[Knife]] (obtainable during quest)
+* A [[comp ogre bow]] (not needed if using [[Crumble Undead]]  in final battle) '''or''':
+** [[Wolf bones]]
+** [[Achey logs]] (obtainable during quest)
+** [[Axe]] of your [[Woodcutting]] level
+** [[Bow string]]
+* [[Brutal arrows]] (not needed if using [[Crumble Undead]] in final battle) '''or''':
+** [[Achey logs]] (obtainable during quest)
+** [[Nails]] (the best you can fletch into brutal arrows)
+** [[Hammer]]
+** [[Feather]]s (4 per 1 brutal arrow)
+|recommended = * {{SCP|Combat|45|link=yes}}
+* {{SCP|Prayer|43|link=yes}} for [[protection prayers]]
+* {{SCP|Strength|10+|link=yes}} (otherwise it is very difficult to open the chest below the stairs in the north-west corner. [[Strength#Temporary boosts|Strength boosts]] are useful here)
+* {{SCP|Fletching|30|link=yes}} {{Boostable|yes}} (is needed if you want to create your own [[Comp ogre bow]] and {{SCP|Fletching|33|link=yes}} is needed to fletch [[Brutal arrows]].)
+* [[Strength potion]] if your strength is low. Opening the ogre tomb seems to require strength and lowers your level each time you fail.
+* [[Vial of water]], [[Rogue's purse]] and [[Snake weed]] if you choose to learn the technique that allows you to mix [[Relicym's balm]] (pretty much necessary if < 89 combat, unless you have sanfew serum).
+* A [[Sanfew serum]] would be helpful to prevent disease and restore stats. [[Relicym's balm]] is a cheap alternative to the Sanfew serum
+* [[Ava's accumulator]] to conserve arrows
+* To save the [[super restore]] obtained during the quest to combat disease, [[combat potion|combat]], [[ranged potion|ranged]], or [[magic potion|magic potion]]s can be used after normal [[restore potion]]s.
+* A [[ring of dueling]] to teleport to [[Castle Wars]] and [[Ferox Enclave]] to restore your stats and cure disease with the pools. 
+* A [[Yanille Teleport]]
+|kills = * [[Slash Bash]] ''(level 111)'' (can be safespotted)
+* [[Zombie (Zogre Flesh Eaters)|Zombie]] ''(level 39)''
+|leagueRegion = <poem>
+{{LeagueRegion|Kandarin}} — location requirement
+Unlocking {{LeagueRegion|Morytania}} {{okay}} will auto-complete the quest
+</poem>
+}}
+
+==Walkthrough==
+{{Needed|5-10 free inventory spaces. 5 for three cooked chompy birds (heal 10) and two Super restore potions. An additional 5 free slots to collect some quest items|recommended=A teleport out, a weapon and food, especially for lower level players.}}
+
+Speak to [[Grish]], located at [[Jiggig]] (south after crossing the connecting bridge to [[Castle Wars]]) east of the [[fairy ring]] code {{Fairycode|BKP}}. He will talk about [[Zogres]] (zombie ogres) coming from the ground and making people sick. Ask if you can help, and progress through the conversation. Grish will give you two [[Super restore potion]]s and three [[cooked chompy]] birds.
+
+Talk to the [[Ogre guard]] to the east. After mentioning Grish, he will remove the barricade to allow you inside the Zogre-infested area.
+
+Run east to a set of stairs going downward and descend these stairs into the [[Jiggig Dungeon]].
+
+{{UIMnote|You need enough space to receive the super restore potions and cooked chompy birds, but they are not required to complete the quest. The super restore potions may help negate the effects of [[Disease]] during the quest, however.}}
+
+===The cave===
+[[File:Zogre Flesh Eaters skeleton.png|thumb|220px|Fighting the zombie.]]
+'''Note:''' You may now (or have already) become [[diseased]] if you are under 89 [[Combat]] and a [[Zogre]] or [[Skogre]] (level 44) attacks you. From now on, make sure you carry [[Super restore potion]]s with you, because the disease will temporarily reduce a random skill by up to 10 levels every minute or so.
+
+*Proceed north-west to an area with a blackened floor. There will be a short cutscene.
+*'''Search the [[Broken Lecturn]]'''. You will find a [[torn page]] that contained a spell.
+*'''Search the skeleton''' that is adjacent to the lecturn; a [[zombie (Zogre Flesh Eaters)|zombie]] will appear and attack. Kill it to obtain a [[ruined backpack]].
+*'''Open the backpack''' to obtain a [[Dragon inn tankard]], some [[rotten food]] and a [[knife]].
+*Attempt to '''search the [[Ogre Coffin (Zogre Flesh Eaters)|coffin]] nearest to the skeleton''', and then use a knife on it. The lock should unlock. Try opening the coffin (it may take a couple of tries). When the coffin is open, '''search''' it to obtain a [[black prism]].
+*Backtrack and exit the cave by running back to the barricade or simply teleporting out.
+*'''Note:''' If you became diseased in the previous part, you can enter a dream in the [[Nightmare Zone]] in practice mode and leave to cure disease. Alternatively, you can teleport to [[Ferox Enclave]] with a [[ring of dueling]] (equivalently, [[Minigame Teleport]] to Clan Wars) and drink from the [[Pool of Refreshment]] to restore your stats and cure disease. Otherwise it will weaken and cure after 15 minutes. '''''Note: Being Diseased can prevent teleporting with minigame teleport. Keep trying until you get it, but it might take more than once.'''''
+
+{{UIMnote|You may drop the rotten food immediately, and the knife after unlocking the coffin.}}
+
+===B. Vahn===
+{{Needed|[[Black prism]], [[Dragon inn tankard]], [[Torn page]], and 5 free inventory spaces}}
+
+*Proceed to [[Yanille]]. Using the [[Minigame teleport]] to the Nightmare Zone will place you next to Yanille. The [[Watchtower teleport]] can also be used to get to Yanille, assuming the [[Watchtower]] quest is completed. Fairy ring code {{Fairycode|ciq}} is also near Yanille.
+*Go to the [[Dragon Inn]] in south-western Yanille, and use the [[Dragon inn tankard|tankard]] on the bartender. The bartender will explain that the tankard belonged to [[Brentle Vahn]], a not-so-moral customer who had been seen with a shady wizard.
+*Talk to [[Zavistic Rarve]], found on the {{FloorNumber|uk=0}} of the [[Wizards' Guild]] (NOT the [[Wizards' Tower]]!). He'll be wearing white and baby blue robes, distinct from the other wizards. If you don't have the required level to enter the guild, ring the bell on the east side of the building, then Rarve will appear outside. After seeing the [[Black prism|prism]] and [[torn page]], Rarve will tell you to talk to [[Sithik Ints]] in the guest house north of the guild on the {{FloorNumber|uk=1}}. '''''Note: Unlike the bartender, using the items on Rarve does not work. You must specifically click 'talk-to' and speak to Rarve or Sithiks will never be mentioned.'''''
+
+===Incriminating Sithik===
+Proceed to the guest house, which is directly north of the [[Wizards' Guild]], and then go to the top floor. [[Sithik]] is in the western-most room (in the bed, does not appear as a yellow dot on the minimap).
+
+Talk to him, and he will deny any connection to [[Zogre]]s. When you raise allegations, Sithik will challenge you to prove he is guilty.
+
+Search the [[drawers (Zogre Flesh Eaters)|drawers]], the [[cupboard (Zogre Flesh Eaters)|cupboard]], and the [[wardrobe (Zogre Flesh Eaters)|wardrobe]] in Sithik's room. You will find a [[Book of portraiture]], a [[Necromancy book]], [[papyrus]] and [[charcoal]], and a [[Book of 'h.a.m']]. Read all three books. Do not drop the tankard, as you will need it shortly after.
+
+Use the Book of Portraiture on Sithik. He will recommend trying portraiture for yourself. Draw a portrait of Sithik by using the papyrus on him. He will admire either the 'truth' or the 'honesty' of your completed portrait:
+
+If he likes the '''truth''' of the portrait, you will need to drop it and make a new one. You can grab another papyrus from the drawers. If he likes the '''honesty''' of the portrait, keep it. Having a higher [[Crafting]] level helps with making a successful sketch.
+
+The two portraits won't appear the same in the inventory, and the correct one, when examined, will read {{mes|A classic realist charcoal portrait of Sithik.}}
+
+[[File:Zogre Flesh Eaters interrogating Sithik.png|thumb|220px|Sithik is turned into an ogre.]]
+Take the portrait and the [[Dragon inn tankard|tankard]] back to the bartender (First use the tankard on the bartender and then the portrait). The bartender will recognise Sithik as the wizard seen with [[Brentle]], and will sign the portrait as an affidavit. Go back to the Wizards' Guild and talk to [[Zavistic Rarve]] or ring the bell outside the door. Use the Necromancy book, the Book of 'h.a.m.', the tankard, and the [[signed portrait]] on him, which will be enough evidence to convince Rarve that Sithik may be responsible for the murder. Rarve will give you a [[Strange potion]], which he instructs you to use on Sithik. '''You need to talk to Zavistic Rarve and select the dialogue option to give him the evidence, otherwise he won't give you the potion.'''
+
+Use the potion on the [[cup of tea]] on top of Sithik's dresser. Go down the ladder and back up to Sithik, and you will find that he has turned into an [[ogre]].
+
+Talk to Sithik, and he will confess. Obtain answers to all three questions to make [[Relicym's balm]] and [[brutal arrows]].
+
+At this point, you can sell the [[Black Prism]] to [[Zavistic Rarve]] for {{NoCoins|2000|c}} or to [[Yanni Salika]] in [[Shilo Village]] for {{NoCoins|5000|c}} after completing the quest.
+
+You now have a choice: Make [[Relicym's balm]] and [[brutal arrows]], or skip ahead to [[#Grounds|Relocating the ceremonial grounds]] and use [[Crumble Undead]] against Slash Bash. 
+
+{{UIMnote|Upon giving you the Strange potion, Zavistic Rarve will take the Necromancy book, Book of H.A.M., tankard, and portrait from you. After drawing the correct portrait, you no longer need the charcoal, and after poisoning the cup of tea, you can drop the [[sample bottle]].}}
+
+===Making or buying Relicym's balm===
+After [[Sithik Ints]] has revealed the secret to making [[Relicym's balm]], having it on hand in the final fight will help tremendously. It is your choice to obtain this now; however, the quest can be done without it. The balm is also tradeable.
+
+Relicym's balm(3) is made by using a [[rogue's purse]] on a [[vial of water]] and then adding [[snake weed]]; the herb order does not matter and will yield the same result. Due to both ingredients not being tradeable between players, it can be faster to purchase a Relicym's balm from the [[Grand Exchange]].
+
+It is '''HIGHLY''' recommended to give a balm to [[Uglug Nar]], who is near the area at the start of the quest. This will give access to a store selling 100 Relicym's balm (3), and he will give you enough money ({{NoCoins|650|c}}) to buy three of them back. If you give him a 2-dose balm, he will only give you {{NoCoins|300|c}}, while if you give him a 4-dose balm, he will give you {{NoCoins|1000|c}}. The store also has 100 [[achey logs]], 10 [[bow string]]s, 10 [[cooked chompy]], and five [[knives]] in stock.
+
+===Making brutal arrows===
+[[Brutal arrows]] are the best way to kill [[Zogre]]s, and shooting them from a [[composite ogre bow]] is the best strategy in the final fight. It is your choice to obtain them; however, the quest can be done without it. The easiest way to obtain them will be from the [[Grand Exchange]], as both the brutal arrows and the composite ogre bow are tradeable.
+
+To make the composite ogre bow, use a knife on [[Achey tree logs]] with some [[wolf bones]] in the inventory. Use a [[bow string]] on the unstrung bow to complete the bow (requires 30 [[Fletching]]).
+
+To make the arrows, use a knife on Achey tree logs and fletch them into [[ogre arrow shaft]]s (each log will give 2-6 shafts). Add [[feathers]] to the shafts (each shaft needs 4 feathers). Finally, use [[nails]] (made of any [[metal]]) on the [[flighted ogre arrow]] while having a [[hammer]] in your inventory.
+
+===Relocating the ceremonial grounds{{Anchor|Grounds}}===
+{{Needed|recommended=Food, armour (Ranged armour is preferred), [[Relicym's balm]], and a [[composite ogre bow]] and [[brutal arrows]]. [[Crumble Undead]] can also be used instead}}
+
+Return to [[Grish]] and tell him what [[Sithik]] told you. Go through all available conversation options. '''(The bow CANNOT be equipped until this step has been completed!)''' After this he will give you a [[Ogre gate key|key]] which will give access to the ceremonial chamber to look for some 'old' items for him.
+
+Before heading off, prepare your gear for a boss fight. The boss is fully vulnerable to [[brutal arrows]], takes 50% damage from the [[Crumble Undead]] spell (max hit of 7), and takes only 25% damage from all other attacks. Either the use of brutal arrows or Crumble Undead is recommended, and the latter may actually do more damage depending on levels and the tier of brutal arrows the player has access to. Do note however that only a limited range of staves can autocast Crumble Undead (see the [[Crumble Undead]] page for info). The boss also drains prayer rapidly and inflicts disease.
+
+Return to the cave beyond the barricade and head west. There will be two successive locked doors, proceed through both of these and descend the stairs. Continue to the end of this long, wide room. Searching the [[stand (Zogre Flesh Eaters)|stand]] will spawn the boss.
+
+===Slash Bash===
+[[File:Fighting Slash Bash.png|thumb|220px|Attacking Slash Bash from a distance.]]
+
+:{{Color|red|Warning:}} After defeating the boss and leaving the room, you will be unable to return, '''losing any items left behind'''!
+
+A level 111 undead [[ourg]] named [[Slash Bash]] will attack you. The boss can be safespotted, however you can still be attacked by his range attacks. Use the [[safespot]] (pictured right) and kill it while having [[Protect from Missiles]] on.
+
+It is possible to take too long to kill him, in which case he says something about growing weary of the fight and that he is awaiting a real challenge. You will have to start the fight over if this happens.
+
+After Slash Bash is defeated, collect the bones and the [[ogre artefact]] that he drops. The three [[ourg bones]] that Slash Bash drops are worth about {{NoCoins|{{GEP|ourg bones}}|c}} each.
+
+:'''Tip:''' If you have started [[Rag and Bone Man II]], you may consider killing Zogres in the area until they drop the [[zogre bone]] for that quest.''
+
+Return to Grish with the ogre artefact for your reward.
+
+'''Congratulations, quest complete!'''
+
+==Rewards==
+{{Quest rewards
+|name = Zogre Flesh Eaters
+|image = [[File:Zogre Flesh Eaters reward scroll.png|centre]]
+|qp = 1
+|rewards = 
+*3 [[ourg bones]]
+*2 [[zogre bones]]
+*{{SCP|Fletching|2,000|link=yes}} experience
+*{{SCP|Ranged|2,000|link=yes}} experience
+*{{SCP|Herblore|2,000|link=yes}} experience
+*Ability to make [[Relicym's balm]]
+*Ability to fletch [[comp ogre bow]]s and [[brutal arrow]]s
+*Ability to wear [[inoculation bracelet]]s
+*Give a 2-, 3-, or 4-dose [[Relicym's balm]] to Uglug to gain access to [[~ Uglug's stuffsies ~]]
+}}
+
+'''Bonus:''' Take the [[black prism]] to either [[Zavistic Rarve]] in the [[Wizards' Guild]] for {{NoCoins|2000|c}} or to [[Yanni Salika]] in [[Shilo Village (location)|Shilo Village]] for {{NoCoins|5000|c}}.
+
+==Required for completing==
+Completion of Zogre Flesh Eaters is required for the following:
+*[[Rum Deal]]
+*[[Rag and Bone Man II]] (Partial completion of Zogre Flesh Eaters recommended but not strictly necessary)
+
+==Transcript==
+{{hastranscript|Quest}}
+
+==Trivia==
+* The quest's title is a reference to the movie ''[[wikipedia:Zombi_2|Zombi 2]],'' which was released in some countries under the title ''Zombie Flesh Eaters''.
+* Even though the quest has a smithing requirement, it can be completed without boosts at level 1 smithing, since nails for brutal arrows are easily bought at shops.
+
+{{Zogre Flesh Eaters}}
+[[Category:Feldip Hills]]

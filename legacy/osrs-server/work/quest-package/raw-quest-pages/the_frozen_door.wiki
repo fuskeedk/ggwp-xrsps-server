@@ -1,0 +1,82 @@
+{{Otheruses|the [[miniquest]]|the scenery object|Frozen Door}}
+{{Has quick guide|mini=0}}
+{{Infobox Miniquest
+|name = The Frozen Door
+|image = [[File:The Frozen Door.png|300px]]
+|release = [[16 December]] [[2021]]
+|update = Christmas 2021
+|members = Yes
+|series = None
+|developer = 
+}}
+'''The Frozen Door''' is a [[miniquest]] involving unsealing the [[Frozen door]] within the [[God Wars Dungeon]] gaining access to [[Nex]], one of [[Zaros]]' most powerful generals.
+
+==Details==
+{{Quest details
+|description = A messenger has an important letter for you. Apparently, a great treasure lies with the God Wars Dungeon beneath Trollheim. Defeat the leaders of each of the four armies and claim your prize behind the frozen door...
+|start = Receive an [[important letter]] from a [[Messenger (The Frozen Door)|messenger]].
+|difficulty = Master
+|length = Short
+|members = Yes
+|requirements = * Completion of [[Desert Treasure I]]
+* {{SCP|Agility|70|link=yes}} {{Boostable|no}} {{Questreqstart|No}}
+* {{SCP|Hitpoints|70|link=yes}} {{Boostable|yes}} {{Questreqstart|No}}
+* {{SCP|Ranged|70|link=yes}} {{Boostable|no}} {{Questreqstart|No}}
+* {{SCP|Strength|70|link=yes}} {{Boostable|no}} {{Questreqstart|No}}
+|items = * [[Mith grapple]]
+* A [[Crossbow (weapon)|crossbow]]
+* 2 [[rope]]s to reach [[Saradomin's Encampment]]; one-time only
+* A [[hammer]] or [[dragon warhammer]]
+|recommended = * {{SCP|Combat|90|link=yes}}
+* Equipment to kill all four [[God Wars Dungeon]] generals
+|kills = * [[Kree'arra]] ''(level 580)''
+* [[General Graardor]] ''(level 624)''
+* [[Commander Zilyana]] ''(level 596)''
+* [[K'ril Tsutsaroth]] ''(level 650)''
+
+Alternatives:
+
+*[[Flight Kilisa]] ''(level 159)''
+*[[Wingman Skree]] ''(level 143)''
+*[[Flockleader Geerin]] ''(level 149)''
+*[[Sergeant Strongstack]] ''(level 141)''
+*[[Sergeant Steelwill]] ''(level 142)''
+*[[Sergeant Grimspike]] ''(level 142)''
+*[[Bree]] ''(level 146)''
+*[[Starlight]] ''(level 149)''
+*[[Growler]] ''(level 139)''
+*[[Tstanon Karlak]] ''(level 145)''
+*[[Zakl'n Gritch]] ''(level 142)''
+*[[Balfrug Kreeyath]] ''(level 151)''
+|leagueRegion = <poem>
+{{LeagueRegion|Asgarnia}} - location requirement
+The miniquest '''does not''' require completion of [[Desert Treasure I]]
+</poem>
+}}
+
+==Walkthrough==
+[[File:Messenger (The Frozen Door) chathead.png|left]]
+The miniquest begins when a mysterious [[Messenger (The Frozen Door)|messenger]] gives the player a [[Important letter|letter]] to read, pointing to great treasure in the [[God Wars Dungeon]] if they can defeat the generals inside for their key pieces.
+{{clear|left}}
+
+===The Four Pieces===
+[[File:Fighting General Graardor.png|thumb|280px|To obtain the pieces of the [[Frozen key (The Frozen Door)|frozen key]], the generals of each faction in the [[God Wars Dungeon]] must be defeated.]]
+The player will have to kill the generals of each faction in the [[God Wars Dungeon]]. They must deal the most damage to the boss prior to their death in order to obtain the key pieces. If the player cannot deal enough damage (if going in groups), they can obtain the pieces from their bodyguards, albeit at a rate of 1/20. Once all four pieces have been obtained, they can be assembled to create the [[Frozen key (The Frozen Door)|frozen key]].
+
+Strategy guides for each of the four bosses can be found here:
+* [[Kree'arra/Strategies|Kree'arra]]
+* [[General Graardor/Strategies|General Graardor]]
+* [[Commander Zilyana/Strategies|Commander Zilyana]]
+* [[K'ril Tsutsaroth/Strategies|K'ril Tsutsaroth]]
+
+===The Evil Within===
+[[File:Ashuelot Reis chathead.png|left]]
+After assembling the frozen key, the player can finally unlock the [[frozen door]] and enter. The frozen door is located on the south side of the main chamber in the [[God Wars Dungeon]]. Inside, they will be greeted by [[Ashuelot Reis]], a nature spirit who reveals that there is no treasure inside, but instead a powerful [[Zaros]]ian general known as [[Nex]] and her army. Ashuelot explains Nex's history to the player before disappearing to the inner lobby area of the prison. This completes the miniquest.
+{{clear|left}}
+==Transcript==
+{{Hastranscript|miniquest}}
+
+{{The Frozen Door}}
+{{God Wars Dungeon}}
+{{Miniquests}}
+{{DEFAULTSORT:Frozen Door, The}}

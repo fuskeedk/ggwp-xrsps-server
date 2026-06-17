@@ -1,0 +1,230 @@
+{{External|rs|rsc=Shilo village}}
+{{otheruses|the quest|the village|Shilo Village (location)}}
+{{Has quick guide}}
+{{Infobox Quest
+|name = Shilo Village
+|number = 41
+|image = [[File:Shilo Village.png|300px]]
+|release = [[27 January]] [[2003]]
+|update = Shilo Village Quest online
+|members = Yes
+|series = None
+|developer = Tytn H
+}}
+'''Shilo Village''' is a quest in which the player lays to rest a [[Rashiliyia|vengeful spirit]] that is attacking [[Shilo Village (location)|Shilo Village]], a town located in southern [[Karamja]]. The quest unlocks access to the village and its [[Shilo Village cart system|cart system]].
+
+==Details==
+{{Quest details
+|start = Talk to [[Mosol Rei]] outside of [[Shilo Village (location)|Shilo Village]] in the south part of [[Karamja]].
+|startmap = 2881,2951
+|difficulty = Intermediate
+|description = A foul mist and a plague of undead have overtaken Shilo Village. Can you stop the queen of the dead and save the village?
+|length = Medium
+|requirements = * Completion of the following quests:
+** [[Jungle Potion]]
+*** [[Druidic Ritual]]
+* {{SCP|Crafting|20|link=yes}} {{Boostable|yes}} {{Questreqstart|no}}
+* {{SCP|Agility|32|link=yes}} {{Boostable|yes}} {{Questreqstart|no}}
+* Must be able to defend from many [[Undead one]]s (level 61-73) and able to defeat three monsters that are about level 90.
+|items = * [[Spade]] (can be purchased at the [[Jiminua's Jungle Store|store]] north of [[Tai Bwo Wannai]] for 4 [[coins]])
+* A lit [[torch]] (bruma works), [[candle]] or [[black candle]] (an [[unlit torch]] and [[tinderbox]] can be purchased at the [[Jiminua's Jungle Store|store]] north of [[Tai Bwo Wannai]] for a total of 7 [[coins]])
+**'''you will not get this item back!'''
+**[[Lanterns]] or [[Firemaking cape]] don't work
+* [[Rope]] (can be purchased at the [[Jiminua's Jungle Store|store]] north of [[Tai Bwo Wannai]] for 27 [[coins]])
+* [[Bronze wire]]
+** [[Bronze bar]] and [[hammer]] to create one (both can be purchased at the [[Jiminua's Jungle Store|store]] north of [[Tai Bwo Wannai]] for a total of 13 [[coins]], there is an [[Anvil]] nearby)
+* [[Chisel]] (can be purchased at the [[Jiminua's Jungle Store|store]] north of [[Tai Bwo Wannai]] for 1 [[coins]])
+* 3 regular [[bones]] (obtainable during the quest)
+|recommended = * {{SCP|Combat|45|link=yes}}
+* Good [[food]] and [[armour]] or {{SCP|Prayer|43|link=yes}} for [[Protect from Melee]] (enough to make it through two long tunnels of level 73 monsters)
+* [[Weight-reducing clothing]] and [[Stamina potion|stamina]] or [[energy potion]]s
+*[[Antipoison]] if below {{SCP|Combat|65|link=yes}} for the [[tribesmen]] found around [[Karamja]] with [[poison]] that hits for '''11 each'''
+* [[Combat equipment]] to defeat [[Nazastarool]]'s three forms (all safespottable with [[Ranged]], [[Magic]] or a [[halberd]])
+**{{SCP|Magic|13|link=yes}}+ to cast [[Fire spells]] (40% elemental weakness) or {{SCP|Magic|39|link=yes}} to cast [[Crumble Undead]] is recommended to kill him faster
+*Quick access to fairy rings and/or gnome glider is highly recommended - you may consider using a [[ring of dueling]] for quick access to a glider at [[Emir's Arena]], and the [[Ardougne cloak]] 1-4 for quick access to a [[fairy ring]]
+* Fast travel to several locations:
+**East of [[Shilo Village (location)|Shilo Village]] to start the quest - [[Gnome glider]], [[fairy ring]] {{fairycode|ckr}}, [[Tai Bwo Wannai Teleport]] or [[Teleport to House]] (Brimhaven)
+**[[Tai Bwo Wannai]] (2 trips) - [[Tai Bwo Wannai Teleport]], [[fairy ring]] {{fairycode|ckr}}, or [[Teleport to House]] (Brimhaven)
+**Eastern [[Karamja]] (2 trips) - [[Gnome glider]] or [[fairy ring]] {{fairycode|dkp}}
+**[[Cairn Isle]] (2 trips) - [[fairy ring]] {{fairycode|ckr}} or [[Tai Bwo Wannai Teleport]] (only useful for the second trip)
+|kills = * [[Nazastarool]] in 3 forms, levels 91, 68, and 93. (safespottable)
+|ironman = {{SCP|Smithing|4|link=yes}} {{Boostable|yes}} (to make a [[bronze wire]])
+|leagueRegion = <poem>
+Unlocking {{LeagueRegion|Karamja}} {{okay}} will auto-complete the quest
+</poem>
+}}
+
+==Walkthrough==
+{{Map|mtype=pin|width=650|caption=Map of the Quest
+|2885,2950,title:Start point,desc:
+|2923,3001,title:[[Ah Za Rhoon]],desc:
+|2763,2988,title:Tomb of Beverius,desc:
+|2921,3084,title:[[Rashiliyia's Tomb]],desc:
+|2809,3086,title:[[Trufitus]],desc:
+}}
+===Beginning the quest===
+[[File:Mosol Rei chathead.png|left|80px|frameless]]
+Ensure you have one free inventory space, then speak to [[Mosol Rei]] outside of Shilo Village, who tells you to run. ''Ask why'', and he will say [[Rashiliyia]] has returned. ''Ask who she is'', and he will explain she is the Queen of the dead that has brought a plague of undead upon the village.  ''Ask what you can do'', and he will ask you to talk to the shaman [[Trufitus]] in [[Tai Bwo Wannai Village]] about something called the Legend of Rashiliyia, which may be to blame. ''Agree to go see the shaman'', then ''agree to take the [[Wampum belt]] to [[Trufitus]]''. {{Chat option|1Why do I need to run?|1Rashiliyia? Who is she?|1What can we do?|4I'll go to see the Shaman|2Yes, I'm sure and I'll take the Wampum belt to Trufitus.}}
+'''Ensure you have the belt in your inventory before continuing! The quest will not officially start until you give it to [[Trufitus]].'''
+
+===The search for the temple of Ah Za Rhoon===
+[[File:Trufitus chathead.png|left|frameless]]
+{{Map|x=2922|y=3000|r=4|mtype=square|width=220|height=220|align=right|caption=Location of Ah Za Rhoon}}
+{{Needed|[[Spade]], lit [[Torch]] or [[candle]], [[rope]], [[chisel]], 2 free inventory spaces| recommended=[[food]] and [[armour]] or [[Protect from Melee]] to run past level 61-73 [[undead one]]s}}
+
+Head to [[Trufitus]] at the most north-eastern house in [[Tai Bwo Wannai]] and use the [[wampum belt]] on him. ''Ask about the legend'', and he will say that any information regarding it was lost in the vanished temple of [[Ah Za Rhoon]]. ''Ask if he knows anything more about the temple'', and he will mention that the priest Zadimus built the temple, and it is rumoured that Rashiliyia destroyed it after he rejected her affections. ''Ask him to tell you more'', then ''tell him you will search for Ah Za Rhoon'', and he will be skeptical but agree to help you if you are serious. ''Say you are serious about looking for Ah Za Rhoon'' and the quest will officially begin. {{Chat option|2Mosol Rei said something about a legend?|2Do you know anything more about the temple?|1Tell me more.|3I am going to search for Ah Za Rhoon!|1Yes, I will seriously look for Ah Za Rhoon and I'd appreciate your help.}}
+
+The temple of [[Ah Za Rhoon]] is located on eastern [[Karamja]], south-west of the [[Shipyard (Karamja)|Shipyard]] and east of [[Shilo Village (location)|Shilo Village]] across the [[River Amja]] (the pile of rocks on the minimap). Use a [[gnome glider]] or [[fairy ring]] {{fairycode|DKP}}, or walk there by crossing the [[a wooden log|wooden log]] to the east, then head south until you reach a mound of earth surrounded by rocks.
+
+{{Checklist|
+*Use your [[spade]] on the [[Mound of earth|mound of earth]] to find a fissure.
+*Use your [[torch]] or [[candle]] on the fissure to light it up ('''this consumes the item!''').
+*Add a [[rope]] to the fissure.
+*Search the fissure and climb down into the dungeon below ({{SCP|Agility|32}}).
+}}
+
+:'''Note:''' The dirt mound may respawn if you take too long, but you may right click and search it twice to still enter (torch and rope not required).
+
+In the cave are [[undead one]]s (level 61 - 73) who may attack you. Killing them occasionally causes a cloud of [[shilo mist]] to appear and deal damage to you.
+
+In this cave system, you will need to find four items. Consult the following map to aid in finding them.
+
+{| align=center
+|-
+|colspan=2 | [[File:Ah Za Rhoon map.png|center]]
+|-
+| '''1''' - Entrance || '''5''' - Waterfall rocks
+|-
+| '''2''' - Cave-in || '''6''' - Loose rocks
+|-
+| '''3''' - Smashed table || '''7''' - Sacks
+|-
+| '''4''' - Strange looking stone || '''8''' - Gallows
+|}
+[[File:Shilo Village - Boat ride.png|thumb|250px|Taking the boat out of [[Ah Za Rhoon]].]]
+
+*Start off by heading south until you see the water. 
+*Use a [[chisel]] on the [[strange looking stone]] (4 on the map; it is a small grey stone in the floor to the east of a [[Smashed chair]] and south of a stalagmite) to obtain the [[stone-plaque]].
+*Go west past the column and search the [[Cave in]] (2 on the map) to crawl through and into some ruins.
+*Head north until you reach the end of the ruined buildings. Search the [[loose rocks]] (6 on the map) near the north-west wall to find the [[tattered scroll]]. If you fail, you will get hit for 4-7 (possibly more) damage. 
+*Now head south-east until you come to a small dead-end branch. Search the sacks next to a smashed table (7 on the map) to obtain the [[crumpled scroll]]. 
+*Finally, head north to the far end of the cavern, where you will find the ancient gallows (8 on the map). Search it and remove the corpse to obtain the [[Zadimus corpse]].
+
+After acquiring all four items, you can teleport out. Otherwise, to exit the dungeon, return to the smashed table (3 on the map). You can craft the smashed table into a raft and use it to leave. This does not always work; it is possible to get the message that there isn't enough wood left. In this case, you will have to leave by other means. If you want, you can continue south, then east to the end of the cave. Search the rocks you find there to leave via the waterfall. You will take around 20 damage if you fall while leaving this way. You will find yourself near the stepping stones to the east of [[Shilo Village (location)|Shilo Village]].
+
+===Tomb of Bervirius===
+{{Needed|[[bronze wire]], A [[chisel]], 3 free inventory spaces|recommended=[[food]] for players with low agility|skills={{SCP|Agility|32}} {{Boostable|yes}} to enter the [[Tomb of Bervirius]]}}
+[[File:Shilo Village - Burying Zadimus corpse.png|thumb|250px|Zadimus' corpse is buried.]]
+[[File:Zadimus corpse detail.png|left|frameless|80px]]
+'''Read''' both the scrolls and the plaque, then use both scrolls, the plaque, and the corpse on [[Trufitus]]. He will tell you about the tomb of Bervirius and instruct you to bury the corpse.
+
+West of the hut is the [[Tribal Statue]], bury the corpse there and the [[Spirit of Zadimus]] will appear, giving you a [[Bone shard (Shilo Village)|bone shard]] after some cryptic words. Use the bone shard on Trufitus, and tell him it appeared when you buried the corpse, that the spirit said something, and that it was about keys and kin. He'll tell you to look for [[Tomb of Bervirius|Bervirius' tomb]]. {{Chat option|1It appeared when I buried Zadimus' corpse|1He said something after he gave it to me.|1The spirit said something about keys and kin?}}
+
+If you didn't bring [[bones]] with you, you can obtain the three required bones from the [[chicken]]s that spawn inside the village south of [[Trufitus]] now for a future section (beware of the poisonous [[tribesmen]]).
+[[File:Tomb of Bervirius map.png|left|thumb|200px|Map of the Tomb]]
+[[File:Tomb of Bervirius.png|right|thumb|250px|The Tomb of Bervirius.]]
+
+Head towards [[Cairn Isle]] attached to the south-western coast of [[Karamja]] by either walking south or teleporting to a [[fairy ring]] and using code {{fairycode|ckr}}. Climb the rocks and cross the bridge to reach [[Cairn Isle]]. You may fall and take damage, keep trying until you succeed.
+
+Search the well-stacked rocks (i.e. the cairn) on the north side of the island. Enter the crawl-way ({{SCP|Agility|32}}) to enter the [[Tomb of Bervirius]]. You may become stuck many times, but keep trying. Head south to the [[tomb dolmen (Tomb of Bervirius)|dolmen]], and search it to get a [[sword pommel]], a [[locating crystal]], and [[Bervirius notes]].
+
+{{Color|Red|Warning:}} If you drop the sword pommel or the bone beads, they will turn to dust and you will have to go back and get new ones. If you drop the locating crystal, you will take 10 damage.
+
+'''Note''': If you lose the [[Bervirius notes]], you will need [[charcoal]] and [[papyrus]] to get it again. You can purchase both from the [[Jiminua's Jungle Store|store]] north of [[Tai Bwo Wannai]].
+
+'''Read''' the scrolls. You need to make a new necklace. Use a [[chisel]] on the sword pommel to make [[bone beads]]. Use the [[bronze wire]] on the beads to make the [[beads of the dead]] necklace.
+
+You now need to head to eastern [[Karamja]]. If walking there, climb up the nearby rockslide to exit the tomb (you may fall and take up to 10 damage). Otherwise you may teleport out to use fairy ring {{fairycode|dkp}} or a [[gnome glider]].
+
+===Tomb of Rashiliyia===
+{{Needed|[[Chisel]], [[Bone shard (Shilo Village)|bone shard]], [[beads of the dead]] necklace, [[locating crystal]], 3 regular [[bones|bones.]]|recommended=Good [[food]] ([[lobsters]] or higher), [[weapon]], good [[armour]]. An emergency [[teleport]] for low level players|skills={{SCP|Crafting|20}} {{Boostable|yes}} to craft the [[bone key (Shilo Village)|bone key]]}}
+[[File:Rashiliyia's doors.png|100px|frameless|left]]
+[[File:Shilo Village - Tomb of Rashiliyia entrance.png|thumb|The hidden doors to the Tomb of Rashiliyia.]]
+[[Rashiliyia's Tomb]] is north of the crashed [[gnome glider]], accessible east of Trufitus across the log or south of fairy ring {{Fairycode|DKP}}. Look for a searchable [[palm tree (Shilo Village)|palm tree]]. Avoid the nearby [[The Shaikahan]] enemy which cannot be harmed. The entrance is hidden behind a hill and is most visible if you are facing south. Search the palm trees to find two [[carved doors|doors]]. Search these doors to find the shape of the keyhole, and then use your [[chisel]] on the [[Bone shard (Shilo Village)|bone shard]] to make a [[bone key (Shilo Village)|bone key]] ({{SCP|Crafting|20}}). '''Put on the [[beads of the dead]] necklace before entering or you will be unable to continue and will take constant damage!''' Use the key on the door to enter.
+
+{|align=center
+|-
+|colspan=2 | [[File:Rashiliyia's Tomb map.png]]
+|-
+| '''1''' - Entrance || '''3''' - Skeleton door
+|-
+| '''2''' - Rock slope || '''4''' - Dolmen
+|}
+
+Once inside, open the ancient gates, then climb down the rocks once you are ready to run past several aggressive [[undead ones]]. 
+
+{{Color|red|Warning:}} In the next section you may be attacked by [[undead ones]] while trying to open the tomb doors by using your bones. The door will remember the amount of bones you have used, so if you die you can return and use the remaining bones.
+
+Head west until you find a stack of coins ('''do not pick them up''' or more undead ones will be summoned), then south, and then south-west at the first fork. At the end of this corridor will be a set of [[tomb doors|doors]]. Other sets of dummy doors exist if you take a wrong turn, so make sure you're in the right place. '''Right-click''' the [[bones]] to use them on the door. '''While still wearing the necklace''', enter the room.
+
+===Nazastarool===
+[[File:Nazastarool safespot.png|thumb|220px|Lure Nazastarool to the northern part of the dolmen to safespot him.]]
+[[File:Rashiliyia chathead.png|left|frameless]]
+While still wearing the [[beads of the dead]], search the [[tomb dolmen (Rashiliyia's Tomb)|dolmen]] in the room. You will be attacked by [[Nazastarool]], a level 91 [[zombie]] that attacks with [[Melee]]. After you defeat him, he will turn into a level 68 [[skeleton]] and then a level 93 [[ghost]]. You can [[safespot]] all three forms by running around the dolmen after each form spawns until he gets stuck (see image). Each form has a 5 minute despawn timer. He has a weakness to [[Fire spells]] and [[Crumble Undead]], and is not resistant to any [[combat style]]. A [[salve amulet]] can be worn once the first form has spawned. A dwarf [[multicannon]] may be used.
+
+'''Note:''' If you try to leave the cave the way you came in, the door will be locked and Rashiliyia will summon three [[Undead one|Undead ones]] to kill you. You can however still leave by using the bone key on the doors. If you leave and return, you won't need to fight the forms that you already defeated, and you won't need [[bones]] to open the tomb door.
+
+'''Note:''' A friend may attack the boss for you, but you must be the last person to attack it to progress in the quest  (0s count but not poison/venom).
+
+Once you have defeated the ghost, you will get the [[Rashiliyia corpse|corpse of Rashiliyia]]. Teleport out towards [[Cairn Isle]]  or leave from where you entered (using your key on the door).
+
+[[File:Shilo Village - Rashiliyia laid to rest.png|thumb|left|220px|Rashiliyia is finally laid to rest.]]
+
+Go back to the [[tomb of Bervirius]] on [[Cairn Isle]] west from [[Shilo Village (location)|Shilo Village]], and use [[Rashiliyia corpse|Rashiliyia's remains]] on the dolmen. [[Rashiliyia]] will appear before you. She will thank you for letting her rest in peace and give you your reward.
+{{Clear}}
+
+==Rewards==
+{{Quest rewards
+|name = Shilo Village
+|image = [[File:Shilo Village reward scroll.png|centre]]
+|qp = 2
+|rewards = 
+*{{SCP|Crafting|3,875}} Crafting [[experience]]
+*Access to [[Shilo Village (location)|Shilo Village]]
+*Ability to quick travel to Shilo Village using the [[Shilo Village cart system|cart]] near the [[Brimhaven]] docks
+*After completing the quest, you can sell every item you obtained during the quest to [[Yanni Salika]] in Shilo Village for a total of {{Coins|2000}} — 100 each for the [[stone-plaque]], [[tattered scroll]], [[crumpled scroll]], [[Bervirius notes]], and the [[Bone key (Shilo Village)|bone key]]; 500 for the [[locating crystal]]; and 1000 for the [[beads of the dead]].
+*Ability to charter the [[Lady of the Waves]] west to Shilo Village to [[Port Khazard]] or [[Port Sarim]]
+*[[Nazastarool]] accessible in the [[Nightmare Zone]].
+}}
+
+==Required for completing==
+Completion of Shilo Village is required for the following quests:
+*[[Recipe for Disaster]] - [[Recipe for Disaster/Freeing Sir Amik Varze|Freeing Sir Amik Varze]]
+*[[Legends' Quest]]
+*[[Lunar Diplomacy]]
+*[[One Small Favour]]
+Completion of Shilo Village is required for the following [[Achievement Diary|Achievement Diaries]]:
+
+* [[Karamja Diary|Medium Karamja]]
+* [[Karamja Diary|Hard Karamja]]
+
+==Transcript==
+{{hastranscript|Quest}}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 16 July 2020
+|update = Ferox Enclave
+|change = Corrected a typo in the 'Shilo Village' quest.
+}}
+{{Subject changes
+|date = 2 June 2016
+|update = The Woodcutting Guild
+|change = Fixed a typo in the Shilo Village quest.
+}}
+{{Subject changes footer}}
+
+==Trivia==
+* Whilst the quest start icon is at Mosol Rei, and talking to him will change the text inside the journal, the quest is actually not marked as started in the quest list until you give the wampum belt to Trufitus and choose the correct dialogue options.
+*If you attempt to leave the Tomb of Rashiliyia through the entrance door your character will say:
+
+::''Oh no, I'm going to be stuck in here forever!''
+::''How will I ever get out!''
+::''I'm too young to die!''
+*If you search the fissure after adding the rope, but decline to enter, your character will say:
+::''It looks very dangerous, and dark... Scary!''
+
+* If you talk to Trufitus twice after completing the quest you get rid of the three pop-ups you get entering the village.
+{{Shilo Village}}
+{{Shilo Village (location)}}

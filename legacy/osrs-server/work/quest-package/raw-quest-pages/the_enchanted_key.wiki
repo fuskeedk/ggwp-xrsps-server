@@ -1,0 +1,251 @@
+{{external|rs=Enchanted key (lore activity)}}
+{{otheruses|the [[miniquest]]|the item|Enchanted key}}
+{{Infobox Miniquest
+|name = 
+|image = [[File:The Enchanted Key.png|300px]]
+|release = [[22 November]] [[2005]]
+|update = Making History and minor changes
+|members = Yes
+|series = None
+|developer = Tim C
+}}
+'''The Enchanted Key''' is a [[miniquest]] in which the player finds hidden treasures throughout [[Gielinor]] by using the [[enchanted key]].
+
+==Details==
+{{Quest details
+|start = Begin this mini-quest by getting your [[enchanted key|enchanted key]]. If lost, it can be reclaimed from the [[silver merchant]] in [[East Ardougne]] for 500 coins.
+|startmap = 2658,3315
+|description = Use the enchanted key to find buried treasure across Gielinor.
+|length = Medium
+|requirements = Finished [[Making History]]
+|items = *[[Enchanted key]] (remove from your [[steel key ring]] if you previously put it there)
+*[[Spade]]
+|recommended = *[[Weight-reducing clothing]]
+*[[Stamina potion|Stamina]] or [[energy potion]]s
+*Fast travel between several locations
+**Rellekka ([[Enchanted lyre]] or [[Fremennik sea boots]], or [[House teleport]] if your house is in Rellekka)
+**Ardougne ([[Ardougne teleport]] or [[Ardougne cloak]])
+**Tree Gnome Stronghold ([[Balloon Transport System]], [[gnome glider]], [[spirit tree]], [[Slayer ring]] to the Slayer Cave or [[necklace of passage]] to the Outpost)
+**North of Falador ([[Skull Sceptre]] or [[combat bracelet]] to the Monastery)
+**South of Falador ([[skills necklace]] to the Crafting Guild)
+**Varrock ([[Varrock teleport]], [[Chronicle]] or [[combat bracelet]] to Champions' Guild)
+**Mudskipper Point ([[Rat Pits]] [[minigame]] teleport or [[Fairy Rings]] to {{Fairycode|aiq}})
+**Lumbridge Swamp ([[Lumbridge teleport]] or [[necklace of passage]] to the Wizards' Tower)
+**Al Kharid ([[ring of dueling]] or [[amulet of glory]])
+|difficulty = Intermediate
+|leagueRegion = <Poem>
+Not completable, as it requires access to Misthalin.
+</poem>
+}}
+
+==Walkthrough==
+{{Map|align=right|mtype=pin|caption=Overview of treasure locations
+|2716,3606
+|2621,3239
+|2417,3382
+|2448,3443
+|3033,3437
+|2972,3304
+|3016,3166
+|3161,3176
+|3291,3220
+|3299,3349
+|3160,3490
+}}
+Begin this mini-quest by getting your [[enchanted key]]. Make sure you have completed the Making History quest, otherwise when you feel your Enchanted Key it will simply say, "You already have the journal." or "You've already delivered the journal." You will need to find treasure in the same manner as a game of hot and cold by "feeling" the key and reacting to its response.
+
+In three of the sites, there will be the God [[mjolnir]]s, or God spears:
+
+*[[Saradomin mjolnir]] [[File:Saradomin mjolnir.png|Saradomin mjolnir]]
+*[[Guthix mjolnir]] [[File:Guthix mjolnir.png|Guthix mjolnir]]
+*[[Zamorak mjolnir]] [[File:Zamorak mjolnir.png|Zamorak mjolnir]]
+
+This is the only way to obtain these unique weapons, other than trading with another player.
+
+===Temperature readings===
+The enchanted key changes temperature as the player moves about. Its temperature is based on the distance of the treasure from the player, measured in the number of steps (including diagonal steps) it would take to reach the treasure, ignoring any obstacles (this is the {{wp|Chebyshev distance}} between the player and treasure). The warmer the key gets, the closer the player is to the treasure. Clicking "Feel Enchanted key" gives information on its temperature, consisting of two parts described below. It is like playing the game of hot and cold.
+
+====First part====
+The following table indicates the 8 possible temperature readings based on the distance to the treasure (measured as described above):
+
+{| class="wikitable"
+!Distance
+!Temperature description
+|-
+|More than 1000 squares
+|'''It's freezing'''
+|-
+|701 to 1000 squares
+|'''It's very cold'''
+|-
+|401 to 700 squares
+|'''It's cold'''
+|-
+|101 to 400 squares
+|'''It's warm'''
+|-
+|61 to 100 squares
+|'''It's hot'''
+|-
+|31 to 60 squares
+|'''It's very hot'''
+|-
+|5 to 30 squares
+|'''Ouch! It's burning hot'''
+|-
+|Up to 4 squares
+|'''The key is steaming'''
+|}
+
+When a player receives the message "'''The key is steaming'''", they can use a [[spade]] to dig up the treasure. Note that, as indicated by the table, there is a 9 by 9 square region in which they may dig.
+
+====Second part====
+If the player has already felt the key since last logging on or finding treasure, the temperature reading will contain a second part, indicating whether the temperature is warmer, colder or the same
+as the last reading, thereby indicating whether the distance to the treasure (measured as described above) has increased, decreased, or is the same. The three descriptions are:
+
+*'''Warmer than last time''' - You are getting closer than before.
+*'''Colder than last time''' - You are getting farther away than before.
+*'''Same temperature as last time''' - You are the same distance away.
+
+Players may use this information to determine which direction to go, as follows:
+
+#Move one square north, south, east and west, taking temperature readings between each step.
+#One direction, for example north, will result in the message "'''Warmer than last time'''".
+#Move directly north while constantly taking readings, until the message "'''Same temperature as last time'''" is produced.
+#Move one square east and west, taking temperature readings between each step.
+#One direction, say east, will result in the message "'''Warmer than last time'''".
+#At this point the treasure is directly north-east of the player.
+#Move diagonally in this direction while taking readings, until the message "'''The key is steaming'''" is produced.
+
+==Treasure locations==
+There are a total of 11 treasure sites to be found. The first treasure site will always be south of Rellekka. The other ten locations are in a '''random order''' for each player, but the locations will be the same. All of the treasure sites are listed below.
+
+{| class="wikitable lighttable"
+!Area
+!Transportation
+!Loot
+! width="100" |Co-ordinates
+!Map
+!Image
+|-
+|South of [[Rellekka]]
+|Use [[fairy ring]] {{Fairycode|cjr}}, {{Fairycode|ajr}}, [[enchanted lyre]] teleport, [[Rellekka]] house portal.
+|20 [[steel arrows]], 10 [[mithril ore]]s, 15 [[law rune]]s
+|13 Degrees, 56 Minutes north<br/>8 Degrees, 43 Minutes east
+|{{Map|mtype=square|r=3|width=220|height=220|2716,3606}}
+|[[File:The Enchanted Key Rellekka.png|220px]]
+|-
+|South of [[Ardougne]]
+|Fairy ring {{Fairycode|djp}}, [[Ardougne teleport (tablet)]], [[Ardougne cloak 1|Ardougne cloak]] teleport to the [[Ardougne Monastery|Monastery]], or use the [[charter ship]]s to sail to [[Port Khazard]] and walk north-west.
+|36 [[pure essence]], 15 [[iron ore]]s, 30 [[fire rune]]s
+|2 Degrees, 28 Minutes north, 5 Degrees, 24 Minutes east
+|{{Map|mtype=square|r=3|width=220|height=220|2621,3239}}
+|[[File:The Enchanted Key Ardougne Monastery.png|220px]]
+|-
+|North of [[West Ardougne]]/South of [[Gnome Stronghold]]
+|[[Necklace of passage]] to the Outpost, [[Ardougne teleport (tablet)]] or use the [[spirit tree]] to the Gnome Stronghold and go south-west.
+|40 [[pure essence]], 20 [[iron arrowtips]], 20 [[fire rune]]s
+|6 Degrees, 54 Minutes North, 0 Degrees, 45 Minutes West
+|{{Map|mtype=square|r=3|width=220|height=220|2417,3382}}
+|[[File:The Enchanted Key West Ardougne.png|220px]]
+|-
+|[[Gnome Stronghold]]
+|[[Spirit tree]] teleport, [[Gnome glider]] to [[Ta Quir Priw]], [[Slayer ring]].
+|39 [[pure essence]], 20 [[iron arrowtips]], 30 [[water rune]]s
+|8 Degrees, 54 Minutes north<br/>0 Degrees, 15 Minutes east
+|{{Map|mtype=square|r=3|width=220|height=220|2448,3443}}
+|[[File:The Enchanted Key Tree Gnome Stronghold.png|220px]]
+|-
+|[[Body Altar]]
+|[[Combat bracelet]] or [[teleport]] to [[Edgeville]] or [[Varrock]] and walk north-west of [[Barbarian Village]].
+|10 [[mithril ore]]s, 15 [[iron ore]]s, 45 [[earth rune]]s
+|8 Degrees, 33 Minutes north, 18 Degrees, 30 Minutes east
+|{{Map|mtype=square|r=3|width=220|height=220|3033,3437}}
+|[[File:The Enchanted Key Body Altar.png|220px]]
+|-
+|[[Falador]]
+|[[Ring of the elements]] to [[Air Altar]], [[Falador teleport (tablet)]] and go to the south wall of Falador and use the agility shortcut then walk east. Or [[Balloon]] to [[Crafting Guild]] and walk north-east.
+|15 [[earth rune]]s, 20 [[iron arrows]], [[Saradomin mjolnir]]
+|4 Degrees, 20 Minutes north<br/>16 Degrees, 31 Minutes east
+|{{Map|mtype=square|r=3|width=220|height=220|2972,3304}}
+|[[File:The Enchanted Key Falador.png|220px]]
+|-
+|[[Mudskipper Point]]
+|Use [[fairy ring]] {{Fairycode|aiq}}, or use the [[charter ship]]s to Port Sarim, then walk south to the Mudskipper Point.
+|15 [[iron ore]]s, 20 [[mithril arrows]], 15 [[death rune]]s
+|0 Degrees, 5 Minutes south<br/>17 Degrees, 58 Minute east
+|{{Map|mtype=square|r=3|width=220|height=220|3016,3166}}
+|[[File:The Enchanted Key Mudskipper Point.png|220px]]
+|-
+|[[Lumbridge Swamp]]
+|[[Ring of the elements]] to [[Water Altar]], [[Home teleport]] to Lumbridge, [[Lumbridge Teleport]], or Draynor teleport and walk to the swamp.
+|29 [[pure essence]], 20 [[mind rune]]s, 20 [[steel arrow]]s ('''Note that if you have stored the [[zombie head]] in your POH or destroyed it, you will dig up the zombie head first. Dig again for the treasure.''')
+|0 Degrees, 28 Minutes north, 22 Degrees, 24 Minutes east
+|{{Map|mtype=square|r=3|width=220|height=220|3161,3176}}
+|[[File:The Enchanted Key Lumbridge Swamp.png|220px]]
+|-
+|[[Al Kharid]]
+|[[Ring of dueling]] teleport to [[Emir's Arena]], [[Home Teleport]] or Gnome glider and walk to Al Kharid.
+|40 [[pure essence]], 10 [[mithril ore]]s, [[Zamorak mjolnir]]
+|1 Degrees, 52 Minutes north<br/>26 Degrees, 39 Minutes east
+|{{Map|mtype=square|r=3|width=220|height=220|3291,3220}}
+|[[File:The Enchanted Key Al Kharid.png|220px]]
+|-
+|[[South-east Varrock mine]]
+|[[Chronicle]], [[Digsite pendant]], [[Varrock teleport (tablet)]], [[Gnome glider]] to Lemanto Andra, [[Digsite teleport]], [[Senntisten teleport (tablet)]].
+|40 [[pure essence]], 15 [[iron ore]]s, [[Guthix mjolnir]]
+|5 Degrees, 50 Minutes north<br/>26 Degrees, 50 Minutes east
+|{{Map|mtype=square|r=3|width=220|height=220|3299,3349}}
+|[[File:The Enchanted Key Exam Centre.png|220px]]
+|-
+|[[Grand Exchange]]
+|[[Varrock teleport (tablet)]], fairy ring {{Fairycode|dkr}}, or Edgeville teleport with an [[amulet of glory]], and then use the Agility shortcut into the Grand Exchange or walk around the wall.
+|39 [[pure essence]], 10 [[mithril arrows]], 15 [[law rune]]s
+|10 Degrees, 18 Minutes north<br/>22 Degrees, 26 Minutes east
+|{{Map|mtype=square|r=3|width=220|height=220|3160,3490}}
+|[[File:The Enchanted Key Grand Exchange.png|220px]]
+|}
+
+==Rewards==
+'''God Spears:'''
+
+*[[Saradomin mjolnir]] [[File:Saradomin mjolnir.png|Saradomin mjolnir]]
+*[[Guthix mjolnir]] [[File:Guthix mjolnir.png|Guthix mjolnir]]
+*[[Zamorak mjolnir]] [[File:Zamorak mjolnir.png|Zamorak mjolnir]]
+
+'''Ores:'''
+
+*60 [[iron ore]]s
+*30 [[mithril ore]]s
+
+'''Runes & essence:'''
+
+*263 [[pure essence]]
+*20 [[mind rune]]s
+*60 [[earth rune]]s
+*50 [[fire rune]]s
+*30 [[water rune]]s
+*30 [[law rune]]s
+*15 [[death rune]]s
+
+'''Arrows & arrowtips:'''
+
+*20 [[iron arrows]]
+*40 [[steel arrows]]
+*30 [[mithril arrows]]
+*40 [[iron arrowtips]]
+
+This would sell for a total of {{NoCoins|{{GEP|Iron ore|60}}+{{GEP|Mithril ore|30}}+{{GEP|Pure essence|263}}+{{GEP|Mind rune|20}}+{{GEP|Earth rune|60}}+{{GEP|Fire rune|50}}+{{GEP|Water rune|30}}+{{GEP|Law rune|30}}+{{GEP|Death rune|15}}+{{GEP|Iron arrow|20}}+{{GEP|Steel arrow|40}}+{{GEP|Mithril arrow|30}}+{{GEP|Iron arrowtips|40}}+ {{GEP|Saradomin mjolnir}}+ {{GEP|Zamorak mjolnir}}+ {{GEP|Guthix mjolnir}}|c}} on the [[Grand Exchange]].
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 7 July 2021
+|update = Small Changes & Tweaks
+|change = The miniquest has been renamed from Enchanted Key to The Enchanted Key.
+}}
+{{Subject changes footer}}
+
+{{Making History}}
+{{Miniquests}}
+[[Category:The Enchanted Key| ]]

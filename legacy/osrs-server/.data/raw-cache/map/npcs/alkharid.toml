@@ -1,0 +1,73 @@
+# alkharid.toml — city NPC spawns
+
+[[spawn]]
+npc = "npc.generalshopkeeper1"
+coords = "0_51_49_51_46"
+
+[[spawn]]
+npc = "npc.generalassistant1"
+coords = "0_51_49_52_46"
+
+[[spawn]]
+npc = "npc.zeke"
+coords = "0_51_49_23_54"
+
+[[spawn]]
+npc = "npc.louie_legs"
+coords = "0_51_49_53_44"
+
+[[spawn]]
+npc = "npc.ranael"
+coords = "0_51_49_51_43"
+
+[[spawn]]
+npc = "npc.dommik"
+coords = "0_51_49_55_46"
+
+[[spawn]]
+npc = "npc.gem_trader"
+coords = "0_51_49_24_53"
+
+[[spawn]]
+npc = "npc.silk_trader"
+coords = "0_51_49_24_54"
+
+[[spawn]]
+npc = "npc.hassan"
+coords = "0_51_49_29_27"
+
+[[spawn]]
+npc = "npc.osman"
+coords = "0_51_49_21_44"
+
+[[spawn]]
+npc = "npc.lady_keli_vis"
+coords = "0_51_48_38_54"
+
+[[spawn]]
+npc = "npc.joe_vis"
+coords = "0_51_48_37_54"
+
+[[spawn]]
+npc = "npc.leela"
+coords = "0_51_48_36_54"
+
+[[spawn]]
+npc = "npc.prince_ali_vis_blackeye"
+coords = "0_51_48_38_53"
+
+[[spawn]]
+npc = "npc.banker1"
+coords = "0_51_49_5_31"
+
+[[spawn]]
+npc = "npc.banker2"
+coords = "0_51_49_5_28"
+
+[[spawn]]
+npc = "npc.banker1"
+coords = "0_51_49_5_30"
+
+[[spawn]]
+npc = "npc.banker2"
+coords = "0_51_49_5_29"

@@ -1,0 +1,411 @@
+{{External|rs=Rag and Bone Man/Wish list}}
+{{Has quick guide}}
+{{Infobox Quest
+|name = Rag and Bone Man II
+|number = 131
+|image = [[File:Rag and Bone Man.png|300px]]
+|release = [[10 April]] [[2006]]
+|update = Rag and Bone Man
+|members = Yes
+|series = [[Quests/Series#Rag and Bone Man|Rag and Bone Man]], #2
+|developer = Anthony W
+}}
+'''Rag and Bone Man II''' is the sequel to [[Rag and Bone Man I]], and involves collecting a large number of assorted bones for the [[Odd Old Man]]'s collection.
+
+==Details==
+{{Quest details
+|start = Speak to the [[Odd Old Man]], located at the end of the northern path in central [[Silvarea]].
+|startmap = 3362,3507
+|difficulty = Experienced
+|description = An archeological bone gathering quest. Requires the start and/or completion of multiple quests. Lots of creatures and animals necessary to be scavenged for specific bones, that will then need to be cleaned and given to the [[Odd Old Man]] for his marvelous collection of bone remains.
+|length = Medium
+|members = Yes
+|requirements = *{{SCP|Slayer|40|link=yes}} {{Boostable|yes}} {{Questreqstart|no}}
+*{{SCP|Defence|20|link=yes}} {{Boostable|no}} {{Questreqstart|}} to wield a [[mirror shield]] to kill a [[basilisk]] (though not necessary; see below)
+*Completed [[Rag and Bone Man I]] {{Questreqstart|yes}}
+*Completed [[Skippy and the Mogres]] {{Questreqstart|no}}
+*Completed [[Horror from the Deep]] or partial completion of [[The Fremennik Trials]] {{Questreqstart|no}}
+*Partial completion of [[Creature of Fenkenstrain]] {{Questreqstart|no}}
+*Partial completion of [[Waterfall Quest]] {{Questreqstart|no}}
+*The ability to kill several high-level monsters
+|items = *27 [[pot]]s
+*27 [[jugs of vinegar]] (bought from [[Fortunato]] for 27 coins)
+*27 sets of [[logs]] (any logs - normal logs can be obtained on the path just below the [[Odd Old Man]]'s hut if you bring an [[axe]]).
+*[[Tinderbox]]
+*[[Light source]]
+*[[Dusty key]] (if under {{SCP|Agility|70|link=yes}})
+*[[Rope]]
+*Combat gear to kill [[zogre]]s (an [[ogre composite bow]] with [[brutal arrow]]s or runes for [[Crumble Undead]] casts is advised)
+'''Slayer equipment:'''
+*[[Ice cooler]]s
+*[[Fishing explosive]]s
+*[[Mirror shield]] or [[V's shield]] (unless using a workaround - see guide for how to get around using this)
+|recommended = *{{SCP|Combat|40|link=yes}}
+*[[Anti-dragon shield]] (if concerned about [[blue dragon]]s while in [[Taverley Dungeon]])
+*Partial completion of [[Zogre Flesh Eaters]] for access to [[brutal arrows]] for killing [[zogres]]
+*[[Inoculation bracelet]], or [[Relicym's balm]] or [[Sanfew serum]] (to deflect or cure disease when killing zogres)
+*[[Dramen staff]] or [[lunar staff]] would save a great deal of time by using [[fairy rings]]
+*[[Digsite pendant]]
+*[[Ectophial]]
+*[[Fenkenstrain's Castle Teleport]]
+*[[Ring of dueling]]
+*[[Enchanted lyre]]
+*[[Games necklace]]
+*[[Log basket]] for just 1 trip with bones in vinegar
+*[[Runes]] or [[Magic Tablet|tablets]] for teleporting all across [[Gielinor]] (if no better travelling method is available)
+'''Slayer Equipment:'''
+*[[Spiny helmet]] or [[Slayer helmet]]
+|kills = Several (27): see below.
+|leagueRegion = <poem>
+Impossible to complete, as it requires visits to {{LeagueRegion|Asgarnia}}, {{LeagueRegion|Kandarin}}, {{LeagueRegion|Desert}}, {{LeagueRegion|Fremennik}}, and {{LeagueRegion|Morytania}}. As such, players are advised not to start the quest, so that the quest-specific bones do not pollute the ground. If the player has started the quest, the pollution can be avoided by keeping the bone in the inventory or bank.
+</poem>
+}}
+
+==Overview==
+[[File:Rag and Bone Man Wish list.png|right|286px]]
+
+*The monsters you need to kill are mentioned on the Wish List that is pinned to the [[Odd Old Man]]'s house as well as in your [[Quest List|quest journal]]. Monsters are only removed from these lists after the bones have been properly turned in to the Odd Old Man.
+*Each monster on the list has a 1/4{{CiteTwitter|author=Mod Ash|url=https://twitter.com/JagexAsh/status/1108655941006835713|date=21 March 2019|archiveurl=https://reldo.runescape.wiki/i/97648|archivedate=18 May 2019|quote=The initial quest ones are guaranteed drops. The longer wish-list is 1/4.}} chance to drop the bone you need.
+*It is possible to hand in the collected bones in smaller batches. The Odd Old Man will kindly update the wish list, taking off the bone(s) you've submitted.
+*It is possible to collect the [[basilisk bone]] without 20 [[Defence]], but you must freeze the basilisk or [[safespot]] it.
+*Due to the variety of monsters you're required to kill, it may be a good idea to simply start the quest, especially early in your adventures, and collect some of the bones while traversing [[Gielinor]] (or training skills, such as [[Slayer]]).
+*Note that when you die, bones will be taken to [[Death's Coffer]]. If the bones aren't dropped or in your bank, you may find them in Death's office. 
+
+==List==
+Below is the list of monsters that need to be killed to obtain all the bones (27 total).
+
+'''Note:''' All of these monsters can be found in other places; listed are the most convenient spots.
+
+{| class="wikitable sortable lighttable"
+!colspan=2|Drop
+!Monster
+!Locations (preferable) - Click to mark
+!Walkthrough Region
+|-
+|{{plinkt|Wolf bone}}
+|[[Wolf]]
+|[[Feldip Hills]], [[Rellekka]], [[Ardougne Zoo]] (with [[Telekinetic Grab]]). '''Note:''' only level 64 wolves drop the wolf bone. [[White wolf|White wolves]] and [[Desert Wolf|desert wolves]] are lower-level alternatives.
+|[[Rag and Bone Man II#Feldip Hills|Feldip Hills]]
+|-
+|{{plinkt|Bat wing}}
+|[[Bat]]
+|Near the [[Odd Old Man]] (must be the bats near the [[limestone]] quarry; [[giant bat]]s '''do not''' drop [[bat wing]]s)
+|[[Rag and Bone Man II#Odd Old Man's house|Odd Old Man's House]]
+|-
+|{{plinkt|Rat bone}}
+|[[Rat]]
+|[[Varrock Sewers]], [[Lumbridge Castle]], [[Draynor Sewers]] (only level 26 [[giant rat]]s drop [[rat bone]]s)
+|[[Rag and Bone Man II#Misthalin|Misthalin]]
+|-
+|{{plinkt|Baby dragon bone}}
+|[[Baby blue dragon]]
+|[[Taverley Dungeon]] (requires a [[dusty key]] or 70 [[Agility]]), [[Isle of Souls Dungeon]], [[Myths' Guild Dungeon]], [[Dragon Nest]]
+|[[Rag and Bone Man II#Taverley Dungeon|Taverley Dungeon]]
+|-
+|{{plinkt|Ogre ribs}}
+|[[Ogre]]
+|[[Feldip Hills]] ({{Fairycode|AKS}})
+|[[Rag and Bone Man II#Feldip Hills|Feldip Hills]]
+|-
+|{{plinkt|Jogre bone}}
+|[[Jogre]]
+|[[Karamja]] (near the crashed [[gnome glider]] (fairy ring {{Fairycode|DKP}}) east of [[Tai Bwo Wannai]], [[Pothole Dungeon]] in northern Karamja near the sea), [[Ardougne Zoo]] next to the [[snake]]s (with [[Telekinetic Grab]]) (Make sure you pick up the '''[[jogre bone]]''', not the [[jogre bones]])
+|[[Rag and Bone Man II#Karamja|Karamja]]
+|-
+|{{plinkt|Zogre bone}}
+|[[Zogre]]
+|[[Jiggig]], south of [[Castle Wars]] (partial completion of [[Zogre Flesh Eaters]] recommended but not strictly required, fairy ring {{Fairycode|BKP}}) Use an [[ogre bow]] and [[ogre arrow]]s, [[comp ogre bow]] and [[brutal arrows]] or [[Crumble Undead]] casts
+|[[Rag and Bone Man II#Feldip Hills|Feldip Hills]]
+|-
+|{{plinkt|Mogre bone}}
+|[[Mogre]]
+|[[Mudskipper Point]] by fairy ring {{Fairycode|AIQ}} (use [[fishing explosive]] on "Ominous Fishing Spot") (requires full completion of [[Skippy and the Mogres]] and [[Slayer]] level 32, [[Mogre (sea)]] do '''not''' drop the mogre bone).
+|[[Rag and Bone Man II#Port Sarim|Port Sarim]]
+|-
+|{{plinkt|Dagannoth ribs}}
+|[[Dagannoth]]
+|Waterbirth Island (requires starting [[The Fremennik Trials]]), basement level of the [[Lighthouse]] ([[Fairy rings|fairy ring]] {{Fairycode|ALP}}) (requires full completion of [[Horror from the Deep]]), or [[Catacombs of Kourend]].
+|[[Rag and Bone Man II#Kandarin|Kandarin]]
+|-
+|{{plinkt|Snake spine}}
+|[[Snake]]
+|Throughout [[Karamja]] (such as near the functioning [[gnome glider]] south-east of the island and the mine north of [[Shilo Village (location)|Shilo Village]]), throughout the [[Kharidian Desert]] ([[desert snake]]s - close to the [[jackal]]s), [[Ardougne Zoo]] under the bridge next to the [[jogre]]s (with [[Telekinetic Grab]]).
+|[[Rag and Bone Man II#Karamja|Karamja]]
+|-
+|{{plinkt|Zombie bone}}
+|[[Zombie]]
+|[[Varrock Sewers]], [[Edgeville Dungeon]], [[Draynor Sewers]], [[Entrana Dungeon]]. '''Cannot''' be obtained in the [[Stronghold of Security]].
+|[[Rag and Bone Man II#Misthalin|Misthalin]]
+|-
+|{{plinkt|Werewolf bone}}
+|[[Werewolf]]
+|[[Canifis]] (must be dropped by werewolves, so you '''cannot''' get the bones if you use [[Wolfbane]]).
+|[[Rag and Bone Man II#Morytania|Morytania]]
+|-
+|{{plinkt|Moss giant bone}}
+|[[Moss giant]]
+|[[Varrock Sewers]] (slash weapon or knife for web), west of the [[Fishing Guild]], [[Crandor]], [[Moss Giant Island]] west of [[Brimhaven]] (requires 10 [[Agility]]). [[Catacombs of Kourend]].
+|[[Rag and Bone Man II#Misthalin|Misthalin]]
+|-
+|{{plinkt|Fire giant bone}}
+|[[Fire giant]]
+|[[Waterfall Dungeon]] (requires partial completion of [[Waterfall Quest]], and a [[rope]]), [[Brimhaven Dungeon]] (requires an axe, 875 [[coins]] and 12 [[Agility]]). [[Catacombs of Kourend]]. [[Isle of Souls Dungeon|Isle Of Souls Dungeon]]. 
+|[[Rag and Bone Man II#Kandarin|Kandarin]]
+|-
+|{{plinkt|Ice giant ribs}}
+|[[Ice giant]]
+|[[Asgarnian Ice Dungeon]] (north of [[Mudskipper Point]], {{Fairycode|AIQ}}), [[White Wolf Mountain]] (bring pickaxe to clear rockslide on mountain).
+|[[Rag and Bone Man II#Port Sarim|Port Sarim]]
+|-
+|{{plinkt|Terrorbird wing}}
+|[[Terrorbird]]
+|[[Tree Gnome Stronghold]] (easily found at the [[terrorbird]] pen on the west side of the Gnome Stronghold across the river. [[Mounted terrorbird gnome]]s do '''not''' drop the bone).
+|[[Rag and Bone Man II#Tree Gnome Stronghold|Tree Gnome Stronghold]]
+|-
+|{{plinkt|Ghoul bone}}
+|[[Ghoul]]
+|[[Canifis]] graveyard (between [[Canifis]] and [[Paterdomus Temple]], near [[fairy ring]] {{Fairycode|CKS}}).
+|[[Rag and Bone Man II#Morytania|Morytania]]
+|-
+|{{plinkt|Troll bone}}
+|[[Troll]]
+|[[Trollheim]] (especially the western part of it), [[Keldagrim]] entrance, [[Death Plateau (location)|Death Plateau]] in [[Burthorpe]], [[Troll Country]].
+|[[Rag and Bone Man II#Trollheim|Trollheim]]
+|-
+|{{plinkt|Seagull wing}}
+|[[Seagull]]
+|[[Port Sarim]] docks, [[Port Piscarilius]] docks, [[Uzer Oasis]], or [[Corsair Cove]].
+|[[Rag and Bone Man II#Port Sarim|Port Sarim]]
+|-
+|{{plinkt|Undead cow ribs}}
+|[[Undead cow]]
+|In the farm north-west of [[Port Phasmatys]]
+|[[Rag and Bone Man II#Morytania|Morytania]]
+|-
+|{{plinkt|Experiment bone}}
+|[[Experiment]]
+|Under the grave east of [[Fenkenstrain's Castle]] (requires partial completion of [[Creature of Fenkenstrain]]), [[manhole (witch's house)|manhole]] east of Taverley POH or [[Experiment No.2|mouse experiments]] (requires partial completion of [[Grim Tales]]).
+|[[Rag and Bone Man II#Morytania|Morytania]]
+|-
+|{{plinkt|Rabbit bone}}
+|[[Rabbit]]/[[Bunny]]
+|The forest south-east of [[Rellekka]] (by the [[swaying tree]], north-west of fairy ring {{Fairycode|AJR}}), throughout [[Miscellania]], throughout [[Tirannwn]], [[Nature Altar]] (with [[telegrab]]).
+|[[Rag and Bone Man II#Fremennik Province|Fremennik Province]]
+|-
+|{{plinkt|Basilisk bone}}
+|[[Basilisk]]
+|[[Fremennik Slayer Dungeon]] ([[fairy ring]] {{Fairycode|AJR}}) (requires [[Slayer]] level 40 and a [[mirror shield]] or [[V's shield]]).
+
+*'''Note:''' It is possible to kill basilisks without a mirror shield by using [[poison]] and multiple [[rings of recoil]] for melee, can be safespotted with a mirror shield equipped. Minimum of one damage by hand required to be granted any drops. They can lower combat stats with their attacks, so it is recommended to use [[restore potion]]s if you're having trouble damaging them.
+|[[Rag and Bone Man II#Fremennik Province|Fremennik Province]]
+|-
+|{{plinkt|Desert lizard bone}}
+|[[Lizard]]
+|North of [[Nardah]] and south-west of [[Ruins of Uzer]] in the [[Kharidian Desert]] (north of fairy ring {{Fairycode|DLQ}}) (marked on map). You must kill '''level 42''' [[lizard]] (greyish skin) (requires [[ice cooler]]s). It is '''NOT''' dropped by the level 24 [[desert lizard]].
+|[[Rag and Bone Man II#Nardah|Nardah]]
+|-
+|{{plinkt|Cave goblin skull}}
+|[[Cave goblin (monster)|Cave goblin]]
+|[[Lumbridge Swamp Caves]], [[Dorgesh-Kaan mine]]s (requires partial completion of [[The Lost Tribe]]).
+|[[Rag and Bone Man II#Lumbridge|Lumbridge]]
+|-
+|{{plinkt|Vulture wing}}
+|[[Vulture]]
+|South-west of [[Nardah]] and north-west of [[Agility Pyramid]] in the [[Kharidian Desert]] (marked on map). [[Ranged]]/[[Magic]] may be required to kill them if you have very low melee stats, as they can fly and become unable to be attacked with melee.
+|[[Rag and Bone Man II#Nardah|Nardah]]
+|-
+|{{plinkt|Jackal bone}}
+|[[Jackal]]
+|Throughout the [[Kharidian Desert]] (north of [[Nardah]] and south-west of [[Ruins of Uzer]] (near fairy ring {{Fairycode|DLQ}}); also found at the same location as the vultures, north-west of [[Agility Pyramid]]).
+|[[Rag and Bone Man II#Nardah|Nardah]]
+|}
+
+==Obtaining bones - Walkthrough==
+This walkthrough can be completed in any order. It's sectioned by distance to the starting location of the quest (the [[Odd Old Man]]'s house) and also by what bones are most easily found in that particular area. Traverse from area to area in whatever way is most convenient for you. The determining factor will be the travelling methods ([[gnome glider]], [[fairy rings]]) and teleports you have access to or prefer to use.
+
+Further, the below guide only exists to group various monsters together and create a sensible path (even if walking the distance) to collect all of the bones. Use the above list or view the individual pages for the monsters to see other possible locations they can be found at.
+
+'''Note:''' You do not have to bring all of the bones to the Odd Old Man at once. If at any point you obtain a bone or collection of bones and wish to turn them in, you can jump to the [[#Polishing the bones|polishing the bones]] section in order to do so.
+
+===Odd Old Man's house===
+:'''''Items required:''' None.''
+:'''''Recommended:''' Teleportation method to the Odd Old Man ([[Varrock teleport]], [[Digsite pendant]]) if travelling here again after the quest already started.''
+:'''Travel method:''' [[Bat]]s are flapping about right by the [[Odd Old Man]]. The first bone can be obtained in the same exact location as the quest start. Teleport to [[Varrock]] or the [[Digsite]] and walk north-east if coming here at a later time. Alternatively, bats can also be found in other locations, such as in front of the [[Slayer Tower]], the [[Haunted woods]], the [[Abandoned mine]], and around [[Kourend]]. '''[[Giant bat]]s do not drop bat wings.'''
+:*[[Bat]] - drops [[bat wing]] ('''cannot''' be obtained from a [[giant bat]])
+
+===Morytania===
+:'''''Items required:''' None.''
+:'''''Recommended:''' Teleportation method to northern [[Morytania]] ([[ectophial]]).''
+:'''Travel method:''' If you're using the [[ectophial]], travel to [[Port Phasmatys]] and travel west. If not, start in reverse order from fairy ring {{Fairycode|CKS}} or walking east from the Odd Old Man's location. Another way to reach [[Morytania]] is using [[Kharyrll Teleport]] from [[Ancient Magicks]] or [[POH]] portal. The [[undead cow]]s are just west of the [[Ectofuntus]], within the farm. Then, travel west and go under [[Fenkenstrain's Castle]] by pushing the easternmost memorial in the graveyard south-east of the castle to find the [[experiment]]s underneath (see the [[Creature of Fenkenstrain]] quest guide). Travel south-west to [[Canifis]] where many level 88 [[werewolves]] are located. They can be safespotted in the bar with a Ranged or Magic weapon. If you otherwise don't want to attack a level 88 werewolf, you can attack one of the level 24's in [[Canifis]] with [[Wolfbane]], and when they are almost dead, switch to another weapon. They will change into a werewolf with low life points and may drop the bones. Finally, travel south-west towards the [[Paterdomus Temple]] entrance to find [[ghoul]]s.
+:It is also a good idea to buy a [[mirror shield]], some [[ice cooler]]s, several [[fishing explosive]]s, and (optionally) a [[spiny helmet]] from the [[Slayer Master]] in Canifis while you are here.
+:*[[Undead cow]] - drops [[undead cow ribs]]
+:*[[Experiment]]/[[Experiment No. 2]] ([[Taverley]], after [[Grim Tales]]) - drops [[experiment bone]]
+:*[[Werewolf]] - drops [[werewolf bone]]
+:*[[Ghoul]] - drops [[ghoul bone]]
+
+===Misthalin===
+:'''''Items required:''' [[Slash weapon]] (for the sewer webs).''
+:'''''Recommended:''' Teleportation method to [[Varrock]] or [[Edgeville]].''
+:'''Travel method:''' All of the monsters in this section can be found in the [[Varrock Sewers]], which can be entered in either [[Varrock]] (just south-east of the eastern entrance of [[Varrock Palace]]) or directly south of [[Edgeville]]. To get to one of the entrances, use a [[Varrock Teleport|Varrock teleport]], go to [[Edgeville]] by using an [[amulet of glory]] teleport, [[fairy ring]], using [[Home Teleport]] (with the [[Ancient Magicks]] spellbook active) and the [[canoe]] system, or by using the [[spirit tree]] in the [[Grand Exchange]]. ('''Note:''' You will need a [[knife]] or other sharp object to cut through the spiderweb blocking the way to the moss giant area if unable to use level 51 Agility shortcut near [[Vannaka]]).
+:If you've not already done so, buy a [[mirror shield]], some [[ice cooler]]s, several [[fishing explosive]]s, and (optionally) a [[spiny helmet]] from the [[Slayer master]] in Edgeville while you are here.
+:*[[Zombie]] - drops [[zombie bone]]
+:*[[Rat]] (level 1) - drops [[rat bone]] ('''cannot''' be obtained from a [[giant rat]])
+:*[[Moss giant]] - drops [[moss giant bone]]
+
+===Lumbridge===
+:'''''Items required:''' [[Light source]] (preferably a lantern).''
+:'''''Recommended:''' [[Tinderbox]] (to re-light your light source), [[spiny helmet]] or [[Slayer helmet]] (if travelling through the [[Lumbridge Swamp Caves]]), teleportation method to [[Lumbridge]].''
+:'''Travel method:''' Teleport to [[Lumbridge]], head into [[Lumbridge Castle]], and, with a lantern, climb through the hole in the kitchen's cellar (requires partial completion of [[The Lost Tribe]]). From here, "follow" [[Kazgar]] to the end of the [[Dorgesh-Kaan mine]]s, where many cave goblins can be found ([[cave goblin miner]]s and [[cave goblin guard]]s will also drop the skull). Alternatively, walk south and squeeze through the other hole. Go south towards the area full of [[rockslug]]s; then, head east towards the goblins, found at the far east of the [[Lumbridge Swamp Caves]]. You could also (especially if The Lost Tribe has not been started or completed yet) enter the Lumbridge Swamp Caves via the entrance in the [[Lumbridge Swamp]] and walk to the far eastern part of the caves. A [[Spiny helmet|spiny]] or [[slayer helmet]] is recommended to protect against [[wall beast]]s if this route is taken.
+:*[[Cave goblin (monster)|Cave goblin]] - drops [[cave goblin skull]]
+
+===Nardah===
+:'''''Items required:''' [[Ice cooler]]s, [[waterskin]]s.''
+:'''''Recommended:''' [[Desert clothing]], teleportation method to the [[Kharidian Desert]] (specifically [[Nardah]]).''
+:'''Travel method:''' Use the [[fairy ring]] (code: {{fairycode|DLQ}}) to get to the [[Nardah]] hunting area. Alternatively, use a [[ring of dueling]] or [[Lumbridge Teleport|Lumbridge teleport]] and travel south through the [[Kharidian Desert]], either walking or using [[magic carpet]]s to the necessary locations. There are [[jackal]]s on the way to the level 42 [[lizard]]s (if travelling north from Nardah or the fairy ring). You need to use [[ice cooler]]s on the lizards when their health is depleted for the kill. After these, walk south-west to find [[vulture]]s (located just north-west of the [[Agility Pyramid]]). If the vultures fly, you will need to use [[Ranged]] or [[Magic]] attacks. You can find jackals near the vultures as well.
+:While you're here, if you happen to see [[desert snake]]s (or would prefer to look for them), you can kill them for a [[snake spine]] (instead of getting one on [[Karamja]]).
+:*[[Jackal]] - drops [[jackal bone]]
+:*[[Lizard]] ('''must be''' level 42) - drops [[desert lizard bone]]
+:*[[Vulture]] - drops [[vulture wing]]
+
+===Port Sarim===
+:'''''Items required:''' [[Fishing explosive]]s.''
+:'''''Recommended:''' Teleportation method to [[Port Sarim]].''
+:'''Travel method:''' [[Minigame teleport]] to [[Port Sarim]] [[Rat Pits]] if you have completed [[Ratcatchers]]; otherwise, use an [[amulet of glory]] to travel to [[Draynor]] and walk to Port Sarim (or use the [[fairy ring]] (code: {{Fairycode|AIQ}}), which places you right on [[Mudskipper Point]]. Start in reverse order if you do). You will find [[seagull]]s on the docks. From there, travel south and look for the [[Asgarnian Ice Dungeon]], where you will find [[ice giant]]s. Then, travel south to reach Mudskipper Point, home to the [[mogre]]s. Use [[fishing explosive]] on an [[Ominous Fishing Spot]] (requires full completion of [[Skippy and the Mogres]]) to agitate them out of the water.
+:*[[Seagull]] - drops [[seagull wing]]
+:*[[Ice giant]] (in the [[Asgarnian Ice Dungeon]]) - drops [[ice giant ribs]]
+:*[[Mogre]] - drops [[mogre bone]]
+
+===Karamja===
+:'''''Items Required:''' None.''
+:'''''Recommended:''' Teleportation method to [[Karamja]].''
+:'''Travel method:''' Travel to [[Karamja]]. Use the [[gnome glider]], or the [[fairy ring]] code {{Fairycode|DKP}}. If nothing better is available, use the ship at [[Port Sarim]] or south-east [[Ardougne]]. Snakes can be found throughout the island, but, more specifically, can be found west of the functioning gnome glider (far south-east of the island), the mine north of [[Shilo Village (location)|Shilo Village]] (fairy ring code: {{Fairycode|CKR}}), and by the [[Calquat fruit|calquat]] patch (snakes within the [[Hardwood Grove]] '''do not''' drop the spine). [[Jogre]]s can be found surrounding the crashed gnome glider located east of [[Tai Bwo Wannai]], and are also found inside the [[Pothole Dungeon]] located on the north side of mainland Karamja (by the [[harpie bug swarm]]s).
+:*[[Snake]] - drops [[snake spine]]
+:*[[Jogre]] - drops [[jogre bone]]
+
+===Taverley Dungeon===
+:'''''Items required:''' [[Dusty key]] (if less than level 70 [[Agility]]).''
+:'''''Recommended:''' [[Anti-dragon shield]], [[antifire potion]]s, teleportation method to a nearby location to [[Taverley Dungeon]]. If you already have access to the Myths' Guild you may quickly find baby blue dragons in the cavern below.''
+:'''Travel method:''' Teleport to [[Falador]] and walk north-west, use a [[games necklace]] to teleport to the [[Burthorpe Games Room]] and walk south, or use the [[gnome glider]] to travel to [[White Wolf Mountain]] and walk south-east (remember to '''bring the [[dusty key]] if below 70 Agility''', as it will be required to unlock the gate leading to the blue dragon area). [[Baby blue dragon]]s are found in the [[Taverley Dungeon]], past the [[scorpion]]s, [[chaos dwarves]] and [[lesser demon]]s, through the gate that requires the dusty key to open. You could also, with level 70 [[Agility]], use the pipe near the entrance to the dungeon. Bringing an [[anti-dragon shield]] or [[antifire potion]]s is advisable, as the mothers are in proximity and may attack the player.
+:*[[Baby blue dragon]] - drops [[baby dragon bone]]
+
+===Trollheim===
+:'''''Items required:''' None.''
+:'''''Recommended:''' Teleportation method to [[Trollheim]].''
+:'''Travel method:'''
+:'''With Trollheim Teleport'''<br />Use the [[Trollheim Teleport]] to get to [[Trollheim]]. From there, climb down to the western side. The [[troll]]s are a bit to the west.
+:'''Without Trollheim Teleport'''
+:Use a games necklace to teleport to [[Burthorpe]] and walk north to Trollheim (specifically through [[Tenzing]]'s house to northern Trollheim (requires completion of [[Death Plateau]]), as Death Plateau is a '''very''' dangerous place).
+:The easiest other area to find trolls is by the entrance to [[Keldagrim]]. It is located close to a [[fairy ring]] (code: {{Fairycode|DKS}}), or by walking east from Rellekka.
+:*[[Troll]] - drops [[troll bone]]
+
+===Fremennik Province===
+:'''''Items required:''' A [[mirror shield]] or [[V's shield]] is highly recommended, as basilisks will reduce your stats to a critical and irritatingly low point (possible work arounds- see below).''
+:'''''Recommended:''' Teleportation method to [[Rellekka]].''
+:'''Travel method:''' Teleport to [[Rellekka]] ([[enchanted lyre]], [[fairy rings|fairy ring]] code {{Fairycode|AJR}}), or to [[Camelot]] and walk north. Walk to the rare tree icon and kill some of the [[Bunny|bunnies]] hopping about in the forest by the [[swaying tree]]. Then, head into the [[Fremennik Slayer Dungeon]] ({{Fairycode|AJR}} or [[Slayer ring]]) south-east of the rabbits to find [[basilisk]]s (killing them requires level 40 [[Slayer]]).
+:'''Mirror shield/V's shield workaround:''' It is possible to kill basilisks without a mirror or V's shield by using [[poison]] and multiple [[rings of recoil]] for melee, or by using a [[safespot]] across some rocks for Ranged or Magic. Ice spells work well for this.
+:*[[Rabbit]]/[[Bunny]] - drops [[rabbit bone]]
+:*[[Basilisk]] - drops [[basilisk bone]]
+
+===Kandarin===
+:'''''Items required:''' [[Rope]], [[Glarial's amulet]] (if [[Waterfall Quest]] is only partially completed).''
+:'''''Recommended:''' Teleportation method to a nearby location to the [[Lighthouse]] and [[Baxtorian Falls]].''
+:'''Travel method:''' Accessing both locations in [[Kandarin]] can easily be done by using a [[games necklace]] and teleporting to [[Barbarian Outpost]]. Pay a visit to the [[Lighthouse]] ([[Fairy rings|fairy ring]] code {{Fairycode|ALP}}), north of the [[Barbarian Outpost]]. [[Dagannoth]]s are found within the basement (requires completion of [[Horror from the Deep]] to access). Good [[food]] and [[armour]] is suggested, as these dagannoths are aggressive, and the area is a [[multi-combat zone]].
+:Next, grab a [[rope]] (and [[Glarial's amulet]] if [[Waterfall Quest]] is only partially completed), and then use your games necklace to teleport back to the Barbarian Outpost. Travel south towards [[Baxtorian Falls]], board the log raft to the west of the house north of the falls, use your rope on the rock after the raft crashes, then use it on the dead tree and enter the [[Waterfall Dungeon]]. [[Fire giant]]s can be found in the north and north-west passages.
+:*[[Dagannoth]] - drops [[dagannoth ribs]] ('''cannot''' be obtained in the [[Catacombs of Kourend]])
+:*[[Fire giant]] - drops [[fire giant bone]] ('''cannot''' be obtained in [[Nieve]]'s [[Slayer Stronghold]])
+
+===Tree Gnome Stronghold===
+:'''''Items required:''' None.''
+:'''''Recommended:''' Teleportation method to [[Tree Gnome Stronghold]].''
+:'''Travel method:''' Travel to the [[Tree Gnome Stronghold]], either via [[Spirit Tree]], [[gnome glider]], slayer ring or a [[royal seed pod]]. [[Terrorbird]]s can be found scattered across the stronghold in large numbers, but are found in a large group in the terrorbird pen to the south-west (across the bridge, near a tree icon) (killing a terrorbird in the pen (and only in the pen) is an easy task in the Western Provinces Achievement Diary). Alternatively [[Warped Terrorbird]]s can also be killed.  '''The [[mounted terrorbird gnome]]s sauntering throughout the area will not drop the bone.'''
+:* [[Terrorbird]] - drops [[terrorbird wing]] ('''cannot''' be obtained from [[mounted terrorbird gnome]]s)
+
+===Feldip Hills===
+:'''''Items required:''' An [[ogre bow]] and [[ogre arrow]]s, [[comp ogre bow]] and [[brutal arrows]] or [[Crumble Undead]] casts (1 [[Chaos rune|chaos]], 2 [[Earth rune|earth]], 2 [[Air rune|air]] runes) are highly recommended, as the zogres have an 80% immunity to most weaponry.''
+:'''''Recommended:''' [[Inoculation bracelet]] (to prevent disease), [[Relicym's balm]] or [[Sanfew serum]] (to cure disease), teleportation methods to [[Jiggig]] and [[Feldip Hills]].''
+:'''Travel method:''' Travel to [[Feldip Hills]] using [[fairy ring]] (code: {{Fairycode|AKS}}), a [[ring of dueling]] ([[Castle Wars]] [[minigame teleport]]) and walking south-east, or [[gnome glider]]. There, you will find a plethora of [[ogre]]s and [[wolves]]. If walking from Castle Wars, killing a zogre at [[Jiggig]] first may be preferable (continue reading to see how). From Feldip Hills, travel north-west (east if using fairy ring (code: {{Fairycode|BKP}})) to [[Jiggig]] (south of [[Castle Wars]]) to find [[zogre]]s.
+:Zogres are located within the Jiggig tomb, and may inflict [[disease]] upon the player. The [[inoculation bracelet]] will counter this effect; just be sure to keep it equipped all the time. Or, if you have completed [[Zogre Flesh Eaters]], you may buy [[Relicym's balm]] (requires all 3 dosages to fully cure disease; taking one or two doses will lessen the effects) from [[Uglug Nar]] (if you opened his shop after completing the quest). Alternatively, you can bring [[Sanfew serum]] for a heightened effect. Another option to counter the disease is to go to [[Clan Wars]] and use the [[pool of refreshment]], which will reset your stats to full. The zogres also have an incredible 80% immunity to most weaponry; therefore, it is advisable to bring along an [[ogre bow]] and [[ogre arrow]]s, an [[ogre composite bow]] and [[brutal arrow]]s, or enough necessary runes to cast several [[Crumble Undead]] spells.
+:There is an alternative method to the above that does not require you to have started the Zogre Flesh Eaters quest at all and is much safer, though it takes a little more patience. Bring runes for Crumble Undead and Telekinetic Grab to the entrance of Jiggig. Standing next to the barricades, you can attack the Zogres moving around near the campfire. They will back off out of range as they cannot reach you to retaliate. Wait for them to move back into range and continue attacking. Once one of the Zogres gets very low on health, wait until it is relatively close by (and not actively backing away from you) so that your final attack to kill it ensures that its loot pile is within telegrab range. With some patience and learning how the Zogres move in this area, you will be able to obtain the bone without having to actually set foot in Jiggig.
+:*[[Wolf]] - drops [[wolf bone]]
+:*[[Ogre]] - drops [[ogre ribs]]
+:*[[Zogre]] - drops [[zogre bone]]
+
+== Polishing the bones ==
+:'''''Items required:''' 27 [[pot]]s, 27 [[Jug of vinegar|jugs of vinegar]] (and 27 coins to buy them), 27 [[logs]] (of any type; alternatively, an [[axe]] to chop them down by the [[Odd Old Man]]), a [[tinderbox]] (a [[Bruma torch|Bruma Torch]] does NOT work), all 27 bones (as few as one at a time can be polished and brought to the Odd Old Man).''
+:'''''Recommended:''' Teleportation methods to [[Draynor Village]] and to the [[Odd Old Man]].''
+:Once you have collected the bones, go to [[Draynor Village]] and talk to (or simply trade with) [[Fortunato]] (found in the market square) there. He will be able to sell you some [[jugs of vinegar]] for 1 coin each. Buy 27 of them. '''Do not steal from the market stall or he will not talk to you for a while.''' In addition to the vinegar, collect 27 [[pot]]s, 27 [[logs]] (of any type - not necessary, though. You can, alternatively, bring an [[axe]] with you when you visit the [[Odd Old Man]] and cut down trees in the area instead) and a [[tinderbox]] and talk to the Odd Old Man for further instructions.  
+
+''Tip:'' To cut down on trips, lower your hitpoints to 1 using a [[dwarven rock cake]] or [[locator orb]], then bring a tinder box and 27 logs to the Odd Old Man and let the bats nearby kill you. Then, bring your [[bone in vinegar|bones in vinegar]] to the Odd Old Man and withdraw your tinderbox and a log from your gravestone. Continue to withdraw logs as needed. This allows you to polish all the bones in 2 trips. 
+
+Using an equipped log basket can allow for all bones to be done in 1 trip.
+
+Equipping an axe and cutting logs from the nearby trees allows a simple, no unlock alternative to doing it in one trip.
+
+:#Use a jug of vinegar with a [[pot]] to get a [[pot of vinegar]].
+:#Use the bone with the pot of vinegar to get a [[bone in vinegar]].
+:#*'''Note:''' Be careful that you '''do not''' accidentally "empty" a bone in vinegar, because if you do, '''you will lose the bone and have to collect that bone again'''.
+:#Polish the bone. Use a log on the pot-boiler next to the Odd Old Man, and then use a bone in vinegar on it. Finally, use your [[tinderbox]] to light it (you will not receive XP for lighting it).
+:#*'''Note:''' Hop worlds or log out and back in after lighting the logs for them to be finished when you log back in, or wait 12 seconds for each pot to boil.
+:#Take the pot from the pot-boiler to receive the polished bone.
+:#Repeat this for all remaining bones.
+
+===Finishing up===
+:Talk to the Odd Old Man to give him the bones. Once all 27 have been given, you will have to choose either [[Bonesack]], or [[Ram skull helm]], or both as a reward.
+
+'''Congratulations, quest complete!'''
+
+==Rewards==
+{{Quest rewards
+|name = Rag and Bone Man II
+|image = [[File:Rag and Bone Man II reward scroll (Ram skull helm and Bonesack).png|center]]
+| qp = 1
+|rewards = 
+*{{SCP|Prayer|5,000|link=yes}} experience
+*[[Bonesack]]
+*[[Ram skull helm]]
+}}
+
+==Transcript==
+{{hastranscript|Quest}}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 27 August 2025
+|update = Summer Sweep Up Slayer & More
+|change = Baby blue dragons in the [[Ruins of Tapoyauik]] now drop the baby dragon bone during Rag and Bone Man II.
+}}
+{{Subject changes
+|date = 18 June 2020
+|poll = Old School Content Poll 71: Gauntlet, Grotesques, CoX and more
+|update = Poll 71 and Darkmeyer Updates
+|change = Players can now simultaneously own the [[ram skull helm]] and [[bonesack]].
+}}
+{{Subject changes
+|date = 17 August 2017
+|update = Runes and Ammunition & Log In Screen Competition!
+|change = The Rag & Bone Man Wishlist is reclassified as a quest.
+}}
+{{Subject changes
+|date = 27 February 2014
+|update = Trident, pouches and roots
+|poll = Old School feature poll 16
+|change = The [[Rabbit|bunnies]] south-east of [[Rellekka]] can now drop the [[rabbit bone]] required for the Odd Old Man's list.
+}}
+{{Subject changes footer}}
+
+==Trivia==
+*Rag-and-bone man is a British phrase for a junk dealer. Historically, the phrase referred to an individual who would travel the streets of a city with a horsedrawn cart, and would collect old rags (for converting into fabric and paper), bones for making glue, scrap iron and other items, often trading them for other items of limited value.
+*The bones scattered in and around the [[Odd Old Man]]'s house have many interesting "examine" texts (a good activity to partake in while waiting for the bones to be polished). One such skeleton states "What a waste of prayer xp!" Examining the pot-boiler at the various stages of boiling the bones will also give interesting texts, the one while the bone is boiling being "This smells so very, very bad..."
+*After completing the quest, the Wish-List on his house will have "Non-chafing Manacles" written on it.
+*Rag and Bone Man II was formerly the [[miniquest]] named "Rag & Bone Wish List"; it is ''not'' the same as ''RuneScape 3''{{'}}s sequel quest {{RSL|Fur 'n Seek}}. As, unlike all other miniquests, the wish list awarded one quest point, it was renamed ''Rag and Bone Man II'' and reclassified as a quest in {{UD|Runes and Ammunition & Log In Screen Competition!|an update}} on [[17 August]] [[2017]].
+*Previously in the game, a player needed to choose between the [[bonesack]] and [[ram skull helm]] as a reward for having completed the quest, but could swap one for the other at any time by talking to the [[Odd Old Man]] again. This was later changed at {{UD|Poll 71 and Darkmeyer Updates|an update}}, allowing players to possess both at the same time.
+<gallery>
+Rag and Bone Man II reward scroll (Ram skull helm).png|The quest completion scroll before {{UD|Poll 71 and Darkmeyer Updates|an update}} when selecting the [[ram skull helm]].
+Rag and Bone Man II reward scroll (Bonesack).png|The quest completion scroll before {{UD|Poll 71 and Darkmeyer Updates|an update}} when selecting the [[bonesack]].
+</gallery>
+
+==References==
+{{Reflist}}
+
+{{Rag and Bone Man II}}

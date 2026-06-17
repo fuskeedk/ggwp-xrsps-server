@@ -1,0 +1,72 @@
+{{External|rs|rsc=Monk's friend}}
+{{Has quick guide}}
+{{Infobox Quest
+|name = Monk's Friend
+|number = 27
+|image = [[File:Monk's Friend.png|300px]]
+|release = [[28 May]] [[2002]]
+|update = Latest RuneScape News (28 May 2002)
+|members = Yes
+|series = None
+|developer = [[Mod Tom|Tom W]]
+}}
+'''Monk's Friend''' is a short novice quest in which the monks of the [[Ardougne Monastery]] ask you to do them a couple of favours, allowing them to throw a party without any setbacks.
+
+==Details==
+{{Quest details
+|start = Speak to [[Brother Omad]] at the [[Ardougne Monastery]] south of [[East Ardougne]].
+|startmap = 2606,3209
+|difficulty = Novice
+|description = A monk's child has had their blanket stolen. Find the thieves' den and return the blanket, then help Brother Omad organise the drinks for the child's birthday party.
+|length = Very Short
+|requirements = The ability to run past two level 14 thieves, and one level 26.
+|items = * [[Jug of water]]
+* Regular [[logs]] or a regular [[plank]]
+|recommended =*Fast travel to [[Ardougne Monastery]] to start the quest - [[Ardougne cloak]] 1-4 or [[Ardougne Teleport]] or [[Spirit tree]] to [[Battlefield]] or [[fairy ring]] to {{fairycode|djp}} or [[Captain Barnaby]]'s ship from [[Rimmington]] or [[Brimhaven]]
+|leagueRegion = <poem>
+{{LeagueRegion|Kandarin}} — location requirement
+</poem>
+}}
+
+==Walkthrough==
+===Brother Omad===
+[[File:Brother Omad chathead.png|left]]
+Talk to [[Brother Omad]] at the [[Ardougne Monastery]] south of [[Ardougne]]. Teleport nearby via [[Ardougne Cloak 1]], [[fairy rings]] code {{fairycode|DJP}}, or [[Fishing Trawler]] [[minigame teleport]] and walking north. He wants you to retrieve a [[child's blanket]] from some thieves found in a secret cave hidden under a ring of stones west of the monastery.
+{{Clear|left}}
+===Child's blanket===
+{{Map|2561,3221|r=4|mtype=square|width=220|height=220|align=right|caption=The stone circle's location.}}
+Head west immediately after exiting the [[Ardougne Monastery]]. East of the [[Battlefield|Gnome Battlefield]] and south-west of the [[Clock Tower (building)|Clock Tower]], there is a perfect circle of grey stones. When inside the ring, a ladder will appear.
+[[File:Monk's Friend - Stone circle.png|thumb|200px|left|A ladder mysteriously appears.]]
+Climb down the ladder into a large dungeon. Take the first path south into the room at the end, where you'll find the [[child's blanket]] on the table guarded by two level 14 [[Thief|thieves]] and a level 26 [[Head Thief]].
+
+Bring the blanket back to [[Omad]]. He will be pleased because he can sleep now. '''Talk to Omad again''', who is now better and ready to organise a child's birthday party: he just needs [[Brother Cedric]] to return with the wine. '''Ask who he is, and then ask where to find him, or you will be unable to complete the following section.''' He will point the player towards the nearby forest.
+{{Clear|left}}
+===Brother Cedric===
+[[File:Brother Cedric chathead.png|left]]
+{{Map|name=Brother Cedric|x=2614|y=3259|r=3|mtype=square|width=220|height=220|align=right|caption=Brother Cedric's location.}}
+Leave the [[Ardougne Monastery|monastery]] and head directly north to find Brother Cedric south of the [[Ardougne Zoo]]'s camel cage. He's very drunk and needs a [[jug of water]] to sober up. A jug of water can be found in the cooking shop in [[Yanille]] or the general store in [[Port Khazard]]. You cannot use the well next to Cedric to fill up your jug, but you can use the [[bucket]] on the well, then the [[bucket of water]] on a [[jug]]. There is also a sink south of the monastery. Alternatively, you can kill [[imp]]s near Port Khazard for either a full or empty jug.
+
+Give the jug of water to Cedric to sober him up. Now, he needs [[logs]] or a [[plank]] to repair his cart. Cut a log if needed and talk to Cedric again. '''Only''' regular logs work. If you do not have an axe, there are plank spawns in Port Khazard, south-west of the bank chest.  He can now repair his cart and wants you to go back to Brother Omad to tell him he is coming soon.
+
+Go back to [[Brother Omad]], who will finally start the party.
+
+'''Congratulations, quest complete!'''
+
+==Rewards==
+{{Quest rewards
+|name = Monk's Friend
+|image = [[File:Monk's Friend reward scroll.png|centre]]
+|qp = 1
+|rewards = 
+* {{SCP|Woodcutting|2,000}} [[Woodcutting]] [[experience]]
+*8 [[Law rune]]s
+*Brother Omad will throw parties for you by speaking to him.
+}}
+
+==Transcript==
+{{hastranscript|quest}}
+
+== Trivia ==
+
+* This is the first quest for RuneScape that wasn't written by Paul Gower.
+{{Monk's Friend}}

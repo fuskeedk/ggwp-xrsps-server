@@ -1,0 +1,168 @@
+{{Has quick guide}}
+{{otheruses|the quest|the location|Red Reef}}
+{{Infobox Quest
+|name = The Red Reef
+|number = 179
+|image = [[File:The Red Reef.png|300px]]
+|release = [[20 May]] [[2026]]
+|update = The Red Reef is Out Today!
+|members = Yes
+|series = [[Quests/Series#Tortugan|Tortugan]], #2
+|developer = [[Mod Ed]], [[Mod Elena]]
+}}
+'''The Red Reef''' is the second quest in the [[Quests/Series#Tortugan|Tortugan quest series]], following up on the events of [[Troubled Tortugans]]. It involves helping [[Floopa]] overcome her injury while investigating the dealings of the [[Red Reef Trading Company]], a potential new threat to the [[Tortugan]] way of life.
+
+==Details==
+{{Quest details
+|start = Talk to [[Elder Raley]] at his home on the [[Great Conch]].
+|startmap = 3188,2405
+|difficulty = Experienced
+|description = Investigate the dealings of the Red Reef Trading Company and gain access to some trees to cut.
+|length = Medium
+|requirements = * {{SCP|Sailing|52|link=yes}} {{Boostable|no}} {{Questreqstart|}}
+* {{SCP|Smithing|48|link=yes}} {{Boostable|no}} {{Questreqstart|}}
+*Completion of the following quests:
+**[[Troubled Tortugans]]
+***[[Pandemonium]]
+|items = * A [[boat]]
+* [[Cannon (facility)|Cannons]] on your boat for ship combat, or [[Magic]]/[[Ranged]] gear to skip it
+|recommended = * {{SCP|Combat|65|link=yes}}
+* {{SCP|Prayer|40|link=yes}} for [[Protect from Missiles]] during boat combat.
+* [[Mahogany repair kit]]s or better
+|kills = * 2 pirate ships (or the crew on the ship)
+** [[Oaky Doak]] (level 77)
+** [[Boatswain Bill Teak]] (level 77)
+** [[Mister U.]] (level 77)
+** [[Captain Ruban Acer]] (level 95)
+** [[Old Jack]] (level 77)
+** [[Mute Jack]] (level 77)
+** [[Bloody Jack]] (level 77)
+** [[Captain Jack]] (level 95)
+* 6 [[Pirate (The Red Reef)|pirates]] (level 52)
+* [[Black Eye Bethel]] (level 191)
+* [[Giant lobster (The Red Reef)|Giant lobster]] (level 112, safespottable)
+|ironman = 
+|leagueRegion = Not accessible in the [[Demonic Pacts League]]
+}}
+
+==Walkthrough==
+===Troubled Tortugan===
+[[File:Elder Raley chathead.png|left]]
+{{Bug|You may be unable to start the quest if you have just levelled to the skill requirements, or just completed Troubled Tortugans. Relogging should fix this. {{fact|Confirmation needed}}}} 
+
+Speak to [[Elder Raley]] at his house just south of the bank at [[the Summer Shore]]. He asks whether you've seen [[Floopa]], who has wandered off somewhere. You'll offer to look for her, and Raley recommends that you ask around town whether they've seen her.
+
+{{Map|mtype=pin|3196,2466|caption=Elder Katt, by the Sacred Grove entrance.|align=right|width=200|height=200}}
+
+Speak to any tortugan in the Summer Shore marketplace, and they'll direct you to [[the Sacred Grove]] to the north-east. Speak to [[Elder Katt]], who will permit you temporary access to the Grove. Upon entering the Grove, speak to [[Floopa]] to the north-west, who will tell you that she was just out to gather camphor logs, but is taking a while due to her injury.
+
+She further says that the camphor wood is for a new spear, and upon pressing her for details, she reveals that she recognized the ship that sailed away from [[the Little Pearl]] during the events of [[Troubled Tortugans]], which is a ship owned by the [[Red Reef Trading Company]]. Once a navigator for their flagship, [[The Zenith]], she was betrayed by [[Spencer Brentwood]], the company's founder, who caused the events that resulted in her injury.
+
+You will offer to investigate the trading company on her behalf while she recovers, and she tells you that their headquarters is on [[Red Rock]], to the far west of [[the Great Conch]].
+
+===Problem Solving===
+[[File:Display (The Red Reef).png|x160px|left]]
+Make your way to [[Red Rock]] via [[boat]]. 
+
+:'''Tip:''' While in Red Rock, inspect the [[Sailors' Marker]] next to [[Shipwright Sylvia]] to unlock the teleport for the [[sailor's amulet]].
+
+Head to the building headquarters to the west and speak to the [[receptionist]], who will set you up with a meeting with her superior, [[Theodore Paxton]], after hearing of your need for employment. She will tell you to inspect the [[Display (The Red Reef)|displays]] detailing the company's history while you wait. Start with the display closest to the door, and move anti-clockwise to view the displays in chronological order. Once all four displays have been inspected, players will be able to speak to Theodore Paxton in the southern part of the building.
+
+Theodore will ask that you help deal with a pirate captain named [[Black Eye Bethel]], who has been attacking the company's ships. He will ask that you sail to their hideout at [[Last Light]] and "put an end to her and her ships".
+{{Clear}}
+===Last Light===
+{{Needed|recommended=Repair kits, cannonballs for ship combat, and combat equipment to subsequently defeat six pirates and Black Eye Bethel. [[Ranged]] or [[Magic]] is recommended if skipping ship combat}}
+{{Instance}}
+Sail south towards Last Light, and the ''The Bark of the Bight'' and ''The Four of a Kind'' will appear upon approaching the island.
+[[File:The Red Reef - pirate ships.png|thumb|300px|Pirates aboard ''The Bark of the Bight'' and ''The Four of a Kind'' attack the player's boat.]]
+To defeat both ships, players must either kill all of the crew onboard or sink the ship; the former requires magic or ranged attacks, while the latter requires the use of [[Cannon (facility)|cannons]] on the player's boat. While the player is engaged in battle, both captains, [[Captain Jack]] and [[Captain Ruban Acer]], will directly attack the player with ranged attacks. As such, players should activate [[Protect from Missiles]] as soon as they appear.
+
+Once both ships are dealt with, sail further south to [[Last Light]]. Upon disembarking, players must defeat six [[Pirate (The Red Reef)|pirates]] in multi-combat before they can head upstairs. The four pirates outside may be [[safespotted]] by trapping them to the north of the mooring point, while the two pirates inside may be [[flinched]] by standing just north of the staircase. [[Protect from Melee]] will prevent all damage. Leaving the fight early via the mooring point will reset the fight.
+
+:{{Color|red|Warning:}} Teleporting away from the island after docking will cause your ship to become lost at sea, along with its contents.
+
+==== Black Eye Bethel ====
+[[File:Black Eye Bethel chathead.png|left|80px]]
+Head up two flights of stairs to find [[Black Eye Bethel]]. She will only attack with melee, but has various special mechanics:
+* Step out of the way when she charges up an attack. Her attack will still hit you even if you're several tiles back; instead you must stand to the left or right of the row of tiles she's facing. You'll know she's charging up when the tile she stands on turns blue, and she says {{Overhead|Dodge this!}}.
+* Upon reaching below 70% health, she will switch to a rune scimitar, which increases her max hit but decreases her accuracy and defence.
+* Upon reaching below 40% health, she will switch to a dragon scimitar, which increases her max hit further but decreases her accuracy and defence further. Additionally, she can use its special attack to disable the player's protection prayer.
+
+If you die to Black Eye Bethel, you will not be required to fight the six pirates on the Last Light again.
+
+Upon defeating Black Eye Bethel, return to Theodore Paxton at Red Rock, who will refer you to his boss [[Spencer Brentwood]].
+
+=== Meeting the Boss ===
+[[File:Zenith Location.png|thumb|Location of the Zenith]]
+[[File:Spencer Brentwood (Diving).png|80px|left]]
+Sail to ''The Zenith,'' found to the east of Red Rock.
+
+{{Bug|The Zenith is missing on most worlds. It should be where the map says "Red Reef." If it's not there, hop worlds until you find it.}}
+[[File:The Red Reef - seabed.png|thumb|300px|The seabed in the Red Reef.]]
+Speak to Spencer Brentwood upon boarding ''The Zenith'', and he'll ask that you come along to help him repair the [[coral dredger]]s on the seabed. If you did not bring diving equipment, he will provide you with a set. Should you need to leave, speak to Spencer to board your boat again; teleporting out will result in the boat being '''lost at sea''' and must be recovered via shipwright!
+
+Once you reach the seabed, talk to Spencer about repairing the dredgers. After talking to him, the option to repair will be visible and you can help Spencer repair the northern coral dredger. Upon attempting to do so, a [[Giant lobster (The Red Reef)|giant lobster]] will appear. It can be safespotted by standing to the west of the dredger, moving down to attack and then back up to prevent the lobster from pathing towards you. It may use a special attack which can be avoided by moving when bluish particles appear under you. You may also choose to avoid the fight altogether by waiting for it to despawn.
+
+Upon defeating the giant lobster, repair the coral dredger and head to the dredger to the south-east to find Spencer, who will take your back to the surface. He will at last reveal to you the issue he faces: the red coral in the [[Red Reef]] is depleting, and he requires a new source of red coral - a large reef in the [[Pearl Bank]]. However, as [[the Little Pearl]] is nearby, the tortugans will not allow the company to set up operations, confirming their involvement in the attack on the island. He will task you with finding a way for the company to acquire the Little Pearl with minimal bloodshed.
+
+Return to [[Elder Raley]]'s house, where you will find that [[Floopa]] has returned as well. Report your findings to them, and they will reward you with access to [[The Sacred Grove]] and a [[Bosun's workbench schematic|schematic]].
+
+'''Congratulations, quest complete!'''
+
+==Rewards==
+{{Quest rewards
+|name = The Red Reef
+|image = [[File:The Red Reef reward scroll.png|centre]]
+|qp = 2
+|rewards =
+*{{SCP|Sailing|15,000|link=yes}} experience
+*{{SCP|Smithing|5,000|link=yes}} experience
+*Access to [[Red Rock]] (partial completion)
+**Ability to unlock Red Rock as a teleport destination on the [[Sailor's amulet]] by inspecting the [[Sailors' Marker]] just west of the bank
+*Access to the [[Sacred Grove]]
+*[[Bosun's workbench schematic]]
+}}
+
+==Transcript==
+{{Hastranscript|quest}}
+
+==Music==
+{| class="wikitable sortable"
+|-
+!Name
+! class="unsortable" | Unlock details
+! class="unsortable" | Music track
+|-
+|[[Business as Unusual]]
+|Unlocked upon arriving at [[Red Rock]]
+|[[File:Business as Unusual.ogg]]
+|-
+|[[Boat 'Em Up]]
+|Unlocked upon approaching [[Last Light]]
+|[[File:Boat 'Em Up.ogg]]
+|-
+|[[Cannonballin']]
+|Unlocked upon arriving at [[Last Light]]
+|[[File:Cannonballin'.ogg]]
+|-
+|[[Ocean Depths]]
+|Unlocked upon diving at the [[Red Reef]]
+|[[File:Ocean Depths.ogg]]
+|}
+
+==Trivia==
+* From [[14 January]] to [[21 January]] [[2026]], the quest was listed in the modern skill guide interface for Sailing under the "Quest XP" tab, with the text in grey ({{colour|#9f9f9f|The Red Reef}}). When the quest was clicked on, the usual interface opened but with the description:
+{{Cquote2|{{colour|#000080|This quest is coming soon...}}
+
+{{colour|#000080|When it releases, I can start it by talking to}} {{colour|#800000|Raley}} {{colour|#000080|at his home on the}} {{colour|#800000|Great Conch}}{{colour|#000080|.}}}}
+
+* One of the display cases in the Red Reef's company offices states that [[Spencer Brentwood]] was given a "small loan of one million gold" from his father to start the Brentwood Trading Company. This is a reference to a well-known quote by US President Donald Trump about receiving a "small loan of a million dollars" from his father.
+* The captain of one of the pirate ships fought during the quest is named "Captain Jack," which is likely a reference to [[Wikipedia:Jack Sparrow|Captain Jack Sparrow]] from the [[Wikipedia:Pirates of the Carribbean|Pirates of the Carribbean]] franchise.
+* When Black Eye Bethel switches to her dragon scimitar, she will shout {{overhead|I stole this one from a monkey!}}, which is a reference to how [[Monkey Madness I]] is required to wield the scimitar.
+** If the player is wielding their own dragon scimitar when Bethel is switching to hers, she will instead shout {{overhead|Nice scimitar! I've got one too!}}.
+* There is a [[Parrot (Last Light)|red parrot]] in a cage on the upper floor of the [[Last Light]] lighthouse which can be released, this is not required during the quest.
+* The red coral that Brentwood's company harvests is used by mages for "divination," dreams of the future. He also tells the player about his own dream, pertaining to: "The future of humanity, of course. I've long believed our salvation lies beneath the waves. Indeed, I myself feel far more alive below the sea than above it. I'd be very keen to show you." These themes (dreams of the future and salvation beneath the waves willingly shared) have a significant resemblance with the powers of [[Deity of the Silent Choir|an influential deity]], and especially what is known of {{RSL|Xau-Tak|a similar deity}} in ''RuneScape 3''.
+
+{{The Red Reef}}
+{{Sailing}}
+[[Category:Quests]]

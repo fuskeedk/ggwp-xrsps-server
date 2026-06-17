@@ -1,0 +1,605 @@
+{
+  "meta": {
+    "name": "OSRS-inspired quest dialogue starter pack",
+    "version": "0.1.0",
+    "language": "en",
+    "note": "Dialogues are original text for this project. Quest facts should be verified against OSRS Wiki before being treated as exact OSRS data."
+  },
+  "items": [
+    { "id": "coins", "name": "Coins", "stackable": true },
+    { "id": "egg", "name": "Egg", "stackable": false },
+    { "id": "pot_of_flour", "name": "Pot of flour", "stackable": false },
+    { "id": "bucket_of_milk", "name": "Bucket of milk", "stackable": false },
+    { "id": "empty_bucket", "name": "Bucket", "stackable": false },
+    { "id": "empty_pot", "name": "Pot", "stackable": false },
+    { "id": "shears", "name": "Shears", "stackable": false },
+    { "id": "wool", "name": "Wool", "stackable": true },
+    { "id": "ball_of_wool", "name": "Ball of wool", "stackable": true },
+    { "id": "clay", "name": "Clay", "stackable": true },
+    { "id": "copper_ore", "name": "Copper ore", "stackable": true },
+    { "id": "iron_ore", "name": "Iron ore", "stackable": true },
+    { "id": "ghostspeak_amulet", "name": "Ghostspeak amulet", "stackable": false },
+    { "id": "air_talisman", "name": "Air talisman", "stackable": false },
+    { "id": "research_package", "name": "Research package", "stackable": false }
+  ],
+  "npcs": [
+    {
+      "id": "cook_lumbridge",
+      "name": "Cook",
+      "role": "quest_start",
+      "location": "Lumbridge Castle kitchen",
+      "quests": ["cooks_assistant"]
+    },
+    {
+      "id": "fred_the_farmer",
+      "name": "Fred the Farmer",
+      "role": "quest_start",
+      "location": "Farm north-west of Lumbridge",
+      "quests": ["sheep_shearer"]
+    },
+    {
+      "id": "doric",
+      "name": "Doric",
+      "role": "quest_start",
+      "location": "Doric's hut north of Falador",
+      "quests": ["dorics_quest"]
+    },
+    {
+      "id": "father_aereck",
+      "name": "Father Aereck",
+      "role": "quest_start",
+      "location": "Lumbridge church",
+      "quests": ["the_restless_ghost"]
+    },
+    {
+      "id": "father_urhney",
+      "name": "Father Urhney",
+      "role": "quest_helper",
+      "location": "Lumbridge Swamp",
+      "quests": ["the_restless_ghost"]
+    },
+    {
+      "id": "duke_horacio",
+      "name": "Duke Horacio",
+      "role": "quest_start",
+      "location": "Lumbridge Castle",
+      "quests": ["rune_mysteries"]
+    },
+    {
+      "id": "wizard_sedridor",
+      "name": "Wizard Sedridor",
+      "role": "quest_helper",
+      "location": "Wizard's Tower",
+      "quests": ["rune_mysteries"]
+    }
+  ],
+  "quests": [
+    {
+      "id": "cooks_assistant",
+      "name": "Cook's Assistant",
+      "startNpcId": "cook_lumbridge",
+      "difficulty": "beginner",
+      "members": false,
+      "questPoints": 1,
+      "requirements": {
+        "skills": [],
+        "quests": [],
+        "items": []
+      },
+      "objectives": [
+        {
+          "stage": 10,
+          "description": "Talk to the cook in Lumbridge Castle."
+        },
+        {
+          "stage": 20,
+          "description": "Bring the cook an egg, a pot of flour and a bucket of milk.",
+          "requiredItems": [
+            { "itemId": "egg", "quantity": 1 },
+            { "itemId": "pot_of_flour", "quantity": 1 },
+            { "itemId": "bucket_of_milk", "quantity": 1 }
+          ]
+        }
+      ],
+      "starterItems": [
+        { "itemId": "empty_bucket", "quantity": 1, "fromNpcId": "cook_lumbridge" },
+        { "itemId": "empty_pot", "quantity": 1, "fromNpcId": "cook_lumbridge" }
+      ],
+      "rewards": {
+        "questPoints": 1,
+        "xp": [{ "skill": "cooking", "amount": 300 }],
+        "items": []
+      }
+    },
+    {
+      "id": "sheep_shearer",
+      "name": "Sheep Shearer",
+      "startNpcId": "fred_the_farmer",
+      "difficulty": "beginner",
+      "members": false,
+      "questPoints": 1,
+      "requirements": {
+        "skills": [],
+        "quests": [],
+        "items": []
+      },
+      "objectives": [
+        {
+          "stage": 10,
+          "description": "Talk to Fred the Farmer."
+        },
+        {
+          "stage": 20,
+          "description": "Bring Fred 20 balls of wool.",
+          "requiredItems": [{ "itemId": "ball_of_wool", "quantity": 20 }]
+        }
+      ],
+      "starterItems": [
+        { "itemId": "shears", "quantity": 1, "fromNpcId": "fred_the_farmer" }
+      ],
+      "rewards": {
+        "questPoints": 1,
+        "xp": [{ "skill": "crafting", "amount": 150 }],
+        "items": [{ "itemId": "coins", "quantity": 60 }]
+      }
+    },
+    {
+      "id": "dorics_quest",
+      "name": "Doric's Quest",
+      "startNpcId": "doric",
+      "difficulty": "beginner",
+      "members": false,
+      "questPoints": 1,
+      "requirements": {
+        "skills": [],
+        "quests": [],
+        "items": []
+      },
+      "objectives": [
+        {
+          "stage": 10,
+          "description": "Ask Doric about using his anvils."
+        },
+        {
+          "stage": 20,
+          "description": "Bring Doric clay, copper ore and iron ore.",
+          "requiredItems": [
+            { "itemId": "clay", "quantity": 6 },
+            { "itemId": "copper_ore", "quantity": 4 },
+            { "itemId": "iron_ore", "quantity": 2 }
+          ]
+        }
+      ],
+      "starterItems": [],
+      "rewards": {
+        "questPoints": 1,
+        "xp": [{ "skill": "mining", "amount": 1300 }],
+        "items": [{ "itemId": "coins", "quantity": 180 }]
+      }
+    },
+    {
+      "id": "the_restless_ghost",
+      "name": "The Restless Ghost",
+      "startNpcId": "father_aereck",
+      "difficulty": "beginner",
+      "members": false,
+      "questPoints": 1,
+      "requirements": {
+        "skills": [],
+        "quests": [],
+        "items": []
+      },
+      "objectives": [
+        {
+          "stage": 10,
+          "description": "Talk to Father Aereck in Lumbridge church."
+        },
+        {
+          "stage": 20,
+          "description": "Visit Father Urhney in Lumbridge Swamp.",
+          "requiredNpcId": "father_urhney"
+        },
+        {
+          "stage": 30,
+          "description": "Use the ghostspeak amulet to investigate the ghost.",
+          "requiredItems": [{ "itemId": "ghostspeak_amulet", "quantity": 1 }]
+        }
+      ],
+      "starterItems": [
+        { "itemId": "ghostspeak_amulet", "quantity": 1, "fromNpcId": "father_urhney" }
+      ],
+      "rewards": {
+        "questPoints": 1,
+        "xp": [{ "skill": "prayer", "amount": 1125 }],
+        "items": []
+      }
+    },
+    {
+      "id": "rune_mysteries",
+      "name": "Rune Mysteries",
+      "startNpcId": "duke_horacio",
+      "difficulty": "beginner",
+      "members": false,
+      "questPoints": 1,
+      "requirements": {
+        "skills": [],
+        "quests": [],
+        "items": []
+      },
+      "objectives": [
+        {
+          "stage": 10,
+          "description": "Talk to Duke Horacio in Lumbridge Castle."
+        },
+        {
+          "stage": 20,
+          "description": "Bring the research package to Wizard Sedridor.",
+          "requiredItems": [{ "itemId": "research_package", "quantity": 1 }],
+          "requiredNpcId": "wizard_sedridor"
+        }
+      ],
+      "starterItems": [
+        { "itemId": "research_package", "quantity": 1, "fromNpcId": "duke_horacio" }
+      ],
+      "rewards": {
+        "questPoints": 1,
+        "xp": [],
+        "items": [{ "itemId": "air_talisman", "quantity": 1 }]
+      }
+    }
+  ],
+  "dialogues": [
+    {
+      "npcId": "cook_lumbridge",
+      "questId": "cooks_assistant",
+      "nodes": [
+        {
+          "id": "not_started",
+          "when": { "questState": "not_started" },
+          "speaker": "Cook",
+          "text": "Good, you are here. I have a cake to finish, but I am missing the most important ingredients. Could you fetch them for me?",
+          "choices": [
+            {
+              "text": "Yes, what do you need?",
+              "response": "I need an egg, a pot of flour and a bucket of milk. Take this pot and bucket if you need something to carry them in.",
+              "actions": [
+                { "type": "startQuest", "questId": "cooks_assistant", "stage": 20 },
+                { "type": "giveItemIfMissing", "itemId": "empty_bucket", "quantity": 1 },
+                { "type": "giveItemIfMissing", "itemId": "empty_pot", "quantity": 1 }
+              ]
+            },
+            {
+              "text": "Not right now.",
+              "response": "Fair enough. But the cake will not wait forever."
+            }
+          ]
+        },
+        {
+          "id": "in_progress_missing",
+          "when": { "questState": "in_progress", "missingItems": true },
+          "speaker": "Cook",
+          "text": "Do you have the ingredients?",
+          "choices": [
+            {
+              "text": "Not yet.",
+              "response": "I still need an egg, a pot of flour and a bucket of milk."
+            },
+            {
+              "text": "Can I have another pot and bucket?",
+              "response": "Of course. Try not to bake them into the cake.",
+              "actions": [
+                { "type": "giveItemIfMissing", "itemId": "empty_bucket", "quantity": 1 },
+                { "type": "giveItemIfMissing", "itemId": "empty_pot", "quantity": 1 }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "turn_in",
+          "when": { "questState": "in_progress", "hasRequiredItems": true },
+          "speaker": "Cook",
+          "text": "Perfect. That is exactly what I needed.",
+          "choices": [
+            {
+              "text": "Here are the ingredients.",
+              "response": "You have saved dinner. And probably my job as well.",
+              "actions": [
+                { "type": "takeItemsForObjective", "questId": "cooks_assistant", "stage": 20 },
+                { "type": "completeQuest", "questId": "cooks_assistant" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "completed",
+          "when": { "questState": "completed" },
+          "speaker": "Cook",
+          "text": "Thanks again. The kitchen smells much less panicked now.",
+          "choices": [{ "text": "Happy to help." }]
+        }
+      ]
+    },
+    {
+      "npcId": "fred_the_farmer",
+      "questId": "sheep_shearer",
+      "nodes": [
+        {
+          "id": "not_started",
+          "when": { "questState": "not_started" },
+          "speaker": "Fred the Farmer",
+          "text": "I have sheep everywhere and not enough hands. Could you help me with the wool?",
+          "choices": [
+            {
+              "text": "Yes, I can help.",
+              "response": "Good. Shear the sheep and make 20 balls of wool. Here are some shears.",
+              "actions": [
+                { "type": "startQuest", "questId": "sheep_shearer", "stage": 20 },
+                { "type": "giveItemIfMissing", "itemId": "shears", "quantity": 1 }
+              ]
+            },
+            {
+              "text": "I am not really a sheep person.",
+              "response": "They all say that until they see the payment."
+            }
+          ]
+        },
+        {
+          "id": "in_progress_missing",
+          "when": { "questState": "in_progress", "missingItems": true },
+          "speaker": "Fred the Farmer",
+          "text": "Do you have the 20 balls of wool?",
+          "choices": [
+            {
+              "text": "Not yet.",
+              "response": "Then the sheep will have to put up with you a little longer."
+            },
+            {
+              "text": "I need shears.",
+              "response": "Take a pair. I have more of them than I can keep track of.",
+              "actions": [{ "type": "giveItemIfMissing", "itemId": "shears", "quantity": 1 }]
+            }
+          ]
+        },
+        {
+          "id": "turn_in",
+          "when": { "questState": "in_progress", "hasRequiredItems": true },
+          "speaker": "Fred the Farmer",
+          "text": "That looks like good wool. Hand it over.",
+          "choices": [
+            {
+              "text": "Here is the wool.",
+              "response": "Good work. My sheep look almost offended, but I am satisfied.",
+              "actions": [
+                { "type": "takeItemsForObjective", "questId": "sheep_shearer", "stage": 20 },
+                { "type": "completeQuest", "questId": "sheep_shearer" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "completed",
+          "when": { "questState": "completed" },
+          "speaker": "Fred the Farmer",
+          "text": "Thanks for the help. The sheep are still watching you.",
+          "choices": [{ "text": "I can live with that." }]
+        }
+      ]
+    },
+    {
+      "npcId": "doric",
+      "questId": "dorics_quest",
+      "nodes": [
+        {
+          "id": "not_started",
+          "when": { "questState": "not_started" },
+          "speaker": "Doric",
+          "text": "You want to use my anvils? I do not lend them to just anyone.",
+          "choices": [
+            {
+              "text": "What would it take?",
+              "response": "Bring me 6 clay, 4 copper ore and 2 iron ore. Then I will know you can handle yourself in a mine.",
+              "actions": [{ "type": "startQuest", "questId": "dorics_quest", "stage": 20 }]
+            },
+            {
+              "text": "Then I will ask someone else.",
+              "response": "Good luck. My anvils are still the best."
+            }
+          ]
+        },
+        {
+          "id": "in_progress_missing",
+          "when": { "questState": "in_progress", "missingItems": true },
+          "speaker": "Doric",
+          "text": "I still need 6 clay, 4 copper ore and 2 iron ore.",
+          "choices": [{ "text": "I will find them.", "response": "Good. A smith never waits long." }]
+        },
+        {
+          "id": "turn_in",
+          "when": { "questState": "in_progress", "hasRequiredItems": true },
+          "speaker": "Doric",
+          "text": "Those are proper materials. You have earned my trust.",
+          "choices": [
+            {
+              "text": "Here are the ores and clay.",
+              "response": "Then you may use my anvils. Treat them well.",
+              "actions": [
+                { "type": "takeItemsForObjective", "questId": "dorics_quest", "stage": 20 },
+                { "type": "completeQuest", "questId": "dorics_quest" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "completed",
+          "when": { "questState": "completed" },
+          "speaker": "Doric",
+          "text": "My anvils are open to you. Use them with respect.",
+          "choices": [{ "text": "Thanks, Doric." }]
+        }
+      ]
+    },
+    {
+      "npcId": "father_aereck",
+      "questId": "the_restless_ghost",
+      "nodes": [
+        {
+          "id": "not_started",
+          "when": { "questState": "not_started" },
+          "speaker": "Father Aereck",
+          "text": "The church has a problem. A very transparent problem.",
+          "choices": [
+            {
+              "text": "Do you mean a ghost?",
+              "response": "Exactly. Find Father Urhney in the swamp. He knows more about that sort of thing than I do.",
+              "actions": [{ "type": "startQuest", "questId": "the_restless_ghost", "stage": 20 }]
+            },
+            {
+              "text": "That does not sound like my problem.",
+              "response": "That is what I said too. And yet, here we are."
+            }
+          ]
+        },
+        {
+          "id": "in_progress",
+          "when": { "questState": "in_progress" },
+          "speaker": "Father Aereck",
+          "text": "Speak to Father Urhney. If anyone can help you understand a ghost, it is him.",
+          "choices": [{ "text": "I will find him." }]
+        },
+        {
+          "id": "completed",
+          "when": { "questState": "completed" },
+          "speaker": "Father Aereck",
+          "text": "The church is peaceful again. You have my thanks.",
+          "choices": [{ "text": "Glad to hear it." }]
+        }
+      ]
+    },
+    {
+      "npcId": "father_urhney",
+      "questId": "the_restless_ghost",
+      "nodes": [
+        {
+          "id": "quest_helper",
+          "when": { "questState": "in_progress", "stage": 20 },
+          "speaker": "Father Urhney",
+          "text": "Aereck sent you? Then he has finally admitted that he does not understand ghosts.",
+          "choices": [
+            {
+              "text": "I need to speak to a ghost.",
+              "response": "Then you will need this amulet. It helps you hear what the dead are trying to say.",
+              "actions": [
+                { "type": "giveItemIfMissing", "itemId": "ghostspeak_amulet", "quantity": 1 },
+                { "type": "setQuestStage", "questId": "the_restless_ghost", "stage": 30 }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "amulet_replacement",
+          "when": { "questState": "in_progress", "stageAtLeast": 30 },
+          "speaker": "Father Urhney",
+          "text": "Are you missing the amulet again?",
+          "choices": [
+            {
+              "text": "Yes.",
+              "response": "Take better care of it this time.",
+              "actions": [{ "type": "giveItemIfMissing", "itemId": "ghostspeak_amulet", "quantity": 1 }]
+            },
+            {
+              "text": "No, I just wanted to say hello.",
+              "response": "Then say hello a little more quietly."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "npcId": "duke_horacio",
+      "questId": "rune_mysteries",
+      "nodes": [
+        {
+          "id": "not_started",
+          "when": { "questState": "not_started" },
+          "speaker": "Duke Horacio",
+          "text": "I have received something strange from the mines. It seems magical, and I want an expert to examine it.",
+          "choices": [
+            {
+              "text": "I can deliver it.",
+              "response": "Take this research package to Wizard Sedridor in the Wizard's Tower.",
+              "actions": [
+                { "type": "startQuest", "questId": "rune_mysteries", "stage": 20 },
+                { "type": "giveItemIfMissing", "itemId": "research_package", "quantity": 1 }
+              ]
+            },
+            {
+              "text": "I prefer to stay away from magic.",
+              "response": "A sensible attitude. But not a very helpful one."
+            }
+          ]
+        },
+        {
+          "id": "replacement_package",
+          "when": { "questState": "in_progress", "stage": 20 },
+          "speaker": "Duke Horacio",
+          "text": "Wizard Sedridor is waiting for the package.",
+          "choices": [
+            {
+              "text": "I lost the package.",
+              "response": "Then you may have another. Try not to lose this one in a cow.",
+              "actions": [{ "type": "giveItemIfMissing", "itemId": "research_package", "quantity": 1 }]
+            },
+            {
+              "text": "I will leave now.",
+              "response": "Safe travels."
+            }
+          ]
+        },
+        {
+          "id": "completed",
+          "when": { "questState": "completed" },
+          "speaker": "Duke Horacio",
+          "text": "Sedridor has sent word. You have done Lumbridge a service.",
+          "choices": [{ "text": "It was an interesting task." }]
+        }
+      ]
+    },
+    {
+      "npcId": "wizard_sedridor",
+      "questId": "rune_mysteries",
+      "nodes": [
+        {
+          "id": "turn_in",
+          "when": { "questState": "in_progress", "stage": 20, "hasRequiredItems": true },
+          "speaker": "Wizard Sedridor",
+          "text": "Ah, the package from Lumbridge. Let me see.",
+          "choices": [
+            {
+              "text": "Here it is.",
+              "response": "Fascinating. This may change our understanding of runes. Take this talisman as thanks.",
+              "actions": [
+                { "type": "takeItem", "itemId": "research_package", "quantity": 1 },
+                { "type": "giveItem", "itemId": "air_talisman", "quantity": 1 },
+                { "type": "completeQuest", "questId": "rune_mysteries" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "missing_package",
+          "when": { "questState": "in_progress", "stage": 20, "missingItems": true },
+          "speaker": "Wizard Sedridor",
+          "text": "I cannot examine something you did not bring. Fetch the package from Duke Horacio.",
+          "choices": [{ "text": "I will come back with it." }]
+        },
+        {
+          "id": "completed",
+          "when": { "questState": "completed" },
+          "speaker": "Wizard Sedridor",
+          "text": "The mysteries of runes are not becoming any less mysterious, but you have helped us take one step forward.",
+          "choices": [{ "text": "Good luck with the research." }]
+        }
+      ]
+    }
+  ]
+}

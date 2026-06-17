@@ -1,0 +1,1726 @@
+{
+  "meta": {
+    "generatedAt": "2026-06-16T18:38:45.583135+00:00",
+    "language": "en",
+    "sources": [
+      "https://oldschool.runescape.wiki/w/Quests/List",
+      "https://oldschool.runescape.wiki/api.php"
+    ],
+    "method": "Quest list from Quests/List; start/enemy roles from Quest details template; helper/turn-in roles from walkthrough interaction text; story roles from quest categories and chathead images. This is an automatic draft and should be manually reviewed before being treated as final game script data.",
+    "qaGeneratedAt": "2026-06-16T18:40:30.260322+00:00",
+    "qaMethod": "Scores each quest-to-entity relation using structured quest detail evidence, walkthrough interaction evidence, chathead evidence, quest category membership, and whether the entity infobox quest field links back to the quest.",
+    "status": "manual_review_subset"
+  },
+  "counts": {
+    "normalQuests": 190,
+    "miniquests": 19,
+    "questLikeTotal": 209,
+    "normalQuestNpcLinks": 2335,
+    "miniquestNpcLinks": 117,
+    "questLikeNpcLinks": 2452,
+    "uniqueNormalQuestNpcs": 1467,
+    "uniqueNormalQuestMonsters": 400,
+    "uniqueNormalQuestCharacters": 1867,
+    "uniqueMiniquestNpcs": 75,
+    "uniqueMiniquestMonsters": 41,
+    "uniqueMiniquestCharacters": 116,
+    "uniqueQuestLikeNpcs": 1516,
+    "uniqueQuestLikeMonsters": 433,
+    "uniqueQuestLikeCharacters": 1949,
+    "uniqueNormalQuestInteractionCharacters": 857,
+    "uniqueMiniquestInteractionCharacters": 62,
+    "uniqueQuestLikeInteractionCharacters": 906,
+    "uniqueNormalQuestStoryOnlyCharacters": 1163,
+    "uniqueMiniquestStoryOnlyCharacters": 54,
+    "uniqueQuestLikeStoryOnlyCharacters": 1204,
+    "questsWithNoMappedCharacters": 0,
+    "miniquestsWithNoMappedCharacters": 0,
+    "roleLinks": {
+      "enemy": 355,
+      "helper": 663,
+      "start": 193,
+      "story": 2300,
+      "turn_in": 119
+    }
+  },
+  "quests": [
+    {
+      "title": "Learning the Ropes",
+      "name": "Learning the Ropes",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Learning_the_Ropes",
+      "npcMappings": [
+        {
+          "pageTitle": "Ironman tutor (Tutorial Island)",
+          "name": "Ironman tutor (Tutorial Island)",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "After completing the quest, talk to the Magic Instructor and he will tell you to cast the Lumbridge Home Teleport spell to teleport to Lumbridge. He will ask whether you want to talk to the Ironman tutor first before leaving, who would teac"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "The Corsair Curse",
+      "name": "The Corsair Curse",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/The_Corsair_Curse",
+      "npcMappings": [
+        {
+          "pageTitle": "Yusuf",
+          "name": "Yusuf",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "After killing Ithoi, leave his hut and return to Captain Tock, who will ask what is happening now. Explain to him that Ithoi was killed for poisoning his crew. He will thank you and say that he plans to let the crew members rest and get bet"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Goblin Diplomacy",
+      "name": "Goblin Diplomacy",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Goblin_Diplomacy",
+      "npcMappings": [
+        {
+          "pageTitle": "Aggie",
+          "name": "Aggie",
+          "entityType": "npc",
+          "roles": [
+            "turn_in"
+          ],
+          "evidence": [
+            {
+              "role": "turn_in",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "You need to make orange dye and blue dye from the components you gathered in the previous section. Take the supplies to Aggie in Draynor Village, and have her make one yellow, one red, and one blue dye. To make orange dye, use the yellow dy"
+            }
+          ],
+          "qa": {
+            "score": 0.84,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match",
+              "turn-in relation lacks independent quest association"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Heroes' Quest",
+      "name": "Heroes' Quest",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Heroes%27_Quest",
+      "npcMappings": [
+        {
+          "pageTitle": "Monk",
+          "name": "Monk",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "If you want, speak to a monk in the Entranan church about the firebird. He does not think they exist but redirects you to the head monk, who is more knowledgeable. The High Priest tells you that the bird lives somewhere on Entrana, and that"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Scorpion Catcher",
+      "name": "Scorpion Catcher",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Scorpion_Catcher",
+      "npcMappings": [
+        {
+          "pageTitle": "Abbot Langley",
+          "name": "Abbot Langley",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "The second scorpion is on the of the Edgeville Monastery. To enter the you'll need to speak with Abbot Langley to join their guild ( ). You do not have to do this again if you have already done it."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "The Grand Tree",
+      "name": "The Grand Tree",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/The_Grand_Tree",
+      "npcMappings": [
+        {
+          "pageTitle": "Charlie",
+          "name": "Charlie",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Speak to Charlie the prisoner again on the top floor of the Grand Tree, who says he heard Glough mention a chest key that he left at his girlfriend Anita's house. In the north-west corner of the stronghold, climb up the most north-western l"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Regicide",
+      "name": "Regicide",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Regicide",
+      "npcMappings": [
+        {
+          "pageTitle": "Elena",
+          "name": "Elena",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Go to East Ardougne and speak with Elena, who will tell you to see the Chemist in Rimmington. Talk to the Chemist about the quest, and he will give you permission to use the distiller. Now, use a barrel of coal tar on the large distiller ou"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Koftik",
+          "name": "Koftik",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Once you are at Iban's temple (where you encounter him during Underground Pass), go in and talk to Koftik if you require food. Simply climb down the Well of Voyage and go out of the cave."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Monkey Madness I",
+      "name": "Monkey Madness I",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Monkey_Madness_I",
+      "npcMappings": [
+        {
+          "pageTitle": "The Monkey's Uncle",
+          "name": "The Monkey's Uncle",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Head to the building west of the jail, making sure to sneak through the grass. You'll see a banana garden that has a Monkey Child in it, which is being patrolled by The Monkey's Aunt. The aunt follows a predetermined path, which loops aroun"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Zeke",
+          "name": "Zeke",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "*If you talk to Zeke, the scimitar seller of Al Kharid, and ask him for a Dragon scimitar, he will respond by saying, \"The banana-brained nitwits who make them would never sell any to me. Seriously, you'll be a monkey's uncle before you hol"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Troll Romance",
+      "name": "Troll Romance",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Troll_Romance",
+      "npcMappings": [
+        {
+          "pageTitle": "Godric",
+          "name": "Godric",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Dunstan is the Burthorpe smith, whose house is north-east of the Burthorpe Castle (8 on the map). Talk to him and ask for a sled. He says you are too old to be playing in the snow, but you explain that you need to reach a particular locatio"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Roving Elves",
+      "name": "Roving Elves",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Roving_Elves",
+      "npcMappings": [
+        {
+          "pageTitle": "Golrie",
+          "name": "Golrie",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "You will require Glarial's pebble to enter the tomb. If you have lost this, speak with Golrie in the Tree Gnome Village Dungeon to obtain another."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Between a Rock...",
+      "name": "Between a Rock...",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Between_a_Rock...",
+      "npcMappings": [
+        {
+          "pageTitle": "Dwarven Ferryman",
+          "name": "Dwarven Ferryman",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Once you've entered the cave, there will be a crack between two dwarf statues directly across from you, which you should enter. From there, talk to the Dwarven Ferryman (not the boatman) for a ride across the river, which will cost 2 coins "
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Forgettable Tale...",
+      "name": "Forgettable Tale...",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Forgettable_Tale...",
+      "npcMappings": [
+        {
+          "pageTitle": "Blandebir",
+          "name": "Blandebir",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "If ready to brew the ale, use two buckets of water on the vat, then add two barley malt, then the kelda hops. If you didn't bring ale yeast, take the pot from the nearby table and ask Blandebir to fill it up with ale yeast for 25gp. Use the"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Camel",
+          "name": "Camel",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "* - Use a Camulet (obtained from the Enakhra's Lament quest) and a bucket and ask a camel for its dung in Al Kharid, or use a bottle of hot sauce from the Pollnivneach kebab seller with camel feed west of The Asp & Snake Bar and use a bucke"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Fairytale I - Growing Pains",
+      "name": "Fairytale I - Growing Pains",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Fairytale_I_-_Growing_Pains",
+      "npcMappings": [
+        {
+          "pageTitle": "Elstan",
+          "name": "Elstan",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "*# Visit Elstan, one screen north of Frizzy"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Frizzy Skernip",
+          "name": "Frizzy Skernip",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "*# Visit Frizzy Skernip, near the fence between Port Sarim and Draynor Village"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Swan Song",
+      "name": "Swan Song",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Swan_Song",
+      "npcMappings": [
+        {
+          "pageTitle": "Master Crafter",
+          "name": "Master Crafter",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Ask the master craftsmen (the one with no skillcape) about how to store the seeds until you find the one that will tell you; you will need simply a pot with a pot lid. You may skip the rest of this paragraph if you have both items. Mine two"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Royal Trouble",
+      "name": "Royal Trouble",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Royal_Trouble",
+      "npcMappings": [
+        {
+          "pageTitle": "Dwarf",
+          "name": "Dwarf",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Go to the pub and speak with a dwarf called Donal."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Death to the Dorgeshuun",
+      "name": "Death to the Dorgeshuun",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Death_to_the_Dorgeshuun",
+      "npcMappings": [
+        {
+          "pageTitle": "Man",
+          "name": "Man",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "*Talk to any man or woman. Zanik must engage in conversation with the man or woman you speak to; if she doesn't, move on to another man or woman and try again."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Woman",
+          "name": "Woman",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "*Talk to any man or woman. Zanik must engage in conversation with the man or woman you speak to; if she doesn't, move on to another man or woman and try again."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "My Arm's Big Adventure",
+      "name": "My Arm's Big Adventure",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/My_Arm%27s_Big_Adventure",
+      "npcMappings": [
+        {
+          "pageTitle": "Ali the Kebab seller",
+          "name": "Ali the Kebab seller",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "If you do not have the camulet, go to Pollnivneach and talk to Ali/Isma'il the Kebab Seller. Ask him for his red hot sauce. Then, head to Ali/Sami the Camel Man's store and use the red hot sauce on the trough. A camel nearby should eat it a"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "The Fremennik Isles",
+      "name": "The Fremennik Isles",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/The_Fremennik_Isles",
+      "npcMappings": [
+        {
+          "pageTitle": "Eric (Jatizso)",
+          "name": "Eric (Jatizso)",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Note: You can speak to Eric, who has no money and will throw a cabbage at you."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "The Great Brain Robbery",
+      "name": "The Great Brain Robbery",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/The_Great_Brain_Robbery",
+      "npcMappings": [
+        {
+          "pageTitle": "Bill Teach",
+          "name": "Bill Teach",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "To start the quest, you must sail to Mos Le'Harmless and speak to Brother Tranquility. To get there, use a Mos le'harmless teleport, a Trouble Brewing mini-game teleport, or talk to Bill Teach on his boat in Port Phasmatys at the east end o"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Dream Mentor",
+      "name": "Dream Mentor",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Dream_Mentor",
+      "npcMappings": [
+        {
+          "pageTitle": "Brundt the Chieftain",
+          "name": "Brundt the Chieftain",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Using the lectern at the north of the arena is the only way to leave the following fight. Use of all teleports, including the ring of life and escape crystals, will not work. Players should prepare to use the right-click leave option during"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Rag and Bone Man II",
+      "name": "Rag and Bone Man II",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Rag_and_Bone_Man_II",
+      "npcMappings": [
+        {
+          "pageTitle": "Basilisk",
+          "name": "Basilisk",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": ":Travel method: Teleport to Rellekka (enchanted lyre, fairy ring code ), or to Camelot and walk north. Walk to the rare tree icon and kill some of the bunnies hopping about in the forest by the swaying tree. Then, head into the Fremennik Sl"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Experiment",
+          "name": "Experiment",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": ":Travel method: If you're using the ectophial, travel to Port Phasmatys and travel west. If not, start in reverse order from fairy ring or walking east from the Odd Old Man's location. Another way to reach Morytania is using Kharyrll Telepo"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Ghoul",
+          "name": "Ghoul",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": ":Travel method: If you're using the ectophial, travel to Port Phasmatys and travel west. If not, start in reverse order from fairy ring or walking east from the Odd Old Man's location. Another way to reach Morytania is using Kharyrll Telepo"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Ice giant",
+          "name": "Ice giant",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": ":Travel method: Minigame teleport to Port Sarim Rat Pits if you have completed Ratcatchers; otherwise, use an amulet of glory to travel to Draynor and walk to Port Sarim (or use the fairy ring (code: ), which places you right on Mudskipper "
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Seagull",
+          "name": "Seagull",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": ":Travel method: Minigame teleport to Port Sarim Rat Pits if you have completed Ratcatchers; otherwise, use an amulet of glory to travel to Draynor and walk to Port Sarim (or use the fairy ring (code: ), which places you right on Mudskipper "
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Vulture",
+          "name": "Vulture",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": ":Travel method: Use the fairy ring (code: ) to get to the Nardah hunting area. Alternatively, use a ring of dueling or Lumbridge teleport and travel south through the Kharidian Desert, either walking or using magic carpets to the necessary "
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Zogre",
+          "name": "Zogre",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": ":Travel method: Travel to Feldip Hills using fairy ring (code: ), a ring of dueling (Castle Wars minigame teleport) and walking south-east, or gnome glider. There, you will find a plethora of ogres and wolves. If walking from Castle Wars, k"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Land of the Goblins",
+      "name": "Land of the Goblins",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Land_of_the_Goblins",
+      "npcMappings": [
+        {
+          "pageTitle": "Morris",
+          "name": "Morris",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Make your way to Aggie in Draynor Village and ask if she can make dyes for you, and then about the black and white dyes. She says that she will need 5 coins and a whitefish, which are caught only at Hemenster with raw slimy eel as bait. Go "
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Zogre Flesh Eaters",
+      "name": "Zogre Flesh Eaters",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Zogre_Flesh_Eaters",
+      "npcMappings": [
+        {
+          "pageTitle": "Ogre guard",
+          "name": "Ogre guard",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Talk to the Ogre guard to the east. After mentioning Grish, he will remove the barricade to allow you inside the Zogre-infested area."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Monkey Madness II",
+      "name": "Monkey Madness II",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Monkey_Madness_II",
+      "npcMappings": [
+        {
+          "pageTitle": "Ogre",
+          "name": "Ogre",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Return to Garkor to tell him that the ogres and trolls have agreed not to help the monkeys."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Bone Voyage",
+      "name": "Bone Voyage",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Bone_Voyage",
+      "npcMappings": [
+        {
+          "pageTitle": "Sawmill operator",
+          "name": "Sawmill operator",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "The barge foreman will instruct the player to talk to the Sawmill operator at the Sawmill north-west from the barge."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Dragon Slayer II",
+      "name": "Dragon Slayer II",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Dragon_Slayer_II",
+      "npcMappings": [
+        {
+          "pageTitle": "Cabin Boy Herbert",
+          "name": "Cabin Boy Herbert",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Make your way to Port Piscarilius and speak to Veos (or Cabin Boy Herbert if A Kingdom Divided has been started), asking him about Camorra. One fast way to reach him is to use Kharedst's memoirs/Book of the Dead to teleport to Piscarilius a"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Ghost villager",
+          "name": "Ghost villager",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Make your way to Port Phasmatys, and make sure you have your ghostspeak amulet equipped. Speak to the ghost villagers, and they'll lead you to Sarah in the house with a range just west of the bank. Alternatively, you may go straight to Sara"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Reldo",
+          "name": "Reldo",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Bob tells you that Tristan held onto this dragon key piece. Go to the Varrock Palace Library, and speak to Reldo regarding this. He'll tell you of a book containing census records, and that he doesn't remember where it was, but knows that i"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Recipe for Disaster/Freeing Evil Dave",
+      "name": "Recipe for Disaster/Freeing Evil Dave",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster/Freeing_Evil_Dave",
+      "npcMappings": [
+        {
+          "pageTitle": "Doris",
+          "name": "Doris",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Inspect Evil Dave in the Lumbridge Castle dining room to start the quest. Then go to Edgeville. The house west of the bank is Evil Dave's mother's house. Talk to her and ask her either question. Then, climb down the trapdoor. You will see t"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Recipe for Disaster/Freeing Pirate Pete",
+      "name": "Recipe for Disaster/Freeing Pirate Pete",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster/Freeing_Pirate_Pete",
+      "npcMappings": [
+        {
+          "pageTitle": "Cook (Lumbridge)",
+          "name": "Cook (Lumbridge)",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Inspect Pirate Pete in the Lumbridge Castle dining room to start the quest. Talk to the Cook in the next room. He will tell you to get ground cod, breadcrumbs, ground giant crab meat, and ground kelp. He will tell you that Murphy in Port Kh"
+            },
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Return to and speak with the Cook. Use the ingredients on each other, and cook it to get a fishcake. Right-click and use it on (don't eat it!) Pirate Pete in the dining room for your reward."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Nung",
+          "name": "Nung",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Once you're underwater, find a tall plant, and pick it for the kelp. Get some extras in case you burn the fishcake. Then, look for a crab pen to the north. Talk to Nung. He will tell you to get him five mudskipper hides."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Recipe for Disaster/Freeing Sir Amik Varze",
+      "name": "Recipe for Disaster/Freeing Sir Amik Varze",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster/Freeing_Sir_Amik_Varze",
+      "npcMappings": [
+        {
+          "pageTitle": "Cook (Lumbridge)",
+          "name": "Cook (Lumbridge)",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Inspect Sir Amik in the Lumbridge Castle dining room to start the quest. Legends' Quest must be started in order to free him. Ask the Cook how to make a brulee supreme. He will tell you to mix milk and cream, add a pot of cornflour, a vanil"
+            },
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "#Note: If you do not talk to the Cook before this point in the sub-quest, you will not have the option to ask about the Evil Chicken through the Wise Old Man's Dialogue. Return to Lumbridge Castle and talk to him if you have not done so."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Wise Old Man",
+          "name": "Wise Old Man",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "#Talk to the Wise Old Man of Draynor Village, in the building north of the bank. Choose the option about wanting to ask him something, and ask to talk about strange beasts, and then, ask about the Evil Chicken."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Recipe for Disaster/Freeing King Awowogei",
+      "name": "Recipe for Disaster/Freeing King Awowogei",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster/Freeing_King_Awowogei",
+      "npcMappings": [
+        {
+          "pageTitle": "Zooknock",
+          "name": "Zooknock",
+          "entityType": "npc",
+          "roles": [
+            "turn_in"
+          ],
+          "evidence": [
+            {
+              "role": "turn_in",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "In order to make the three required greegrees, you must bring a monkey talisman and the respective bones to Zooknock (located at the end of the Ape Atoll Dungeon). Monkey talismans can be purchased from the rune salesman Tutab on Ape Atoll "
+            }
+          ],
+          "qa": {
+            "score": 0.84,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match",
+              "turn-in relation lacks independent quest association"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "A Taste of Hope",
+      "name": "A Taste of Hope",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/A_Taste_of_Hope",
+      "npcMappings": [
+        {
+          "pageTitle": "The Maiden of Sugadinti",
+          "name": "The Maiden of Sugadinti",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "After speaking to Flaygian Screwte, speak again to Safalaan who plans to have his team meet up with Veliaf Hurtz's in Burgh de Rott and escape Morytania in order to build up their numbers, as Morytania may not be safe anymore for them to hi"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        },
+        {
+          "pageTitle": "Vampyre Juvinate",
+          "name": "Vampyre Juvinate",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "*Mine 15 Daeyalt ores; once the mine cart is full, speak to a Vampyre Juvinate to leave. If you have no pickaxe, talk to a miner to obtain a bronze one."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Tale of the Righteous",
+      "name": "Tale of the Righteous",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Tale_of_the_Righteous",
+      "npcMappings": [
+        {
+          "pageTitle": "Mountain Guide",
+          "name": "Mountain Guide",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Return to Lord Shiro Shayzien (talk to the Mountain Guide to make the journey faster if you don't have a teleport or the Lovakengj Minecart Network) and inform him of your discovery. He will ask for proof, and asks you to visit Phileas for "
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Sins of the Father",
+      "name": "Sins of the Father",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Sins_of_the_Father",
+      "npcMappings": [
+        {
+          "pageTitle": "Vyrewatch",
+          "name": "Vyrewatch",
+          "entityType": "monster",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Prepare for combat and make your way to the laboratory. A quick way to reach it is to teleport to Ver Sinhaza using your Drakan's Medallion and speak to the Vyrewatch next to the bank and request to be sent to the mines; withdraw food and c"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "A Kingdom Divided",
+      "name": "A Kingdom Divided",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/A_Kingdom_Divided",
+      "npcMappings": [
+        {
+          "pageTitle": "Archeio",
+          "name": "Archeio",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Talk to the commander, and she will discuss the things Hughes said on the docks. She will give some backstory regarding the old king, and his daughter called Rose. Fullore will ask you to investigate the council's conspiracy against the roy"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Desert Treasure II - The Fallen Empire",
+      "name": "Desert Treasure II - The Fallen Empire",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Desert_Treasure_II_-_The_Fallen_Empire",
+      "npcMappings": [
+        {
+          "pageTitle": "Ramarno",
+          "name": "Ramarno",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Make your way to the Ruins of Camdozaal. Once inside, speak to Ramarno at the Sacred Forge to the north (if you have not previously talked to him, he will instead be at the entrance), talk to him and then talk to him at the forge. Ask him i"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Children of the Sun",
+      "name": "Children of the Sun",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Children_of_the_Sun",
+      "npcMappings": [
+        {
+          "pageTitle": "Regulus Cento",
+          "name": "Regulus Cento",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "After the interrogation, Prince Itzla will thank you for your role in stopping the assassination attempt by giving you special permission to visit Varlamore and asks you to speak with Regulus Cento outside the Eastern gate of Varrock when y"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "The Red Reef",
+      "name": "The Red Reef",
+      "type": "quest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/The_Red_Reef",
+      "npcMappings": [
+        {
+          "pageTitle": "Elder Katt",
+          "name": "Elder Katt",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Speak to any tortugan in the Summer Shore marketplace, and they'll direct you to the Sacred Grove to the north-east. Speak to Elder Katt, who will permit you temporary access to the Grove. Upon entering the Grove, speak to Floopa to the nor"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Barbarian Training",
+      "name": "Barbarian Training",
+      "type": "miniquest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Barbarian_Training",
+      "npcMappings": [
+        {
+          "pageTitle": "Fishing spot (cage, harpoon)",
+          "name": "Fishing spot (cage, harpoon)",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Speak to Otto and ask \"Please teach me of your cunning with harpoons.\" He will tell you that instead of using a harpoon, you will use your arm as bait. Find a fishing spot where a harpoon is required; Catherby is a good location with no req"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Bear Your Soul",
+      "name": "Bear Your Soul",
+      "type": "miniquest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Bear_Your_Soul",
+      "npcMappings": [
+        {
+          "pageTitle": "Biblia",
+          "name": "Biblia",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Once in the library, search for a book called The Journey of Souls (called \"Soul journey\" in the inventory). It is highly recommended to use a third-party client to narrow down the search for the book, as only certain bookshelves will ever "
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Daddy's Home",
+      "name": "Daddy's Home",
+      "type": "miniquest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Daddy%27s_Home",
+      "npcMappings": [
+        {
+          "pageTitle": "Sawmill operator",
+          "name": "Sawmill operator",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Go to the Varrock sawmill and talk to the sawmill operator to receive 3 waxwood planks. Since he knows of Old Man Yarlo, he'll provide them free of charge."
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Hopespear's Will",
+      "name": "Hopespear's Will",
+      "type": "miniquest",
+      "sourceUrl": "https://oldschool.runescape.wiki/w/Hopespear%27s_Will",
+      "npcMappings": [
+        {
+          "pageTitle": "Goblin guard (Land of the Goblins)",
+          "name": "Goblin guard (Land of the Goblins)",
+          "entityType": "npc",
+          "roles": [
+            "helper"
+          ],
+          "evidence": [
+            {
+              "role": "helper",
+              "source": "walkthrough.interaction",
+              "confidence": "medium",
+              "text": "Head to the Goblin Cave entrance located just east of the Fishing Guild's entrance. Enter the cave and walk north, then west until you find two goblin guards guarding the entrance to the temple. Drink a dose of goblin potion and enter the t"
+            }
+          ],
+          "qa": {
+            "score": 0.86,
+            "reviewNeeded": true,
+            "reasons": [
+              "walkthrough interaction match"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "qaSummary": {
+    "totalRelations": 2452,
+    "scoreAtLeast0_98": 507,
+    "scoreAtLeast0_95": 1744,
+    "scoreAtLeast0_90": 2395,
+    "scoreBelow0_90": 57,
+    "reviewNeeded": 57,
+    "storyOnlyReviewNeeded": 0,
+    "entityTypeMismatches": 0,
+    "reviewNeededPercent": 2.32,
+    "scoreAtLeast0_90Percent": 97.68,
+    "roleReviewCounts": {
+      "helper": 55,
+      "turn_in": 2
+    },
+    "sourceReviewCounts": {
+      "walkthrough.interaction": 59
+    }
+  },
+  "reviewSummary": {
+    "reviewRelations": 57,
+    "reviewUniqueEntities": 55,
+    "questsWithReviewRelations": 41,
+    "maximumScore": 0.86
+  }
+}

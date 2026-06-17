@@ -1,0 +1,151 @@
+{{External|rs}}
+{{Has quick guide}}
+{{Infobox Quest
+|name = The Lost Tribe
+|number = 81
+|image = [[File:The Lost Tribe.png|300px]]
+|release = [[31 May]] [[2005]]
+|update = New Appointment in Lumbridge
+|members = Yes
+|series = [[Quests/Series#Dorgeshuun|Dorgeshuun]], #1
+|developer = John A
+}}
+'''The Lost Tribe''' is the first quest in the [[Dorgeshuun quest series]]. [[Sigmund]], the advisor to the [[Duke Horacio|Duke]] of [[Lumbridge]] tasks you to investigate sightings of goblins emerging from a newly formed crack in the castle's basement. The goblins turn out to be the pacifist [[Dorgeshuun]] tribe which has been lost from history for many years.
+
+==Details==
+{{Quest details
+|start = Talk to [[Sigmund]] in [[Lumbridge Castle]].
+|startmap = 3210,3222,plane:1
+|difficulty = Intermediate
+|description = Sigmund is the advisor to the [[Duke Horacio|Duke]] of Lumbridge, but the [[Duke Horacio|Duke]] does not always take his advice.
+
+When part of the cellar wall collapses the [[Duke Horacio|Duke]] insists the damage was caused by an earthquake, but Sigmund is worried about a monster attack.
+
+If you investigate this mystery it will lead you through treacherous caves to uncover something lost by the Gods for thousands of years.
+|length = Short
+|requirements = * Completion of the following quests:
+** [[Goblin Diplomacy]]
+** [[Rune Mysteries]]
+* {{SCP|Agility|13|link=yes}} {{Boostable|yes}} {{Questreqstart|}}
+* {{SCP|Thieving|13|link=yes}} {{Boostable|yes}} {{Questreqstart|}}
+* {{SCP|Mining|17|link=yes}} {{Boostable|yes}} {{Questreqstart|}}
+|items = * [[Pickaxe]]
+* [[Light source]] ('''Note:''' [[Candle]]s, [[torch]]es, and [[oil lamp]]s can cause [[swamp gas]] explosions if going off-route, and need a tinderbox to stay lit)
+|recommended = * Fast travel to [[Varrock]], [[Falador]], [[Lumbridge]], and [[Mind Altar Teleport]] ([[teleport spells]] or [[teleport tablet|tablets]])
+* [[Lockpick]] for the [[H.A.M. Hideout]] if Thieving is low.
+* Stamina potion if below 70 Agility
+|leagueRegion = <poem>
+Unlocking {{LeagueRegion|Fremennik}} {{okay}} will auto-complete the quest
+</poem>
+}}
+
+==Walkthrough==
+===Crashing in the cellar===
+{{Needed|Any pickaxe, a light source|skills={{SCP|Mining|17}} {{Boostable|yes}} to mine rubble, {{SCP|Agility|13}} {{Boostable|yes}} to squeeze through a gap}}
+Talk to [[Sigmund]] on the {{FloorNumber|uk=1}} of [[Lumbridge Castle]], standing near [[Duke Horacio]]. There was some damage to the castle cellar discovered recently, and he wants the player to investigate.
+
+Talk to the following Lumbridge residents until one of them mentions that they saw a goblin with huge eyes in the castle basement:
+
+#The [[Cook (Lumbridge)|cook]] in the castle kitchen
+#[[Hans]] strolling the castle perimeter
+#[[Father Aereck]] in the [[Lumbridge chapel|chapel]]
+#[[Bob]] in his [[Bob's Brilliant Axes.|axe shop]]
+
+[[File:The Lost Tribe - the goblin brooch.png|thumb|220x220px|Finding the [[brooch]].]]
+
+Report your findings to [[Duke Horacio]], who will be sceptical, despite [[Sigmund]]s fear of a goblin incursion. He will give you permission to investigate the cellar, however. Once permission is given, head to the castle kitchen and enter the trapdoor to reach the cellar.
+
+Use your pickaxe on the rubble on the eastern side of the cellar ({{SCP|Mining|17}}), then with  your [[Light sources|light source]] lit, squeeze through ({{SCP|Agility|13}}). Grab the nearby brooch and then return to the cellar; otherwise you'll fall into a pit.
+
+Show the [[Duke Horacio|Duke]] the brooch. Sigmund will remark that it must be the work of horrible, thieving goblins, but the Duke will refuse to act unless proof can be found. He will ask you to talk to [[Reldo]], a librarian who may be able to identify the symbol on the brooch.
+
+===Goblin history===
+[[File:The Lost Tribe - goblin symbol book location.png|thumb|220x220px|The bookshelf where the book is located]]
+
+[[Reldo]] can be found in the [[Varrock Palace Library]], in the northern wing of the palace. After showing him the brooch, he'll suggest you look for a book called [[Goblin symbol book|A History of the Goblin Race]]. On the western wall, search the northernmost [[Bookcase (The Lost Tribe)|bookcase]] to obtain it. '''Read it''' to learn that the symbol translates to [[Dorgeshuun]], the name of an ancient goblin tribe.
+
+Head to [[Goblin Village]] (using a [[Falador Teleport]] or [[Mind Altar Teleport]] via Arceuus spellbook) and talk to the Generals about the Dorgeshuun. Though they disagree on the precise details, they will tell the player a story of how the lost tribe was punished by the Big High War-God for refusing to fight. Eventually, they will teach you the goblin salute and the goblin bow [[emotes]] with which to greet the Dorgeshuun tribe. {{Chat option|1Have you ever heard of the Dorgeshuun?|3It doesn't really matter|2Well either way they refused to fight|3Well I found a brooch underground...|3Well why not show me both greetings?}}
+
+:'''Note:''' Check your emote page to ensure the emotes have been unlocked before continuing.
+
+===The Goblin Maze===
+{{Needed|A light source|skills={{SCP|Agility|13}} {{Boostable|yes}} to squeeze through a gap}}
+[[File:Dorgeshuun_Tunnels.png|center|frame|A map of the tunnels.]]
+[[File:The Lost Tribe - tunnel symbol.png|thumb|220x220px|One of the symbols on the rock.]]
+
+With your light source, return to the cellar tunnel to search for the Dorgeshuun; you will need to follow a specific path to avoid obstacles. '''See the map for the correct path.''' 
+
+:{{Color|red|Warning:}} Taking the wrong path may result in the player either taking damage or falling into the Swamp Caves, which is full of explosive [[swamp gas]]. This will ignite [[Light sources#Types of light source|open flame]] light sources, so lower level players using these may consider taking an emergency teleport with them. You may also take a [[tinderbox]] as exposed flames will be put out. You can find your way back through the hole you created earlier by heading north. Note that these light sources are safe when taking the correct path.
+
+When you reach the end, you'll find the [[Dorgeshuun]] tribe. Talk to [[Mistag]], who will begin to panic about a surface-dweller discovering their mines.
+
+Perform the [[Goblin Bow]] emote in front of him and he will declare that you must be a friend, knowing their ancient greeting. He will explain that they accidentally dug into the cellar, and ask you to help them make peace with the above-people.
+
+Talk to him once more to ask him to show the player the way out, and he will return you to [[Lumbridge]]. Return to the Duke.
+
+===Missing silverware===
+{{Needed|skills= {{SCP|Thieving|13}} {{Boostable|yes}} to pickpocket Sigmund}}
+[[File:The Lost Tribe - silverware location.png|thumb|200px|left|The [[silverware]]!]]
+{{Map|mtype=square|r=3|3165,3252|align=right|width=200|height=200|caption=Trapdoor location}}
+
+Speak with the [[Duke Horacio|Duke]] and tell him that you've made contact with the goblins. Though the player will note that they were friendly, some priceless [[silverware]] has apparently gone missing from the cellar, leading the Duke to consider war unless it is returned.
+
+[[Pickpocket]] [[Sigmund]] ({{SCP|Thieving|13}}) for a key, then unlock his [[Chest (The Lost Tribe)|chest]] in the [[spinning wheel]] room to find some [[H.A.M. robes]].
+
+:'''Tip:''' Keep the robes, these are required for the sequel quest [[Death to the Dorgeshuun]].
+
+Now that the player has discovered that Sigmund is a member of [[Humans Against Monsters]], you will need to visit the [[H.A.M. Hideout]], accessible through a trapdoor north-west of the [[Lumbridge Castle]]. Pick the lock and enter (a lockpick is not required); this may take a number of tries.
+
+Search the [[crate (H.A.M. Hideout)|crate]] near the entrance to retrieve the stolen silverware.
+
+Give it back to the [[Duke Horacio|Duke]], who will fire Sigmund.
+{{Clear}}
+
+===Peace===
+{{Needed|A light source|skills={{SCP|Agility|13}} {{Boostable|yes}} to squeeze through a gap}}
+[[File:The Lost Tribe - the peace summit.png|thumb|220x220px|The meeting between Duke Horacio and Ur-tag.]]
+The [[Duke Horacio|Duke]] will give you a signed peace treaty and ask the player to set up a meeting with the leader of the [[Dorgeshuun]] to sign it as well. Return to the tunnel, where you will find the goblin [[Kazgar]] by the entrance. Talk to him to automatically travel through to the mines.
+
+Talk to [[Mistag]], who will summon the Dorgeshuun leader Ur-tag to sign the treaty. The signing will commence with a cutscene in the Lumbridge dining room, with you and Mistag as witnesses. During the cutscene you will see [[Sigmund]] outside, saying that the goblins will soon be destroyed.
+
+'''Congratulations, quest complete!'''
+
+{{Listen
+|title=[[Dorgeshuun Treaty]]
+|align=right
+|desc=The music track that only plays during the cutscene.
+|filename=Dorgeshuun Treaty.ogg
+}}
+
+==Rewards==
+{{Quest rewards
+|name = The Lost Tribe
+|image = [[File:The Lost Tribe reward scroll.png|centre]]
+|qp = 1
+|rewards = *{{SCP|Mining|3,000}} [[Mining]] [[experience]]
+*The ability to use the [[Goblin Bow]] and [[Goblin Salute]] [[emotes]]
+*Access to the [[Dorgesh-Kaan mine]]
+*A [[ring of life]]
+*Access to [[Nardok's Bone Weapons|Nardok's Bone Weapon's store]] where players can purchase the [[Dorgeshuun crossbow]], [[bone bolts]] and other [[bone weapons]].
+*A [[mining helmet]] from giving the [[brooch]] back to [[Mistag]].
+}}
+
+==Required for completing==
+Completion of The Lost Tribe is required for the following:
+*[[Death to the Dorgeshuun]]
+*[[Wanted!]]
+
+==Transcript==
+{{Hastranscript|quest}}
+
+==Trivia==
+* If the player has completed the quest [[Dragon Slayer I]] or [[Rune Mysteries]], Sigmund will convince [[Duke Horacio]] to listen to them by telling him that the player is the adventurer who slew [[Elvarg]] or that they were the one who delivered the [[Air talisman]] to Sedridor.
+*[[Father Aereck]] will also remark about [[Restless Ghost]] and the Cook about [[Recipe for Disaster]].
+*The peace treaty cutscene at the end of this quest was the first ever [[instance]] in ''RuneScape''.<ref>{{PlainCiteTwitter|author=Mod Ash|url=https://x.com/JagexAsh/status/1643964879307526146|date=6 April 2023|quote=It was the cutscene at the end of Lost Tribe where the Duke meets the cave goblins.}}</ref>
+
+==References==
+{{Reflist}}
+
+{{The Lost Tribe}}
+{{DEFAULTSORT|Lost Tribe, The}}
+[[Category:Dorgeshuun]]

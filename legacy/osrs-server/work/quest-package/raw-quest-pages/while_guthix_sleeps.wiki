@@ -1,0 +1,694 @@
+{{External|rs}}
+{{Has quick guide}}
+{{Infobox Quest
+|name = While Guthix Sleeps
+|number = 165
+|image = [[File:While Guthix Sleeps.png]]
+|release = [[10 July]] [[2024]]
+|update = While Guthix Sleeps
+|aka = WGS
+|members = Yes
+|series = [[Quests/Series#Mahjarrat|Mahjarrat]], #15
+|developer = [[Mod Ed]]
+}}
+[[File:While Guthix Sleeps logo.png|left|200px]]
+'''While Guthix Sleeps''' is a [[Grandmaster|grandmaster]] [[quest]] that was [[Backporting|backported]] from its original release in 2008, and was originally made as a sequel to [[Temple of Ikov]]. Changes were made upon its release to ''Old School RuneScape'' to maintain the integrity of modern quests and account for continuity deviations from the original [[Mahjarrat]] storyline.
+
+==Details==
+{{Quest details
+|start = Speak to [[Ivy Sophista]] in [[Taverley]].
+|startmap = 2907,3449
+|difficulty = Grandmaster
+|description = This Grandmaster quest sees you continue the Mahjarrat storyline, hunting down one of the most powerful artefacts in existence while ensuring it doesn't fall into the wrong hands.
+
+This artefact is known by many names – most recently, the Stone of Jas. It has shaped the course of Gielinor’s history, from the creation of the first Runes to the fall of Zaros. It was last seen at the devastating end of the God Wars, when Zamorak, in a fit of rage, used it to reduce the land of Forinthry to the Wilderness we know today.
+
+Angered by Zamorak’s actions, Guthix rose from his age-long slumber and banished the gods. He hid the Stone of Jas far underground, where it could never disturb the balance again...
+
+But while Guthix sleeps, nefarious forces have been gathering: the Mahjarrat. Shaped by war and deadly ritual, their plans for the Stone can only lead to catastrophe.
+
+Facing off against the Mahjarrat is nothing new for dedicated adventurers – at every turn, they seem to grow in power and wage war against the people of Gielinor. In their last attempt, we saw them set out to tear Varrock apart with an undead army in Defender of Varrock. What are they plotting now?
+|length = Very Long
+|requirements = * {{SCP|Quest|180|link=yes}} {{Questreqstart|}}
+* {{SCP|Thieving|72|link=yes}} {{Boostable|no}} {{Questreqstart|yes}}
+* {{SCP|Magic|67|link=yes}} {{Boostable|no}} {{Questreqstart|}}
+* {{SCP|Agility|66|link=yes}} {{Boostable|no}} {{Questreqstart|yes}}
+* {{SCP|Farming|65|link=yes}} {{Boostable|no}} {{Questreqstart|yes}}
+* {{SCP|Herblore|65|link=yes}} {{Boostable|no}} {{Questreqstart|}}
+* {{SCP|Hunter|62|link=yes}} {{Boostable|no}} {{Questreqstart|yes}}
+* {{SCP|Firemaking|49|link=yes}} (To light the [[Sapphire Lantern]])
+* Ability to enter the [[Warriors' Guild]] (the sum of your [[Attack]] and [[Strength]] must be at or above 130; OR {{SCP|Attack|99|link=yes}}, OR {{SCP|Strength|99|link=yes}}) {{Boostable|no}} {{Questreqstart|}}
+*Completion of the following quests:
+**[[Defender of Varrock]]
+***[[Shield of Arrav]]
+***[[Temple of Ikov]]
+***[[Below Ice Mountain]]
+***[[Family Crest]]
+***[[What Lies Below]]
+***[[Romeo & Juliet]]
+***[[Demon Slayer]]
+***[[Garden of Tranquillity]]
+****[[Creature of Fenkenstrain]]
+*****[[Priest in Peril]]
+*****[[The Restless Ghost]]
+**[[The Path of Glouphrie]]
+*** [[The Eyes of Glouphrie]]
+**** [[The Grand Tree]]
+*** [[Waterfall Quest]]
+*** [[Tree Gnome Village]]
+**[[Fight Arena]]
+**[[Dream Mentor]]
+***[[Eadgar's Ruse]]
+****[[Druidic Ritual]]
+****[[Troll Stronghold]]
+*****[[Death Plateau]]
+***[[Lunar Diplomacy]]
+****[[The Fremennik Trials]]
+****[[Lost City]]
+****[[Rune Mysteries]]
+****[[Shilo Village]]
+*****[[Jungle Potion]]
+**[[The Hand in the Sand]]
+**[[Wanted!]]
+***[[Recruitment Drive]]
+****[[Black Knights' Fortress]]
+****[[Druidic Ritual]]
+***[[The Lost Tribe]]
+****[[Goblin Diplomacy]]
+**[[Temple of the Eye]]
+***[[Enter the Abyss]]
+****[[Rune Mysteries]]
+**[[Tears of Guthix]]
+**[[Nature Spirit]]
+***[[Priest in Peril]]
+***[[The Restless Ghost]]
+**[[A Tail of Two Cats]]
+***[[Icthlarin's Little Helper]]
+****[[Gertrude's Cat]]
+|items = * [[Ring of charos(a)]] or 500 coins
+* [[Knife]]
+* [[Seed dibber]] (only if Barbarian Farming Training has not been completed)
+* [[Lantern lens]]
+* [[Unpowered orb]]
+* [[Bronze med helm]]
+* [[Iron chainbody]]
+* [[Sapphire lantern]]
+* Runes to cast the [[NPC Contact]] spell four times (8 [[air rune]]s, 4 [[astral rune]], 4 [[cosmic rune]])
+* Runes for any charge orb spell (30 runes of a chosen element and 3 [[cosmic rune]]s)
+* Equipment for two different combat styles
+* Runes for the following spells: multiple casts of all four elemental spells, [[Snare]]/[[Entangle]], [[Weaken]]/[[Enfeeble]], [[Telekinetic Grab]], and [[Low Level Alchemy|Low]]/[[High Level Alchemy]]; ([[air rune|Air]], [[water rune|Water]], [[earth rune|Earth]], [[fire rune|Fire]], [[body rune|Body]]/[[soul rune|Soul]], [[nature rune|Nature]], [[law rune|Law]], and the highest of [[mind rune|Mind]]/[[chaos rune|Chaos]]/[[death rune|Death]]/[[blood rune|Blood]]/[[wrath rune|Wrath]] that you can use to cast all four elemental spells)
+'''Obtainable during quest:'''
+* [[Mort myre fungus]]
+* 1 [[log]] of any type except redwood (you can obtain one using a bronze axe next to the [[Hunting Expert]], but you must not already have an axe in your inventory (a [[Zombie axe]] counts, even though it can not be used to cut down trees)
+* [[Pink dye]] (or 20 coins)
+* [[Snapdragon seed]]
+* [[Papyrus]] and [[charcoal]]
+* [[Restore potion]]
+* One of each of the following runes: [[air rune|air]], [[water rune|water]], [[earth rune|earth]], [[fire rune|fire]], [[mind rune|mind]], [[law rune|law]], [[death rune|death]]
+|recommended = *{{SCP|Combat|95|link=yes}}
+* [[Taverley teleport]]
+* Access to [[fairy rings]]
+* [[Feldip hills teleport]]
+* [[Ardougne Cloak 1]] or greater
+* Multiple [[Falador Teleport]]s, or a [[Ring of returning]] with your respawn set in [[Falador]]
+* [[Antipoison]] or items that can cure [[poison]]
+|kills = * 2 [[Assassin (While Guthix Sleeps)|Assassins]] ''(level 167)''
+* 2 [[Mercenary axeman|Mercenary axemen]] ''(level 131)''
+* [[Mercenary mage]] ''(level 112)''
+* 3 [[Elite Black Knight]]s ''(level 138)''
+* [[Surok Magis]] ''(level 265)''
+* [[Balance Elemental]] ''(level 524)''
+* 2 [[Tormented Demon]]s ''(level 450)''
+|leagueRegion = <poem>
+Not completable, as it requires access to Misthalin.
+</poem>
+}}
+
+==The Crux Eqal==
+{{Needed|recommended=[[Antipoison]] and combat equipment to defeat two level 167 [[Assassin_(While_Guthix_Sleeps)|Assassins]].}}
+[[File:Thaerisk_chathead.png|left]]
+The player may receive an [[Armadyl communiqué]] from a [[Guardian of Armadyl (messenger)|Guardian of Armadyl]] during gameplay, but is not necessary to start the quest. Players may choose to wait and receive it if they wish to acquire the item.
+
+Speak to [[Ivy Sophista]] at [[Taverley]] to begin the quest. She is found in the same building that houses the [[crystal chest]].  She will tell you about the danger that [[Lucien]] poses, and thus refers you to [[Thaerisk]], as what he is going to say requires the utmost secrecy. Head up the ladder and talk to Thaerisk, who will continue to talk about [[Lucien]], the evil [[Mahjarrat]] has become even more powerful since acquiring the [[Staff of Armadyl]].
+[[File:While Guthix_Sleeps - fighting_assassins.png|thumb|280px|Fending off assassins with Thaerisk.]]
+As Thaerisk speaks, the two of you will be attacked by [[Assassin (While Guthix Sleeps)|assassins]] disguised as druids; one will focus on Thaerisk, and the other will attack you. The assassins attack with ranged, and every so often, will yell '''{{overhead|Now!}}''', launching a glowing arrow at the player. Shortly after this arrow lands, the other assassin will say '''{{overhead|Nothing personal, adventurer!}}''' and attack once with a [[Dragon dagger#Special attack|dragon dagger special attack]], which can hit at least 53 damage if not protected against. Swap to [[Protect from Melee]] after the arrow lands, and then focus back on the assassin. You do not have to worry about Thaerisk; he cannot die in this encounter, and his [[Earth Blast]] spells can easily fend off the assassin focused on him.
+
+Speak with Thaerisk again to learn that many operatives of the [[Crux Eqal]]—followers of [[Guthix]] who play an active part in combating threats to Gielinor— have allied with the [[Guardians of Armadyl]] in response to attacks from Lucien's agents. Thaerisk will reveal that they have reached out to the [[Temple Knights]], believing it necessary to unite followers of different gods to oppose Lucien.
+
+He will suggest that players look for a researcher named [[Movario]], who he suspects stole the Staff of Armadyl. Their best lead so far is that he hired a member of the Khazard Army named [[Darve]] to act as a bodyguard, and that the [[Fight Arena (location)|Fight Arena]] is a good place to start looking.
+
+==Monitoring Movario==
+===Bravo, Broav!===
+{{Needed|500 [[coins]] or [[ring of Charos(a)]], [[log]], [[knife]]|recommended=[[Ardougne Cloak 1]] or greater, [[Feldip hills teleport]] or Fairy ring access, 1 inventory space for a free [[Mort Myre Fungus]]}}
+[[File:WhileGuthixSleepsLaundererLocation.png|left|thumb|width=150x150|The location of the launderer in the [[Fight Arena (location)|Fight Arena]]]]
+Head to the [[Fight Arena (location)|Fight Arena,]] and speak to the [[Khazard Launderer]] two buildings north of the [[Fight Arena Bar]]. This is just south-west of the [[Ardougne Monastery]] teleport (accessed with the [[Ardougne cloak 1]] or greater). Speak to the launderer regarding Movario. He will be skeptical to give information, so either charm him with the [[ring of Charos(a)]], or bribe him with 500 coins. He will tell you that he doesn't know where Movario lives, but will mention that he does have a [[dirty shirt]] that is too damaged to be washed, and will give the shirt to you. He will also mention that you should speak to the [[hunting expert]] at [[Feldip Hills]] if you want to catch down a [[broav]] of your own to track Movario to his base.
+[[File:While Guthix Sleeps - trapping a broav.png|thumb|227x227px|A wild broav appeared!]]
+Make your way to the [[Feldip Hunter area]] ([[Feldip hills teleport]] is the quickest method, or [[fairy ring]] code {{fairycode|AKS}}) and seek out the [[hunting expert]] in a wooden building, south-west of the fairy ring. ''Note that the other [[Hunting expert (Red chinchompa hunting ground)|hunting expert]] outside the [[red chinchompa hunting ground]] entrance is '''not''' the correct expert; the Hunter Tutor icon found on the [[minimap]] marks the correct tutor's location.''
+
+Ask her about catching broavs, and she will offer to train one for you if you bring her one. She will provide you with a [[mort myre fungus]] as bait; bring this to the trap west of her location, and set up a [[pitfall trap]] (requiring a knife and logs—logs can be acquired from nearby jungle trees). After setting up the trap, use the fungus on it to bait it, and wait for a [[wild broav]] to appear and fall inside. Be careful not to click too quickly on the trap after the broav falls in as it's possible to overwrite the broav with a new trap. This will only occur if the player has an additional set of logs and [[mort myre fungus]].
+
+Once you have an [[unconscious broav]], bring it back to the hunting expert. Ask the hunting expert to train your newly acquired broav.
+
+===Movario's Base===
+{{Needed|[[Dirty shirt]], [[broav]], 1 [[water rune]], 1 [[fire rune]], 1 [[earth rune]], 1 [[air rune]], 1 [[mind rune]], 5 free inventory spaces|recommended=[[Coal bag]], [[log basket]], food}}
+[[File:Broav.gif|thumb|left|161x161px|Using Movario's dirty shirt on the broav.]]
+[[File:WGS puzzle door.png|thumb|Pay attention to the word "PROHIBITED" (different for all players) to determine blast colour configuration. ]]
+After speaking to the hunting expert, head to the [[battlefield]] and enter the ruined building with a broken table near the [[Carnillean Mansion|Carnillean mansion]] ({{Map|type=maplink|x=2519|y=3249|mtype=pin}}). Once here, drop the broav, then use the shirt on it. Follow the broav to a broken table; once the broav squeals, the broken table can be searched, revealing a trapdoor underneath it. Open the trapdoor to enter [[Movario's base]].
+Upon entering the base, you will be attacked by melee-using [[Elite Khazard Guard]]s as soon as you open the door. When ready, make your way to the north-west area shaped like a hook on the minimap. At the northern end is an open chest; search it to obtain a number of runes. Climb down the stairs, where you find yourself in a room with an [[old battered door]] in the way. ''Note that all teleportation from this point onward is blocked''. Right-click inspect the door, and pay close attention to the word "PROHIBITED;" one of the letters is stylised after a [[rune]], which is the rune you must use to open the door. This rune is different for every player.
+
+''Using the incorrect rune on the door will result in an unblockable blast of magic fired at you, dealing 20+ damage. The colour of the blast indicates the correct rune that should have been used.''
+[[File:While Guthix Sleeps - broav tracking.png|thumb|222x222px|The broav tracking down Movario's scent.]]
+{|class=wikitable style="text-align:center;"
+|-
+!Symbol
+!Letter
+!Rune
+!Blast colour
+|-
+| [[File:Old battered door - stylised O (mind).png|link=]]
+| O
+| {{plinkp|Mind rune}}
+| Purple
+|-
+| [[File:Old battered door - stylised H (earth).png|link=]]
+| H
+| {{plinkp|Earth rune}}
+| Green 
+|-
+| [[File:Old battered door - stylised E (air).png|link=]]
+| E
+| {{plinkp|Air rune}}
+| White
+|-
+| [[File:Old battered door - stylised E (fire).png|link=]]
+| E
+| {{plinkp|Fire rune}}
+| Red
+|-
+| [[File:Old battered door - stylised D (water).png|link=]]
+| D
+| {{plinkp|Water rune}}
+| Blue
+|}
+[[File:While Guthix Sleeps - wired floors.png|thumb|250px|A room full of bookcases with wires running between them.]]
+Upon using the correct rune, proceed through the door. Note that you cannot enter if you weigh less than 2 kg, so unequip any [[weight-reducing clothing]] you may be wearing before moving forward.
+
+As you enter the room, a section of floor will sink slightly under your weight. In this room, filled with bookcases with wires running between them, the objective is to open the caged door by diverting power from the gates to the wires. Begin by searching the bookcases until the [[chatbox]] indicates that you hear a click as you pull a lever. From that initial bookcase, follow the floor wires that illuminate and search the subsequent bookcase, continuing to do so until the chatbox indicates that the electric gate is deactivated. This message indicates the gate can now be safely opened. Enter the gate, and then '''search''' the spiral staircase and disable the trap, then climb it to access Movario's study.
+[[File:While Guthix Sleeps - Movario's study.png|thumb|250px|A player in Movario's study.]]
+In the study, search the desk to obtain [[Movario's notes (volume 1)]], and click through all pages. Next, pick up the [[waste-paper basket]] next to the desk, and search it for a [[Ruby key (While Guthix Sleeps)|ruby key]]. Use this key on the northernmost bookcase to the west to access a rising staircase; this has no traps, so proceed upstairs.
+
+'''Search''' the bed to uncover a bed chest beneath it, then use the ruby key on the chest to unlock it. Right-click "search" the bed chest (choosing "Open" will trigger a trap dealing 18+ damage). Then, open the chest and search the open chest for [[Movario's notes (volume 2)]]. Read it, and do not discard them, as you must give them to Thaerisk later on.
+
+===Weight and see===
+Head back downstairs to the study. At the southern side of the room, inspect the painting on the wall and pull the lever to reveal an entrance to a hidden room. Cross over the broken wall, then search the drawers to obtain some [[notes on pressure]]. Read it, then look at the pressure gauge, which displays a number in the unit of "tickits;" this value represents the sum of the weight of the statue, as well as that of any objects on top of it. Exiting the room requires the pressure gauge to read the same value as the weight indicated in your [[Equipment Stats]] interface.
+[[File:While Guthix Sleeps - hidden room in study.png|thumb|280px|The hidden room beyond the painting in Movario's study.]]
+
+If your mass is different than the value of tickits indicated by the pressure gauge, you must do one of two things. Both require you to take weights from the pile of weights nearby, where there are three sizes available: [[Weight (1kg)|1kg]], [[Weight (2kg)|2kg]], and [[Weight (5kg)|5kg]].
+* If your mass is '''lower''' than the value from the pressure gauge you must '''take and carry''' enough weights from the pile to increase your weights to match the pressure gauge's value.
+* If your mass is '''higher''', you must take enough weights from the pile and '''put them on the statue''' to the north.
+
+For example, if you weigh 41 kg, and the pressure gauge reads 11 tickits, you must put 30 kg on the statue (11 + 30 = 41). If you weigh 29 kg and the pressure gauge reads 31 tickits, you must pick up 2 kg from the weight pile and keep it in your inventory (31 - 29 = 2).
+
+Once your weight and the reading on the pressure gauge are equal, the eastern door will unlock, allowing you to leave via teleportation.
+
+If you made a mistake, a small contraption by the door will count down from three, indicating the amount of tries the player has before triggering a trap. If the contraption counts down to zero, it will spray gas and throw the player into a jail room, confiscating Movario's notes. Players may simply retrace their steps to get them back.
+
+'''Note:''' While not necessary for quest completion, there is a tunnel in the south-west corner of the study. Entering the tunnel brings you to a room where you can loot 100 [[death runes]], 100 [[fire runes]], 100 [[coal]], and 100 [[magic logs]]. The fastest way to leave with the resources is to attempt to open the eastern door with the wrong weight on the scale, in order to be kicked out of the base. Note that the coal and magic logs are looted in unnoted form, so bringing a [[coal bag]] and [[log basket]] will be advantageous for those seeking to reduce trips back and forth. Movario's notes will still be confiscated even if they are in the bank, so it is advised to hand them in to Thaerisk first before going back and looting the base.
+
+==Forming a fellowship==
+{{Needed|[[Movario's notes (volume 1)]], [[Movario's notes (volume 2)]], [[lantern lens]], 20 coins for pink dye from Betty, a [[snapdragon seed]] (Thaerisk provides one for free), [[seed dibber]] (if the player hasn't completed the Farming part of Barbarian Training), runes to cast the NPC Contact spell four times (8 air runes, 4 astral runes, 4 cosmic runes)|recommended=Combat equipment, fairy ring access, [[Taverley teleport]], multiple teleports to [[Falador]], a teleport to the [[Warrior's Guild]] ([[Strength Cape]], [[Combat bracelet]] or [[Games necklace]])}}
+
+===The Mahjarrat's mercenaries===
+Head back to Thaerisk at Taverley and show him the notes you stole from Movario's base. He will then tell you that in your absence, the Crux Eqal have managed to secure the Temple Knights as allies, and that a base of operations is being established at the [[White Knights' Castle]]. Additionally, they have lost contact with [[Idria]] and the [[Guardians of Armadyl]]; as such, Thaerisk will ask that you head to [[McGrubor's Wood]] to check up on them.
+[[File:While Guthix Sleeps - fighting mercenaries.png|thumb|280px|Fending off Lucien's mercenaries.]]
+The quickest way to reach McGrubor's Wood is via [[fairy ring]] (code {{fairycode|ALS}}). Once there, head to the building by way of the [[loose railing (McGrubor's Wood)|loose railing]] to the east, where a cutscene begins in which Lucien's mercenaries will attack the Guardians of Armadyl. Kill the two [[mercenary axeman|mercenary axemen]], then finish off the [[mercenary mage]]; when the mage teleports away at low health, you can proceed to speak to Idria, whom you will inform of the Crux Eqal moving their base of operations to the White Knights' Castle. Alternatively, wait for Idria to kill all of them.
+
+===Telling the truth===
+Head to the Falador castle and head to the round table on the ground floor east side, where you will meet [[Akrisae]] along with Thaerisk and Idria. Despite their differing beliefs, they agree that Lucien poses a threat and that they all must work together to stop him. Based on Movario's notes, they will conclude that he is looking for the [[Stone of Jas]], an extremely powerful artefact of ancient origin. They will add that the spies Lucien sent to monitor Movario could be captured for interrogation, and that they have an improved version of a truth serum to use on them. Akrisae will give you a [[teleorb]] that you must plant on a spy, which will then teleport the spy into the jail cell once the corresponding teleport spell is cast.
+[[File:While Guthix Sleeps - interrogation.png|thumb|280px|Thaerisk instructs a druid to serve the spy some "juice".]]
+In [[Draynor Village]], you will find a number of [[shady stranger]]s and [[suspicious outsider]]s. Use the teleorb on any of them. '''Make sure to avoid talking to the stranger first, as you may be unable to plant the orb on them for some time.''' Note that it is possible to fail, causing you to take a small amount of damage. Once you've succeeded, make your way back to White Knights' Castle and speak to Akrisae, who will forcefully teleport the spy into the cell.
+
+A cutscene will play in which a druid attempts to coax the spy into drinking the truth serum, but the spy will kick them, knocking him out and breaking the "juice." You will now need to make another one on behalf of Thaerisk, who tells you that the enhanced serum uses an [[enriched snapdragon]], directs you to [[Betty]] in [[Port Sarim]], and offers a teleport to get there.
+[[File:While Guthix Sleeps - enriching snapdragon seed.png|thumb|280px|Enriching the snapdragon seed at Betty's shop.]]
+Before being teleported, make sure you have a [[lantern lens]] and 20 coins. Thaerisk will also give the player a free snapdragon seed if they choose to take it.
+
+When ready, accept Thaerisk's teleport. Talk to Betty and purchase the [[pink dye]] from her, then use it on the lantern lens to obtain a [[rose-tinted lens]]. Next, speak to her again, asking about enriching snapdragon seeds. She will realise you are working with Thaerisk, since she is aware only he would need it, but willing to help nonetheless.
+
+To enrich the seed, the player needs to use the tinted lens on the shop counter whilst standing at the doorway. Pick up the [[enriched snapdragon seed]] and return to Thaerisk in the [[White Knights' Castle]].
+
+===Amassing the masters===
+With the seed in tow, Thaerisk will instruct you to plant the enriched seed in a special patch on top of the castle. Climb up the '''western stairs''' to the top of the castle (three floors up), then plant the seed in the patch (the seed cannot become diseased). As the herb grows, speak to Idria, who will ask that you assemble a small task force to take on Lucien alongside you, all of which can be recruited via [[NPC Contact]]:
+* [[Turael]] - in [[Burthorpe]]
+* [[Mazchna]] - in [[Canifis]]
+* [[Duradel]] - in [[Shilo Village (location)|Shilo Village]], reached by climbing the ladder in the fishing shop.
+* [[Cyrisus]] - cast [[NPC Contact]] and select him in the interface
+
+The player can visit each master in person, but it is recommended to use [[NPC Contact]] instead, since [[Cyrisus]] requires the spell to be contacted anyway. Talk to them about Lucien, and they will agree to help.
+
+Once all four heroes are recruited, the herb will have finished growing, so return to the patch and harvest an [[enriched snapdragon]]. Head back down to Thaerisk, who he will give you a regular [[Truth serum (While Guthix Sleeps)|truth serum]]; use the enriched snapdragon on it to create the [[super truth serum]].
+
+If you don't already have a [[charcoal]] and [[papyrus]], they can be obtained in the drawers just south of the jail cell next to the Suit of Armour. With the super truth serum, go inside the jail cell. The stranger will refuse to talk, so you will threaten him instead, causing him to quickly comply and consume the serum. He will reveal that he takes orders from a man named the [[Dark Squall]], and then describe Squall's appearance. You will automatically make a [[suspect sketch]].
+
+Give the sketch to Idria, who will tell you that she will get them copied for wanted posters and passed around to the Temple Knight's spies. In the meantime, she will ask that you recruit [[Ghommal]], [[Harrallak Menarous]], and [[Sloane]], who can all be found in the [[Warriors' Guild]]. Ghommal and Harrallak can be found right by the guild's entrance, whilst Sloane can be found one floor above. 
+
+Return to Akrisae, who has potential new developments regarding the [[Dark Squall]]. However, the group is interrupted by the appearance of [[Hazelmere]], who will reveal to you that the vision he told you about refers to [[Lucien]], and offers his assistance.
+
+<gallery captionalign="center" widths="200">
+While Guthix Sleeps - alliance in Falador.png|The alliance headquartered within White Knights' Castle.
+While Guthix Sleeps - Hazelmere appears.png|Hazelmere arrives to offer his assistance to the alliance.
+While Guthix Sleeps - gathered heroes.png|The band of heroes, gathered together within White Knights' Castle.
+</gallery>
+
+==The Dark Squall==
+{{Needed|9 free inventory spaces, [[bronze med helm]] and [[iron chainbody]] (or a [[black armour set]]), an [[unpowered orb]] and runes for any [[charge orb]] spell ([[standard spellbook]] is required), and combat equipment for two combat styles (magic recommended)|recommended=[[Emergency teleport]], [[stamina potion]], [[prayer potion]], food}}
+[[File:While Guthix Sleeps - Black Knight Catacombs map.png|thumb|250px|A map of the Black Knight Catacombs.]]
+Speak to Akrisae, who tells you that the Dark Squall has been spotted near the [[Black Knights' Fortress (location)|Black Knights' Fortress]]. Akrisae sent his operative [[Silif]] to scout the area, whose last report is that he had entered the fortress and presumably followed Dark Squall inside. You will be asked to investigate this further in case Silif is in trouble.
+
+Enter the fortress with your disguise of choice (you may unequip it after entering), then push the hidden wall directly ahead and climb down the ladder. Head south towards the tiled flooring, and inspect the green carved tile with an orb symbol on it. Cast any charged orb spell on it, and it will transform into a trapdoor; climb down to enter the [[Black Knight Catacombs]].
+
+The Catacombs is full of elite [[Kinshra]] in the form of [[Elite Black Knight]]s, [[Elite Dark Warrior]]s, [[Elite Dark Mage]]s, and [[Elite Dark Ranger]]s. They are all '''aggressive''' unless the player is wearing [[elite black armour]] or the [[Dark Squall robes]], and utilise protection prayers when fought. While this is not unlimited, it is still recommended to bring at least two combat styles to have maximum uptime while fighting them.
+[[File:While Guthix Sleeps - killing elite black knight.png|thumb|left|220px|Players can safely kill elite black knights just past the broken bridge with Protect from Melee.]]
+After passing the broken bridge, you will be surrounded by elite dark warriors and one elite black knight, allowing you to pray [[Protect from Melee]] without any mages and rangers attacking. Kill the elite black knight here until you have a full set of [[elite black armour]]. 
+
+Making sure to wear the armour beforehand, make your way north-east and climb up the wall. Run all the way north-west to a set of doors.
+
+'''Recommended:''' Enter the western door to unlock a shortcut within the catacombs. 
+[[File:While Guthix Sleeps - inner base labels.png|thumb|400px|The locations of various objects in the Dark Squall's inner base.]]With 9 free inventory spaces, enter the northern door and search: '''1 Desk, 1 Key Rack, 2 Tables, and 2 Wardrobes''' to obtain the items required for Silif's rescue:
+* a second set of [[elite black armour]]
+* the [[cell key]]
+* a [[lobster]]
+** Note: any piece of food will work{{Fact|Are there any pieces of food which do not work?}}
+* the [[restore potion]]
+** the [[Dark Squall robes]]
+*** Note: The robes will be used as your disguise from here on out, including entering the Black Knights' Fortress again in case you teleport out during the fight.
+
+If you have an additional three inventory spaces, take the [[strange teleorb]] alongside the [[Death rune|death]] and [[law rune]]; otherwise, you can take them later. Head back out through the southern door, then use the nearest eastern path to reach the jail cells, where you will find Silif in the northernmost cell. Open the gate, then use the lobster (or other food item if you lost the lobster since looting it) and restore potion on him to help him recover. Talk to him again and ask if he has a plan, and he will tell you that he needs to access the inner base to view the Dark Squall's maps and plans, which he can memorise and duplicate once he leaves. You will automatically give him the second set of elite black armour at the end of this dialogue, and he will begin to follow you.
+
+Return to the room with the desks and wardrobes, and lead Silif to the [[map board]] by the southern wall. While he studies the maps, he will ask that you find the [[Dark Squall]] and plant a [[teleorb]] on him. It is recommended that players now bank and regear appropriately, as there will be a magic-based boss fight coming up, explained below.
+
+===Scuffle with Surok===
+{{Needed| One free inventory slot (to pick up lit explosive), [[Dark Squall's robes]], [[teleorb]], food, combat equipment for [[standard magic]] ([[powered staves]] will '''not''' work), and runes for the following spells: multiple casts of all four elemental spells, [[Snare]]/[[Entangle]], [[Weaken]]/[[Enfeeble]], [[Telekinetic Grab]], and [[Low Level Alchemy|Low]]/[[High Level Alchemy]]; as such, you will need Air, Water, Earth, Fire, Body/Soul, Nature, Law, and the highest of Mind/Chaos/Death/Blood/Wrath that you can use to cast all four elemental spells).}}
+
+Make your way back to the inner base, and attempt to climb the ladder on the eastern side of the room (while wearing the Dark Squall's Robes). An Elite Black Knight will stop you, but your disguised self will fool him, scolding him for his incompetence and ordering him to do push-ups. A cutscene will then ensue where you stumble into the real [[Dark Squall]]. He will be revealed to be [[Surok Magis]], who escaped during the chaos in [[Defender of Varrock]].
+
+Surok has 450 hitpoints, attacks with [[Fire Surge]], and has both [[Protect from Melee]] and [[Protect from Missiles]] simultaneously active. It is therefore necessary to attack with magic. Pray [[Protect from Magic]], as his attacks can hit over 40 without it, but significantly less with the prayer active. Surok is notably immune to damage from [[powered staff|powered staves]], thus the player must use combat spells in order to damage him. He is also immune to the sapping effects caused by [[blood spells]]. It is highly recommended to use the [[standard spellbook]] and cast the best elemental spell possible (or [[Iban Blast]]), as Surok's mechanics necessitate the use of the spellbook to counter them.
+
+[[File:While Guthix Sleeps - fighting Surok.png|thumb|280px|The player fights Surok Magis, leader of the Dagon'hai.]]
+Every 7-8 attacks, Surok will launch a special attack:
+{| class="wikitable"
+!Quote
+!Attack
+|-
+|{{overhead|Fighting you is beneath me!}}
+|Surok will call in either a [[Strong Warrior]] or [[Agile Warrior]] and begin to approach you. The player will always deal no damage to them unless casting counter spells beforehand. These spells are [[Weaken]] for the Strong Warrior and any [[Stun (status)|binding spell]], such as [[Entangle]], for the Agile Warrior before they can be damaged.
+
+If the warriors are not killed before they reach you, you will be bound and Surok will cast a spell that deals 45+ damage while also killing the warrior in the process. 
+|-
+|{{overhead|Magicus ignitus!}}
+|Surok will throw out a [[lit explosive]], which will deal 45+ damage if ignored or picked up. Quickly cast [[Telekinetic Grab]] on it, then alchemise it to safely avoid the explosion. (If you use the plug-in "No Bad Alchs" turn it off before the fight)
+|-
+|{{overhead|Witness true sorcery!}}
+|Surok will cast 1-4 elemental surges that approach slowly towards you, dealing 45+ damage per surge unless countered. The lower Surok's health, the more surges he casts.
+
+They can be countered by casting any offensive spell of the opposite element on the elemental surges (not Surok himself). Air and earth are opposites, as are water and fire. It is strongly recommended not to use low level spells for this, as they will deal only partial damage to the surges.
+
+You do NOT need to wait for your spell's animation to finish before targetting the next surge.
+
+The [[Twinflame staff]]'s passive effect does NOT work against this attack, spells will still need to be cast manually.
+|}
+
+If you die, your gravestone will be in the tunnels with the elite black knights and collecting your items will be risky without the disguises. The Dark Squall Robes are always kept on death, so be certain to bring them to reclaim your items.
+
+After defeating Surok, he will fall to the floor. Use the teleorb on him, then return to White Knights' Castle.
+
+===Wrath of Lucien===
+{{Needed|Dark Squall's robes, [[Strange teleorb]], 1 [[death rune]], 1 [[law rune]]|recommended=Teleport to Falador}}
+
+Speak to Akrisae, and you will report back on your exploits in the catacombs. He will tell you that with Silif's help, they have managed to locate [[Lucien]]'s base at the western edge of the [[Wilderness]], and that the heroes will move in once you have visual on Lucien. Your next task is to impersonate Surok, who they believe can contact Lucien directly. Using the robes you stole from Surok's inner base, you will now switch places with him to find a way to access Lucien's base directly.
+
+When ready, walk into the jail cell, and Akrisae will teleport you back into Surok's inner base. If you didn't take the [[strange teleorb]] (and the runes required to use it) from the desks, climb back down and do so. Otherwise, activate it whilst standing in the magical circle to teleport into [[Lucien's camp]].
+
+The camp is inhabited by numerous level 128 [[Skeleton (Lucien's camp)|skeletons]] and [[Undead Mage]]s, though they will not be aggressive if the player is still wearing [[Surok's robes]]. Run along the north-east path until you are across from the [[Chaos Temple (hut)|Chaos Temple]], then climb up the [[ice wall]] to the east and jump to the [[Ledge (Chaos Temple)|ledge]] on the [[Chaos Temple (hut)|Chaos Temple]] (this is a safe area and does not count as being in the [[Wilderness]]).
+
+'''Skip reading to the next section if you want to avoid spoilers for this cutscene.'''
+
+A cutscene will play showing Lucien, now with the Staff of Armadyl, casting a powerful spell to raise [[Undead Hero]]es for his army. He will then notice you, see through your disguise, and cast a powerful spell at you. The first shot will miss, and you will jump away from the second shot, which instead incinerates two elite black knights that are attempting to apprehend you. Seeing you in danger, Hazelmere will call on the band of heroes to teleport to the chapel and engage Lucien.
+
+[[Mazchna]] and [[Harrallak]] will draw the undead heroes, while everyone else will engage Lucien. [[Sloane]] and [[Duradel]] will be instantly killed when they attempt to face Lucien, and [[Hazelmere]] will cast a barrage of crystalline spikes towards him, all to no avail. [[Cyrisus]], [[Ghommal]], and [[Turael]], after killing their respective enemies, also join in on the attack, but fail to deal any damage. Lucien will then cast another attack against the three warriors, incinerating them.
+
+While Hazelmere looks at his seed pod, being no longer usable after he previously used it to [[The Path of Glouphrie|save you]], he accepts his fate and is incinerated by Lucien. Satisfied with the devastation, Lucien will then teleport away, forcing Mazchna and Harrallak to retreat back to Falador. Head back to White Knights' Castle. Teleports will work while above the [[Chaos Temple (hut)|Chaos Temple]].
+[[File:Wrath of Lucien.mp4|thumb|centre|600px|The full cutscene of Lucien's slaughter.]]
+
+<gallery captionalign="center" widths="200">
+While Guthix Sleeps - Lucien and his undead heroes.png|Lucien and his army of undead heroes.
+While Guthix Sleeps - Lucien spots the player.png|Lucien spots the player, and fires a powerful spell towards you.
+While Guthix Sleeps - band of heroes.png|The band of heroes, led by Hazelmere, make haste to your location.
+While Guthix Sleeps - the heroes arrive.png|The heroes arrive not a moment sooner.
+While Guthix Sleeps - Lucien kills Duradel and Sloane.png|Lucien kills Duradel and Sloane.
+While Guthix Sleeps - Lucien kills Cyrisus, Turael, and Ghommal.png|Lucien kills Cyrisus, Turael, and Ghommal.
+While Guthix Sleeps - Hazelmere's death.png|The wise and mighty Hazelmere, moments before being reduced to ashes.
+</gallery>
+
+==Into the Chasm==
+{{Needed|Dark Squall's robes, a '''lit''' [[sapphire lantern]], sufficient prayer points to cast [[Bloom]]|recommended=Some means of reaching the [[Chasm of Tears]] (ex. a [[games necklace]]), 8 filled [[druid pouch]]es or 3 [[mort myre fungus]] to refill it, 7 empty inventory slots. A [[spade]], [[hammer]] (an [[Imcando hammer]] will work), and [[chisel]] (all can be acquired in immediate proximity of the quest).}}
+[[File:While Guthix Sleeps - Movario in the chasm.png|thumb|280px|Movario continues his search in the Chasm of Tears.]]
+[[File:Chasm-X.png|thumb|Rock Bottom Orb Locations]]
+Speak to either Idria, Akrisae, or Thaerisk, who apologise for severely underestimating Lucien's strength. Akrisae will then report that [[Movario]] has been spotted entering the [[Chasm of Tears]], and is likely hot on the trail for the Stone; you will be asked to impersonate Surok and head there to help him with his investigations. Use the games necklace to teleport to Tears of Guthix, then head north (past the minigame) and climb the rocks to reach Movario.
+
+Upon speaking to him as Surok, he will tell you that he believes the Stone is at the bottom of the chasm. Though he lacks the means to climb all the way down the deep chasm, you will reveal the [[light creature]]s are capable of doing so with a [[sapphire lantern]], and he will use a light blue spell to draw the creature down into the chasm with you in tow. Click on a [[light creature]] to attract it.
+
+===Rock bottom===
+[[File:While Guthix Sleeps - extracting blocks.png|thumb|280px|Extracting elemental blocks from the recesses.]]
+Upon arriving at the bottom of the chasm, you will find yourself on the north-east area of an X-shaped platform. 
+
+Search the nearby [[skeletal remains]] for the following items: a [[spade]], a [[hammer]], and a [[chisel]]. 
+
+* On the north-east area, use the spade on the pile of rocks next to the skeleton to uncover a brazier, then use the chisel on it to obtain a [[fire orb]]. 
+* Go west to the north-west area and use the spade on the lone pile of rocks for an [[earth orb]]. 
+* Go south to the south-west area, and use a chisel on the intact brazier there for an [[air orb]].
+* Go east to the south-east area, use a chisel on the brazier there for the [[water orb]].
+
+=== Trading Orbs For Blocks, Blocks for Access ===
+Head all the way south to reach the walls shaped as skulls. 
+
+* For each skull, examine (or camera zoom) the recess to identify an elemental marking. Use the corresponding element orb on a recess to exchange for an elemental block.   
+** ''The 3 lower-level recesses will be randomized for players, but the recess for [[water block]] is located 2 levels above the centre skull, and requires climbing to access. This recess appears different but behaves the same.''
+
+* With all elemental blocks acquired, Unequip your weapon and shield slots and enter all 3 of the lower-level skull nose cavities. 
+* Crawl to the end, examine (or camera zoom) the mechanism to identify the mechanism's element, and use the corresponding elemental block on each mechanism. 
+** ''The 3 lower-level mechanisms will be randomized for players, but the [[fire block]] will be used on the top floor.''
+
+* Climb back up to the fourth skull (where you received the [[water block]]) and use the [[fire block]] on the recessed block.
+* Inspect the stone cube, and the recessed block will vanish to reveal an entrance.
+* Climb through to reach the Ancient Guthixian Temple.
+
+===Dolmens, doors, and druids===
+[[File:While Guthix Sleeps - statues with dolmens.png|thumb|280px|Placing ingredients in exchange for dolmen]]The stone table is surrounded by multiple forked paths leading to 8 of 13 possible [[Statue (Ancient Guthixian Temple)|statues]], each named after potions. Statue selection and locations are randomized uniquely per player.
+
+* Make your way south to the central chamber where the stone table is found.
+* Search the nearby skeleton for a [[silver sickle (b)]] and a [[druid pouch|druid pouch(6)]].
+* You will need between 2 and 18 free inventory spaces. Drop your [[spade]], [[chisel]], and [[hammer]], re-equip any available item slots to free up inventory.
+** To use the bare minimum inventory space (2), you will need to scout each tunnel to identify each statue.
+** To minimise time running, you will loot all supplies simultaneously (16-18) before visiting each statue.
+* Inspect the [[Brazier (Ancient Guthixian Temple)|green brazier]] between the table and north entrance for '''free stamina doses''', and return for more. 
+** ''This brazier does not have a click limit, and will activate the [[ring of endurance]] effect and consuming charges if it is equipped.''
+
+==== Acquiring Ingredients ====
+Note that the druids will always drop exactly what is needed to solve all eight puzzles, so there is no risk of receiving unnecessary items or duplicates.
+
+* Use a charged druid pouch on [[druid spirit]]s, they will drop one exact set of ingredients you need.
+Ingredients are only dropped once, and no unnecessary items are dropped. If you fail to pick them up, you will need to leave and return with your own.
+* If you have at least 2 more inventory spaces, rinse and repeat until you have either a full inventory or all 16 supplies needed.
+
+====== Recharging Pouches ======
+With eight spirits required to be freed and six druid pouch charges provided, the player will need to make two additional charges to obtain all the items needed to solve the puzzles.
+
+* With the [[silver sickle (b)]] and a [[druid pouch]] in your inventory, stand over one of the dead vines scattered all over the tunnels.
+* Right-click cast bloom on the [[silver sickle (b)]], and pick the [[Vine flower]]s which spawn.
+* With 3+ [[Vine flower]]s in your inventory, right-click fill your druid pouch.
+
+====== Acquiring Dolmens ======
+
+* Once you have one or multiple sets of ingredients, find the statue that corresponds to your ingredients.
+* Use the two correct ingredients on the statue.
+* Upon using the second ingredient, the statue will animate and you will receive a Dolmen.
+* If you have no more ingredients, return to the table and use your dolmen on the table.
+* If you have more ingredients, continue visiting the statues.
+
+Examine the statues and use the corresponding ingredients on them:
+{| class="wikitable lighttable" style="max-width: 1000px"
+|+
+! width="100" | Keyword
+!Ingredients
+|-
+|Agility||{{plink|Toadflax}} + {{Plink|Toad's legs}}
+|-
+|Attacking||{{plink|Guam leaf}} + {{plink|Eye of newt}} '''or''' {{plink|Irit leaf}} + {{plink|Eye of newt}}
+|-
+|Balance||{{plink|Harralander}} + {{plink|Red spiders' eggs}} + {{plink|Garlic}} + {{plink|Silver dust}}
+|-
+|Combat||{{plink|Harralander}} + {{plink|Goat horn dust}}
+|-
+|Defence||{{plink|Ranarr weed}} + {{plink|White berries}} '''or''' {{plink|Cadantine}} + {{plink|White berries}}
+|-
+|Energy||{{plink|Avantoe}} + {{plink|Mort myre fungus}} '''or''' {{plink|Harralander}} + {{plink|Chocolate dust}}
+|-
+|Fishing||{{plink|Avantoe}} + {{plink|Snape grass}}
+|-
+|Hunting||{{plink|Avantoe}} + {{plink|Kebbit teeth dust}}
+|-
+|Magic||{{plink|Lantadyme}} + {{plink|Potato cactus}}
+|-
+|Prayer||{{plink|Ranarr weed}} + {{plink|Snape grass}}
+|-
+|Ranging||{{plink|Dwarf weed}} + {{plink|Wine of zamorak}}
+|-
+|Restoration||{{plink|Snapdragon}} + {{plink|Red spiders' eggs}} '''or''' {{plink|Harralander}} + {{plink|Red spiders' eggs}}
+|-
+|Strength||{{plink|Tarromin}} + {{plink|Limpwurt root}} '''or''' {{plink|Kwuarm}} + {{plink|Limpwurt root}}
+|}
+'''Note:''' The ingredients to make the super versions of hunter and fishing potions cannot be used for the Hunter and Fishing statues.
+
+* Upon using the final dolmen on the stone table, the huge door will be opened.
+
+* Bank and gear up for the fight in the next section, as there is a particularly hard boss fight coming up which necessitates the use of supplies and multiple combat styles. 
+** ''The player will no longer need the dark squall's robes at this point.''
+
+==The Stone of Jas==
+{{Needed|[[Sapphire lantern]], combat equipment for three attack styles.|recommended=[[Super restore]] potions, [[Menaphite remedy]], [[Book of the dead]] and runes for thralls, food or [[Saradomin brews]]}}
+
+Players will need to prepare for a difficult fight ahead, requiring equipment for all three attack styles, and a means to restore drained stats. '''Bringing only two attack styles will result in the elemental praying against both your attack styles in the final phase.''' The Balance Elemental has negative defence values against crush, heavy ranged, and magic.
+
+If lacking in [[super restore]]s, regular [[restore potion]]s are much cheaper and available from a much earlier [[Herblore]] level, and will still keep your combat stats restored. If using spells rather than powered staves, it is important to keep your stats restored frequently, and have your autocast spell be set on the lowest level spell of a tier, such as using [[wind wave]] instead of [[fire wave]], so that it may still be cast directly after getting drained.
+
+===Balancing act===
+[[File:While Guthix Sleeps - Balance Elemental coalesces.mp4|thumb|left|220px|The Balance Elemental takes form.]]
+[[File:While Guthix Sleeps - the Balance Elemental.png|thumb|280px|The Stone's guardian, the Balance Elemental, appears before you.]]
+When ready, head beyond the huge door and run through the corridor until a cutscene begins. As you discover that the [[Stone of Jas]] is indeed here, energy begins to coalesce into the [[Balance Elemental]], the Stone's guardian. You will tell it that [[Lucien]] is coming to take the Stone; while the elemental believes you, it still has a task to fulfill and will attack the player.
+
+The Balance Elemental has 750 hit points and attacks with all three combat styles. It changes styles after four attacks, then uses a special attack that drains both combat stats and a large chunk of prayer, before repeating another four attacks. The first of the four attacks will always be a stat-lowering attack using its new combat style before attacking again normally. It also makes use of route-finding to avoid being [[safespot|safe-spotted]] in its melee form. The standard attacks have a max hit of 40, while the special attack can hit up to 89.
+[[File:While Guthix Sleeps - fighting the Balance Elemental.png|thumb|280px|The Balance Elemental fights the player.]]
+[[File:While Guthix Sleeps - Hiding from the Balance Elemental.png|thumb|280px|A possible tile to hide from the Balance Elemental.]]
+The colour of its head determines its primary combat style. '''Immediately''' switch prayers upon the elemental changing appearance to avoid taking heavy and rapid damage; when done correctly, this mitigates all of the damage dealt. The correct overhead prayer must be active '''before''' it starts the animation for the attack. When the elemental reaches lower health thresholds the animation may overlap with additional attacks. Above 50% HP you have a 2 tick window to react to change in attack style. Below 50% HP you have only 1 tick to react before damage is calculated. Be prepared to switch protection prayers as soon as you see the elemental change styles. Do not be fooled by the animation resembling a projectile — if the Elemental's head is white, it is still a melee attack.
+
+After reaching certain hit point thresholds, it will begin to speed up its attacks and use protection prayers. The Elemental will not switch protection prayers until you deal a certain amount of damage to it.
+
+Bringing a [[Menaphite remedy]] and running behind the pillars to hide from the elemental if a prayer swap is missed is an effective way to restore drained stats.
+{| class="wikitable" style="text-align: center;"
+|-
+! style="text-align: left;" |Appearance
+|[[File:Balance_Elemental.png|180px]]
+|[[File:Balance_Elemental_(melee).png|120px]]
+|[[File:Balance_Elemental_(magic).png|110px]]
+|-
+! style="text-align: left;" |Colour
+|Fiery (orange)
+|Airy (white)
+|Watery (blue)
+|-
+! style="text-align: left;" |Attacks with
+|Ranged
+|Melee
+|Magic
+|-
+! style="text-align: left;" |Prays against (<550 HP)
+|[[File:Protect from Melee overhead.png]]
+|[[File:Protect from Magic overhead.png]]
+|[[File:Protect from Missiles overhead.png]]
+|}
+{| class="wikitable"
+!Health
+!Attack speed
+!Mechanics
+|-
+|<750
+|6
+|Standard attacks
+|-
+|<550
+|5
+|Standard attacks plus one protection prayer (see table above)
+|-
+|<200
+|2
+|Standard attacks plus two protection prayers (mostly vulnerable to its own style)
+|}
+
+Players should be careful not to get overwhelmed by the fast attack speed and focus on correct defensive prayer switches first before restoring hit points and stats. Equipment switches are lower priority until the Balance Elemental falls below 200 HP. Without equipment switches, you will still deal damage a third of the time while taking no damage (if switching defensive prayers correctly). Offensive prayers are lowest priority. Once you reach the last phase, the Balance Elemental will protect against 2 attack styles and will not change prayers until taking damage. Therefore, it is necessary to bring all 3 attack styles for this phase, paying close attention to which style it is vulnerable to. Once damage is dealt, it tends to swap dual prayers each time it switches attack styles, but it will stop prayer swapping if it has not taken damage recently and continue to switch attack styles. Continue to prioritize your own defensive prayers above all else until you are comfortable with the rhythm of the fight, then begin incorporating equipment swaps to deal damage until the Balance Elemental is defeated. 
+
+If you find yourself getting overwhelmed, an option is to immediately run to the other side of the Stone of Jas when the fight starts, where the player is safe from attacks. After this, attack the Balance Elemental until it changes its attack style. When its attack style changes, quickly change your overhead Prayer accordingly and run back behind the Stone to sort out the rest. This will give you more time to set up everything for the next couple of attacks until the Balance Elemental switches attack styles again. 
+
+If you die, your gravestone will be placed by [[Movario]] and [[Darve]] in the Chasm of Tears; you will '''not''' need another [[sapphire lantern]] to retrieve your items, but you will need it to return to the bottom.
+
+===Facing your demons===
+Once the elemental is killed, touch the Stone of Jas. This will cause the player to relive memories of the past with other stone-users, such as [[V]]. Movario and Darve will appear, thanking you for bringing them to the Stone of Jas. Suddenly, Lucien will teleport in and ask Movario why he did not inform him of the discovery, who defends himself by stating that he had just discovered it. Noticing the player, he proceeds to take the Stone of Jas before summoning two [[Tormented Demon]]s to attack the player. Idria and the Guardians of Armadyl will then teleport in to assist.
+[[File:While Guthix Sleeps - the Stone's vision.mp4|thumb|centre|600px|The vision from the Stone of Jas.]]
+
+<gallery captionalign="center" widths="200">
+While Guthix Sleeps - V touches the Stone.png|V touching the Stone of Jas.
+While Guthix Sleeps - 4th Age Heroes and the Stone.png|A vision depicting the heroes of the [[Dragonkin Conflicts]] with the Stone.
+While Guthix Sleeps - Lucien and the Stone.png|Lucien appears to take the Stone.
+While Guthix Sleeps - fighting tormented demons.png|The Guardians of Armadyl come to your aid.
+</gallery>
+[[File:While Guthix Sleeps - Lucien takes the Stone.mp4|thumb|350px|Lucien teleports the stone away, and summons two tormented demons to finish you off.]]
+The player's stats are temporarily increased to 255 due to touching the Stone of Jas, and stat drains (such as [[saradomin brew]]s) will not affect the player. Kill off the two tormented demons, fighting them one at a time. The demons have a fire shield which reduces damage slightly, and can occasionally bind the player before launching fire projectiles around them which can be avoided by walking away from the targeted tiles, though the Stone of Jas' power means that the player will not have much issue dealing massive damage to them. The demons, like the elemental, make use of routefinding and can hit quite high if their attacks are not protected against.
+
+If trying to avoid combat XP, you may hide behind the south-western column; the Guardians of Armadyl are capable of defeating the tormented demons without the player's assistance. This can take upwards of 10 minutes, and logging out will reset the fight, so make sure to not get logged out for idling if trying this. Flinching from behind the south-western column is another viable strategy, attacking whenever the demons begin to ignore you and walk away to gain some distance. If you are simply low on supplies from fighting the Balance Elemental, it is faster to teleport out to restock, as the fight will reset to when the tormented demons spawned and you will not need to fight the Balance Elemental again. When you return, you will immediately re-enter the fight with both demons likely to be targeting you. If this happens, it can be extremely difficult to avoid damage as they will each attack you with multiple styles, even at range. To correct this, run as far away from both demons as you can until they are no longer attacking you. After a few seconds, they will lose aggro and separate, focusing on the other NPCs in the area and giving you a chance to target one at a time.
+
+After killing off the demons, Idria will be amazed at the strength you acquired from touching the Stone of Jas and will offer to teleport you back to the White Knights' Castle. Accept, and speak to the group, who will be dismayed that Lucien now has the Stone of Jas in his possession. Despite this, they plan to stop him no matter the cost.
+
+===The story kin-tinues===
+If you have completed [[Dragon Slayer II]] before completing While Guthix Sleeps, an extra cutscene will play before the quest is completed. '''Note:''' the introduction to this cutscene is about a minute long and not skippable, your account will stay logged in until it completes and the dialogue begins.
+
+Meanwhile, back in the [[Lithkren Vault]], three [[Dragonkin]] - [[Strisath]], [[Sithaph]], and [[Sakirth]] - will break free from their stasis chambers, noting that [[Zorgoth]] is dead and someone has used the Stone, and agree to bring terror to the mortals who wish to claim its power.[[File:The Kin.mp4|thumb|centre|600px|Meanwhile, in the Lithkren Vault...]]
+
+'''Congratulations, quest complete!'''
+
+==Rewards==
+{{Quest rewards
+|name = While Guthix Sleeps
+|image = [[File:While Guthix Sleeps reward scroll.png|center]]
+|qp = 5
+|rewards = 
+* {{SCP|Thieving|80,000|link=yes}} [[experience]]
+* {{SCP|Farming|75,000|link=yes}} [[experience]]
+* {{SCP|Herblore|75,000|link=yes}} [[experience]]
+* {{SCP|Hunter|50,000|link=yes}} [[experience]]
+* Access to the [[Ancient Guthixian Temple]] and [[tormented demon]]s
+* [[Duradel's notes]], obtained from [[Kuradal]], which grants {{SCP|Slayer|link=yes}} [[experience]] equal to 15x the player's Slayer level when read, as well as the ability to craft the [[emberlight]], [[scorching bow]], and [[purging staff]]
+* 100 [[death runes]], 100 [[fire runes]], 100 [[coal]], and 100 [[magic logs]] can be looted from [[Movario's base]]
+* [[Elite black armour]] and [[Dark Squall robes]]
+* Access to the [[Black Knight Catacombs]]
+* The [[broav]], if kept
+<!--Access to [[The Fractured Archive]] raid-->
+}}
+
+==Transcript==
+{{hastranscript|quest}}
+
+==Music==
+{| class="wikitable sortable"
+|-
+!Name 
+! class="unsortable" |Unlock details 
+! class="unsortable" |Music track
+|-
+|[[Dangerous Logic]] 
+|Unlocked upon entering [[Movario's base]]
+|[[File:Dangerous Logic.ogg]]
+|-
+|[[The Route of the Problem]] 
+|Unlocked during the mercenary attack on [[McGrubor's Wood]]
+|[[File:The Route of the Problem.ogg]]
+|-
+|[[Incarceration]] 
+|Unlocked during the first interrogation attempt on the [[shady stranger]]
+|[[File:Incarceration.ogg]]
+|-
+|[[Black of Knight]] 
+|Unlocked upon entering the [[Black Knight Catacombs]]
+|[[File:Black of Knight.ogg]]
+|-
+|[[The Route of All Evil]] 
+|Unlocked during the fight with [[Surok Magis]]
+|[[File:The Route of All Evil.ogg]]
+|-
+|[[The Evil Within]] 
+|Unlocked during Lucien's slaughter at the Chaos Temple
+|[[File:The Evil Within.ogg]]
+|-
+|[[The Sound of Guthix]] 
+|Unlocked upon entering the [[Ancient Guthixian Temple]]
+|[[File:The Sound of Guthix.ogg]]
+|-
+|[[Temple Desecrated]]
+|Unlocked during the fight with the [[Balance Elemental]]
+|[[File:Temple Desecrated.ogg]]
+|-
+|[[The Kin]] 
+|Unlocked during the epilogue if [[Dragon Slayer II]] has been completed
+|[[File:The Kin.ogg]]
+|}
+
+==Gallery==
+<gallery mode="packed" heights="150" style="text-align:center">
+File:While Guthix Sleeps key visual.png|The key visual for the quest.
+File:While Guthix Sleeps logo.png|The logo for the quest used in social media and marketing.
+File:Lucien concept art.png|Concept art of Lucien's Mahjarrat form, by [[Mod Grub]].
+File:Lucien model rework.png|Lucien's reworked Mahjarrat model, by [[Mod Skylark]].
+File:Tormented demon weapon concept art.png|Concept arts for the weapons created from items dropped by tormented demons, by Mod Grub.
+File:While Guthix Sleeps login screen.png|The login background commemorating the quest upon release.
+File:Login background mobile (While Guthix Sleeps).png|The full login background commemorating the quest upon release, without the [[main menu]] overlay.
+File:The Sound of Guthix (The Stone).ogg|The music used for the login screen of While Guthix Sleeps
+</gallery>
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 24 July 2024
+|update = Deadman: Armageddon & While Guthix Sleeps Tweaks
+|change = 
+* Texts and dialogues throughout the quest have been adjusted to bring it in line with the quest in ''RuneScape 2''.
+* A chest has been added to Movario's base that contains the runes players may need to open the [[old battered door]].
+* [[Thaerisk]] will now give players one [[snapdragon seed]] for free, rather than charging roughly half the [[Grand Exchange]] value of the seed.
+* [[Akrisae]] will now offer a one-time teleport to [[Ice Mountain]] upon asking you to investigate Silif's whereabouts, and also remind you that a disguise is needed to enter [[Black Knights' Fortress (location)|Black Knights' Fortress]].
+* Teleporting using the [[strange teleorb]] can now use runes from a [[rune pouch]].
+* When placing herblore ingredients on statues within the Ancient Guthixian Temple, the corresponding alternate ingredients will now be returned to you; for example, placing a herb on a statue that already has one will give the initial herb back.
+}}
+{{Subject changes
+|date = 11 July 2024
+|type = hotfix
+|change =
+*Multiple changes were made to increase the quest's difficulty in order to make it comparable to other Grandmaster quests:
+** [[Surok Magis]]
+*** Players no longer heal off of Surok when using [[blood spells]].
+*** Surok's elemental surge attack no longer has its damage reduced by [[Protect from Magic]].
+** [[Balance Elemental]]
+*** The Balance Elemental's maximum hit was drastically increased.
+*** The Balance Elemental's stat-lowering attack now also drains prayer points.
+*** The Balance Elemental now requires all three combat styles to be defeated, as it will no longer change its protection prayers after a certain amount of time.
+* Surok's [[lit explosive]]s can now be alchemised regardless of whether or not the alchemy untradeable item warning is on.
+}}
+{{Subject changes footer}}
+
+==Developers==
+'''Original:'''
+* '''Developer:''' Mod Tytn
+* '''Lead Design Editor:''' Mod Mark
+* '''Second Developers:'''	[[Paul Gower]], John H
+* '''Assistant Developers:''' Mod Liono, Mod Tim, Mod Newmatic, [[Mod Maz]]
+* '''Additional Writing:'''	Mod John A, Luke M, Mod Rowley
+* '''Technical Support:''' [[Mod Ash]], Mod Benny, Mod Chihiro
+* '''Code Review:''' Mod John A, Mod Roderick, Mod Newmatic
+* '''Lead Graphics Artist:''' James W
+* '''Graphics:''' Matthew S, Mod Brass, Mod Alex, Matthew M, Mod Paul B, Jeff K, Wayne M, Mod Stead, Kavi M, Daniel J, Mod GiuG
+* '''Quality Assurance:''' Daniel O'R, Dan G, Mod James H, Florian P
+* '''Editorial:''' Mod Rowley, Mod Osborne, Luke M, Veronika H
+* '''German Translation:''' Gesine P
+* '''QuestHelp:''' Katie B
+* '''Audio:''' [[Mod Bond]]
+
+==Historical==
+{{Main|/Historical}}
+
+While Guthix Sleeps was originally released in ''RuneScape 2'' on [[26 November]] [[2008]], more than a year after the [[August 2007 Archive of RuneScape|August 2007 archive of RuneScape]] that ''Old School'' was built off of. Though the quest is largely the same as the original, numerous changes were made to the lore, graphics, gameplay, music, and rewards.
+
+==Trivia==
+* The addition of ''While Guthix Sleeps'' to ''Old School RuneScape'' was first hinted at in the [https://secure.runescape.com/m=news/gielinor-gazette---february-2022?oldschool=1 February 2022 Gielinor Gazette].
+* The assassin's act of teleporting to the player before exclaiming "Nothing personal, adventurer!" is a reference to [https://knowyourmeme.com/memes/teleports-behind-you-nothing-personal-kid a copypasta].
+* Lucien's line, "Look upon my works and despair!" is a direct reference to the poem ''{{wp|Ozymandias|Ozymandias}}'' by {{wp|Percy Bysshe Shelley}}.
+* After the completion of the quest, the memorial statues are put up at several spots in remembrance of them. Most of these statues can be found on these specific locations:
+** Turael and Duradel - at the entrance of the [[Slayer Tower]].
+** Ghommal and Sloane - at the entrance to the [[Warriors' Guild]].
+** Cyrisus - at the entrance to the [[Heroes' Guild]].
+** Hazelmere - his statue next to [[Argento]] is replaced.
+** Turael, Cyrisus, Duradel, Ghommal, Hazelmere and Sloane - in the [[Falador Park]], next to the pond.
+* After the quest, new replacement NPCs appear since Lucien killed most of the team of warriors organised to stop him in the Wilderness, with exception for Hazelmere or Cyrisus.
+** Turael → [[Aya]]
+** Duradel → [[Kuradal]]
+** Ghommal → [[Laidee Gnonock]]
+** Sloane → [[Yadech Strongarm]]
+** Mazchna → [[Achtryn]] (only during the quest)
+
+{{While Guthix Sleeps}}
+[[Category:Backported and extracted content]]

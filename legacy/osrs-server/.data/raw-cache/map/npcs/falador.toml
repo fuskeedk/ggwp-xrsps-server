@@ -1,0 +1,69 @@
+# falador.toml — city NPC spawns
+
+[[spawn]]
+npc = "npc.generalshopkeeper7"
+coords = "0_46_52_51_16"
+
+[[spawn]]
+npc = "npc.generalassistant7"
+coords = "0_46_52_51_15"
+
+[[spawn]]
+npc = "npc.flynn"
+coords = "0_46_52_6_59"
+
+[[spawn]]
+npc = "npc.wayne"
+coords = "0_46_51_25_47"
+
+[[spawn]]
+npc = "npc.cassie"
+coords = "0_46_53_35_41"
+
+[[spawn]]
+npc = "npc.herquin"
+coords = "0_46_52_1_7"
+
+[[spawn]]
+npc = "npc.zenesha"
+coords = "0_46_52_10_56"
+
+[[spawn]]
+npc = "npc.drogo"
+coords = "0_47_50_30_51"
+
+[[spawn]]
+npc = "npc.sir_amik_varze"
+coords = "0_46_52_15_9"
+
+[[spawn]]
+npc = "npc.general_bentnoze"
+coords = "0_46_52_15_23"
+
+[[spawn]]
+npc = "npc.general_wartface"
+coords = "0_46_52_15_25"
+
+[[spawn]]
+npc = "npc.banker1"
+coords = "0_46_52_3_40"
+
+[[spawn]]
+npc = "npc.banker2"
+coords = "0_46_52_4_40"
+
+[[spawn]]
+npc = "npc.banker1"
+coords = "0_46_52_3_42"
+
+[[spawn]]
+npc = "npc.banker2"
+coords = "0_46_52_4_42"
+
+[[spawn]]
+npc = "npc.banker1_west"
+coords = "0_46_52_1_41"
+
+[[spawn]]
+npc = "npc.banker2_east"
+coords = "0_46_52_5_41"

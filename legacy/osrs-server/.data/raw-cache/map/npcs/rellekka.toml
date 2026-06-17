@@ -1,0 +1,37 @@
+# rellekka.toml — city NPC spawns
+
+[[spawn]]
+npc = "npc.viking_weapons_salesman"
+coords = "0_41_57_14_30"
+
+[[spawn]]
+npc = "npc.viking_sigmund"
+coords = "0_41_57_26_28"
+
+[[spawn]]
+npc = "npc.viking_clothing_shopkeeper"
+coords = "0_41_57_1_14"
+
+[[spawn]]
+npc = "npc.viking_fur_monger"
+coords = "0_41_57_4_34"
+
+[[spawn]]
+npc = "npc.fris_r_ferryman_rellekka"
+coords = "0_41_57_20_63"
+
+[[spawn]]
+npc = "npc.banker1"
+coords = "0_40_57_62_39"
+
+[[spawn]]
+npc = "npc.banker2"
+coords = "0_40_57_63_39"
+
+[[spawn]]
+npc = "npc.banker1"
+coords = "0_41_57_0_39"
+
+[[spawn]]
+npc = "npc.banker2"
+coords = "0_41_57_1_39"

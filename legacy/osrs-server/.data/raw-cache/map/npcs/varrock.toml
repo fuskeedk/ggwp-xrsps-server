@@ -1,0 +1,157 @@
+# varrock.toml — city NPC spawns
+
+[[spawn]]
+npc = "npc.aubury_3op"
+coords = "0_50_53_53_10"
+
+[[spawn]]
+npc = "npc.horvik_the_armourer"
+coords = "0_50_53_29_47"
+
+[[spawn]]
+npc = "npc.lowe"
+coords = "0_50_53_32_32"
+
+[[spawn]]
+npc = "npc.zaff"
+coords = "0_50_53_3_42"
+
+[[spawn]]
+npc = "npc.thessalia_normal"
+coords = "0_50_53_6_25"
+
+[[spawn]]
+npc = "npc.swordshop1"
+coords = "0_50_53_4_5"
+
+[[spawn]]
+npc = "npc.swordshop2"
+coords = "0_50_53_5_5"
+
+[[spawn]]
+npc = "npc.peksa"
+coords = "0_50_53_29_43"
+
+[[spawn]]
+npc = "npc.generalshopkeeper3"
+coords = "0_50_53_17_22"
+
+[[spawn]]
+npc = "npc.generalassistant3"
+coords = "0_50_53_17_23"
+
+[[spawn]]
+npc = "npc.romeo"
+coords = "0_50_53_11_32"
+
+[[spawn]]
+npc = "npc.juliet"
+coords = "0_49_52_22_35"
+
+[[spawn]]
+npc = "npc.apothecary"
+coords = "0_49_53_59_11"
+
+[[spawn]]
+npc = "npc.baraek"
+coords = "0_50_53_17_2"
+
+[[spawn]]
+npc = "npc.gem_trader"
+coords = "0_51_53_21_17"
+
+[[spawn]]
+npc = "npc.silk_trader"
+coords = "0_50_53_4_22"
+
+[[spawn]]
+npc = "npc.reldo_normal"
+coords = "0_50_54_10_38"
+
+[[spawn]]
+npc = "npc.king_roald"
+coords = "0_50_54_22_17"
+
+[[spawn]]
+npc = "npc.curator"
+coords = "0_50_53_54_56"
+
+[[spawn]]
+npc = "npc.aris"
+coords = "0_50_53_2_31"
+
+[[spawn]]
+npc = "npc.straven"
+coords = "0_50_53_26_7"
+
+[[spawn]]
+npc = "npc.katrine"
+coords = "0_50_53_26_9"
+
+[[spawn]]
+npc = "npc.weaponsmaster"
+coords = "0_50_53_26_11"
+
+[[spawn]]
+npc = "npc.jonny_the_beard"
+coords = "0_50_53_26_13"
+
+[[spawn]]
+npc = "npc.banker1"
+coords = "0_49_53_47_44"
+
+[[spawn]]
+npc = "npc.banker2"
+coords = "0_49_53_47_46"
+
+[[spawn]]
+npc = "npc.banker1"
+coords = "0_49_53_49_44"
+
+[[spawn]]
+npc = "npc.banker2"
+coords = "0_49_53_49_46"
+
+[[spawn]]
+npc = "npc.banker1_west"
+coords = "0_50_53_52_27"
+
+[[spawn]]
+npc = "npc.banker2_east"
+coords = "0_50_53_53_27"
+
+[[spawn]]
+npc = "npc.banker1"
+coords = "0_50_53_54_27"
+
+[[spawn]]
+npc = "npc.banker2"
+coords = "0_50_53_54_28"
+
+[[spawn]]
+npc = "npc.ge_clerk_1"
+coords = "0_49_54_28_35"
+
+[[spawn]]
+npc = "npc.ge_clerk_2"
+coords = "0_49_54_29_35"
+
+[[spawn]]
+npc = "npc.ge_clerk_3"
+coords = "0_49_54_28_32"
+
+[[spawn]]
+npc = "npc.ge_clerk_4"
+coords = "0_49_54_29_32"
+
+[[spawn]]
+npc = "npc.banker1_west"
+coords = "0_49_54_27_33"
+
+[[spawn]]
+npc = "npc.banker2_east"
+coords = "0_49_54_30_33"
+
+[[spawn]]
+npc = "npc.banker2"
+coords = "0_49_54_30_34"
