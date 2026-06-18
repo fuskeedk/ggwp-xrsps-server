@@ -1,0 +1,17 @@
+﻿server/gamemodes/vanilla/combat/CombatFormulas.ts
+server/gamemodes/vanilla/combat/SpecialAttackRegistry.ts
+server/src/game/actions/actionPayloads.ts
+server/src/game/actions/handlers/CombatActionHandler.ts
+server/src/game/actions/handlers/NpcHitHandler.ts
+server/src/game/combat/AmmoSystem.ts
+server/src/game/combat/CombatFormulaProvider.ts
+server/src/game/combat/CombatRules.ts
+server/src/game/combat/CombatState.ts
+server/src/game/combat/NpcCombatAI.ts
+server/src/game/combat/PlayerCombatManager.ts
+server/src/game/combat/SpecialAttackProvider.ts
+server/src/game/npc.ts
+server/src/game/services/PlayerCombatService.ts
+server/src/game/services/TickPhaseService.ts
+server/src/game/systems/combat/CombatEngine.ts
+server/src/network/ServiceWiring.ts
