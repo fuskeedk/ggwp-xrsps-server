@@ -4,6 +4,7 @@
  * Replaces JSON.parse for server-to-client messages.
  * Returns the same message format as the JSON protocol for compatibility.
  */
+import pako from "pako";
 import {
     INSTANCE_CHUNK_COUNT,
     PLANE_COUNT,
@@ -1859,7 +1860,6 @@ export function decodeServerPacket(data: Uint8Array | ArrayBuffer): DecodedServe
             const rawBytes = reader.readBytes(reader.remaining);
             let jsonStr: string;
             if (compressed) {
-                const pako = require("pako");
                 const inflated = pako.inflate(rawBytes);
                 jsonStr = new TextDecoder().decode(inflated);
             } else {

@@ -437,6 +437,30 @@ export interface HandlerContext {
     clearTileHighlights: (slot: number) => void;
     hasTileHighlight: (coordPacked: number, slot: number, group: number) => boolean;
 
+    // Entity type highlight overlays (highlight_npctype_* / highlight_loctype_* opcodes)
+    configureNpcTypeHighlight: (
+        slot: number,
+        colorRgb: number | undefined,
+        thickness: number,
+        alphaPercent: number,
+        flags: number,
+    ) => void;
+    setNpcTypeHighlight: (npcTypeId: number, slot: number) => void;
+    removeNpcTypeHighlight: (npcTypeId: number, slot: number) => void;
+    clearNpcTypeHighlights: (slot: number) => void;
+    hasNpcTypeHighlight: (npcTypeId: number, slot: number) => boolean;
+    configureLocTypeHighlight: (
+        slot: number,
+        colorRgb: number | undefined,
+        thickness: number,
+        alphaPercent: number,
+        flags: number,
+    ) => void;
+    setLocTypeHighlight: (locTypeId: number, slot: number) => void;
+    removeLocTypeHighlight: (locTypeId: number, slot: number) => void;
+    clearLocTypeHighlights: (slot: number) => void;
+    hasLocTypeHighlight: (locTypeId: number, slot: number) => boolean;
+
     // Input manager for keyboard state queries (KEYHELD, KEYPRESSED)
     inputManager?: {
         isKeyHeld?: (keyCode: number) => boolean;

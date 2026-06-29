@@ -267,6 +267,7 @@ import {
 import { NpcEcs } from "./ecs/NpcEcs";
 import { PlayerEcs } from "./ecs/PlayerEcs";
 import { TileHighlightManager } from "./highlights/TileHighlightManager";
+import { EntityTypeHighlightManager } from "./highlights/EntityTypeHighlightManager";
 import { PlayerInteractionSystem } from "./interactions/PlayerInteractionSystem";
 import {
     TRADE_CONFIRM_INTERFACE,
@@ -598,6 +599,8 @@ export class OsrsClient {
     readonly notesPlugin: NotesPlugin;
     readonly tileMarkersPlugin: TileMarkersPlugin;
     readonly tileHighlightManager: TileHighlightManager = new TileHighlightManager();
+    readonly npcTypeHighlightManager: EntityTypeHighlightManager = new EntityTypeHighlightManager();
+    readonly locTypeHighlightManager: EntityTypeHighlightManager = new EntityTypeHighlightManager();
     private sidebarPluginVisibility: Required<SidebarPluginVisibilityOptions> = {
         groundItemsEnabled: true,
         interactHighlightEnabled: true,
@@ -1804,6 +1807,60 @@ export class OsrsClient {
             },
             hasTileHighlight: (coordPacked: number, slot: number, group: number) => {
                 return self.tileHighlightManager.has(coordPacked, slot, group);
+            },
+            configureNpcTypeHighlight: (
+                slot: number,
+                colorRgb: number | undefined,
+                thickness: number,
+                alphaPercent: number,
+                flags: number,
+            ) => {
+                self.npcTypeHighlightManager.configure(
+                    slot,
+                    colorRgb,
+                    thickness,
+                    alphaPercent,
+                    flags,
+                );
+            },
+            setNpcTypeHighlight: (npcTypeId: number, slot: number) => {
+                self.npcTypeHighlightManager.addType(slot, npcTypeId);
+            },
+            removeNpcTypeHighlight: (npcTypeId: number, slot: number) => {
+                self.npcTypeHighlightManager.removeType(slot, npcTypeId);
+            },
+            clearNpcTypeHighlights: (slot: number) => {
+                self.npcTypeHighlightManager.clear(slot);
+            },
+            hasNpcTypeHighlight: (npcTypeId: number, slot: number) => {
+                return self.npcTypeHighlightManager.hasType(slot, npcTypeId);
+            },
+            configureLocTypeHighlight: (
+                slot: number,
+                colorRgb: number | undefined,
+                thickness: number,
+                alphaPercent: number,
+                flags: number,
+            ) => {
+                self.locTypeHighlightManager.configure(
+                    slot,
+                    colorRgb,
+                    thickness,
+                    alphaPercent,
+                    flags,
+                );
+            },
+            setLocTypeHighlight: (locTypeId: number, slot: number) => {
+                self.locTypeHighlightManager.addType(slot, locTypeId);
+            },
+            removeLocTypeHighlight: (locTypeId: number, slot: number) => {
+                self.locTypeHighlightManager.removeType(slot, locTypeId);
+            },
+            clearLocTypeHighlights: (slot: number) => {
+                self.locTypeHighlightManager.clear(slot);
+            },
+            hasLocTypeHighlight: (locTypeId: number, slot: number) => {
+                return self.locTypeHighlightManager.hasType(slot, locTypeId);
             },
             // === Game option get/set - controls audio volume and other settings ===
             // Audio option IDs are defined by CS2 constants in this revision:

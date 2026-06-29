@@ -129,25 +129,38 @@ export class PlayerInteractionSystem {
 
     syncServerInteraction(interactionIndex?: number): void {
         if (typeof interactionIndex !== "number" || interactionIndex < 0) {
-            if (this.activeOrigin !== "client") {
-                this.active = undefined;
-                this.activeOrigin = undefined;
-            }
+            this.active = undefined;
+            this.activeOrigin = undefined;
             return;
         }
         const decoded = decodeInteractionIndex(interactionIndex);
         if (!decoded) {
-            if (this.activeOrigin !== "client") {
-                this.active = undefined;
-                this.activeOrigin = undefined;
+            this.active = undefined;
+            this.activeOrigin = undefined;
+            return;
+        }
+
+        let derivedMode: InteractionMode;
+        let derivedTargetType: InteractionTargetType;
+        if (decoded.type === "npc") {
+            derivedMode = "combat";
+            derivedTargetType = "npc";
+        } else {
+            const targetId = decoded.id | 0;
+            if (
+                this.active?.mode === "trade" &&
+                this.active.targetType === "player" &&
+                this.active.targetServerId === targetId
+            ) {
+                derivedMode = "trade";
+            } else {
+                derivedMode = "follow";
             }
-            return;
+            derivedTargetType = "player";
         }
-        const derivedMode: InteractionMode = decoded.type === "npc" ? "combat" : "follow";
-        const derivedTargetType: InteractionTargetType = decoded.type === "npc" ? "npc" : "player";
         const targetId = decoded.id | 0;
+
         if (
-            this.activeOrigin === "client" &&
             this.active &&
             this.active.mode === derivedMode &&
             this.active.targetType === derivedTargetType &&
@@ -155,16 +168,7 @@ export class PlayerInteractionSystem {
         ) {
             return;
         }
-        if (this.activeOrigin === "client") return;
-        if (
-            this.activeOrigin === "server" &&
-            this.active &&
-            this.active.mode === derivedMode &&
-            this.active.targetType === derivedTargetType &&
-            this.active.targetServerId === targetId
-        ) {
-            return;
-        }
+
         this.active = {
             mode: derivedMode,
             targetType: derivedTargetType,

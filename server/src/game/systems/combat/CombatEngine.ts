@@ -1483,9 +1483,11 @@ export class CombatEngine {
     ): number {
         const profile = npc.combat;
         const attackType = attackTypeOverride ?? profile.attackType;
+        const meleeStyle =
+            attackType === AttackType.Melee ? profile.meleeAttackStyle : undefined;
         const result = CombatFormulas.calculateNpcVsPlayer(
             profile,
-            this.buildPlayerDefenceProfile(player, attackType),
+            this.buildPlayerDefenceProfile(player, attackType, meleeStyle),
             attackType,
         );
         if (this.rng.next() >= result.hitChance) {
@@ -1503,6 +1505,7 @@ export class CombatEngine {
     buildPlayerDefenceProfile(
         player: PlayerState,
         attackType: AttackType,
+        meleeStyle?: "stab" | "slash" | "crush",
     ): CombatFormulas.PlayerDefenceProfile {
         const bonuses = this.aggregatePlayerBonuses(player);
         const style = this.resolveAttackStyle(player, bonuses);
@@ -1510,7 +1513,7 @@ export class CombatEngine {
         return {
             defenceLevel: this.getBoostedLevel(player, SkillId.Defence),
             magicLevel: this.getBoostedLevel(player, SkillId.Magic),
-            defenceBonus: this.getPlayerDefenceBonus(player, attackType),
+            defenceBonus: this.getPlayerDefenceBonus(player, attackType, meleeStyle),
             defencePrayerMultiplier: this.getPrayerMultiplier(player, "defence"),
             magicPrayerMultiplier: this.getPrayerMultiplier(player, "magic"),
             defenceStanceBonus: stance.defence ?? 0,
@@ -1587,7 +1590,11 @@ export class CombatEngine {
      * Get player's defence bonus against a specific attack type.
      */
     /** Get player's defence bonus vs attack type. Public for use by PlayerCombatManager. */
-    getPlayerDefenceBonus(player: PlayerState, attackType: AttackType): number {
+    getPlayerDefenceBonus(
+        player: PlayerState,
+        attackType: AttackType,
+        meleeStyle: "stab" | "slash" | "crush" = "slash",
+    ): number {
         const bonuses = this.aggregatePlayerBonuses(player);
         let defenceIndex: number;
         switch (attackType) {
@@ -1598,10 +1605,16 @@ export class CombatEngine {
                 defenceIndex = DEFENCE_BONUS_INDEX[AttackBonusIndex.Ranged];
                 break;
             case AttackType.Melee:
-            default:
-                // For melee, use slash defence as default (most common)
-                defenceIndex = DEFENCE_BONUS_INDEX[AttackBonusIndex.Slash];
+            default: {
+                const styleIndex =
+                    meleeStyle === "stab"
+                        ? AttackBonusIndex.Stab
+                        : meleeStyle === "crush"
+                          ? AttackBonusIndex.Crush
+                          : AttackBonusIndex.Slash;
+                defenceIndex = DEFENCE_BONUS_INDEX[styleIndex];
                 break;
+            }
         }
         return bonuses[defenceIndex] ?? 0;
     }

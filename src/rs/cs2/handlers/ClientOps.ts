@@ -826,45 +826,80 @@ export function registerClientOps(handlers: HandlerMap): void {
         ctx.clearTileHighlights(slot);
     });
 
-    // Entity Highlight/Tagging System - see Opcodes.ts for full documentation
-    // TODO: Implement with highlightedNpcTypes/highlightedLocTypes Sets
+    handlers.set(Opcodes.HIGHLIGHT_NPCTYPE_SETUP, (ctx) => {
+        const flags = ctx.popInt();
+        const alphaPercent = ctx.popInt();
+        const thickness = ctx.popInt();
+        const rawColor = ctx.popInt();
+        const slot = ctx.popInt();
+        ctx.configureNpcTypeHighlight(
+            slot,
+            rawColor >= 0 ? rawColor : undefined,
+            thickness,
+            alphaPercent,
+            flags,
+        );
+    });
 
-    // HIGHLIGHT_NPCTYPE_GET (7008): Check if NPC type is tagged
-    // Stack: pop (npcUid, colorSlot), push boolean
+    handlers.set(Opcodes.HIGHLIGHT_NPCTYPE_ON, (ctx) => {
+        const slot = ctx.popInt();
+        const npcTypeId = ctx.popInt();
+        ctx.setNpcTypeHighlight(npcTypeId, slot);
+    });
+
+    handlers.set(Opcodes.HIGHLIGHT_NPCTYPE_OFF, (ctx) => {
+        const slot = ctx.popInt();
+        const npcTypeId = ctx.popInt();
+        ctx.removeNpcTypeHighlight(npcTypeId, slot);
+    });
+
     handlers.set(Opcodes.HIGHLIGHT_NPCTYPE_GET, (ctx) => {
-        const colorSlot = ctx.intStack[--ctx.intStackSize];
-        const npcUid = ctx.intStack[--ctx.intStackSize];
-        // TODO: Look up npc type from uid, check if in highlightedNpcTypes set
-        void colorSlot;
-        void npcUid;
-        ctx.pushInt(0); // false - not tagged (stub)
+        const slot = ctx.popInt();
+        const npcTypeId = ctx.popInt();
+        ctx.pushInt(ctx.hasNpcTypeHighlight(npcTypeId, slot) ? 1 : 0);
     });
 
-    // HIGHLIGHT_NPCTYPE_CLEAR (7009): Remove tag from NPC type
-    // Stack: pop (typeId)
     handlers.set(Opcodes.HIGHLIGHT_NPCTYPE_CLEAR, (ctx) => {
-        const typeId = ctx.intStack[--ctx.intStackSize];
-        // TODO: Remove typeId from highlightedNpcTypes set
-        void typeId;
+        const slot = ctx.popInt();
+        ctx.clearNpcTypeHighlights(slot);
     });
 
-    // HIGHLIGHT_LOCTYPE_GET (7018): Check if loc/object type is tagged
-    // Stack: pop (locUid, colorSlot), push boolean
+    handlers.set(Opcodes.HIGHLIGHT_LOCTYPE_SETUP, (ctx) => {
+        const flags = ctx.popInt();
+        const alphaPercent = ctx.popInt();
+        const thickness = ctx.popInt();
+        const rawColor = ctx.popInt();
+        const slot = ctx.popInt();
+        ctx.configureLocTypeHighlight(
+            slot,
+            rawColor >= 0 ? rawColor : undefined,
+            thickness,
+            alphaPercent,
+            flags,
+        );
+    });
+
+    handlers.set(Opcodes.HIGHLIGHT_LOCTYPE_ON, (ctx) => {
+        const slot = ctx.popInt();
+        const locTypeId = ctx.popInt();
+        ctx.setLocTypeHighlight(locTypeId, slot);
+    });
+
+    handlers.set(Opcodes.HIGHLIGHT_LOCTYPE_OFF, (ctx) => {
+        const slot = ctx.popInt();
+        const locTypeId = ctx.popInt();
+        ctx.removeLocTypeHighlight(locTypeId, slot);
+    });
+
     handlers.set(Opcodes.HIGHLIGHT_LOCTYPE_GET, (ctx) => {
-        const colorSlot = ctx.intStack[--ctx.intStackSize];
-        const locUid = ctx.intStack[--ctx.intStackSize];
-        // TODO: Look up loc type from uid, check if in highlightedLocTypes set
-        void colorSlot;
-        void locUid;
-        ctx.pushInt(0); // false - not tagged (stub)
+        const slot = ctx.popInt();
+        const locTypeId = ctx.popInt();
+        ctx.pushInt(ctx.hasLocTypeHighlight(locTypeId, slot) ? 1 : 0);
     });
 
-    // HIGHLIGHT_LOCTYPE_CLEAR (7019): Remove tag from loc/object type
-    // Stack: pop (typeId)
     handlers.set(Opcodes.HIGHLIGHT_LOCTYPE_CLEAR, (ctx) => {
-        const typeId = ctx.intStack[--ctx.intStackSize];
-        // TODO: Remove typeId from highlightedLocTypes set
-        void typeId;
+        const slot = ctx.popInt();
+        ctx.clearLocTypeHighlights(slot);
     });
 
     type MinMenuSnapshot = {

@@ -64,6 +64,8 @@ export interface NpcCombatProfile {
     maxHit: number;
     attackSpeed: number;
     attackType: AttackType;
+    /** Melee attack style used when rolling defence vs this NPC's hits. */
+    meleeAttackStyle: "stab" | "slash" | "crush";
     /** Metadata */
     species: string[];
 }
@@ -106,6 +108,7 @@ export const DEFAULT_NPC_COMBAT_PROFILE: NpcCombatProfile = {
     maxHit: 1,
     attackSpeed: 4,
     attackType: "melee",
+    meleeAttackStyle: "slash",
     species: [],
 };
 
