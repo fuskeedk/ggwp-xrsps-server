@@ -717,3 +717,75 @@ export function isInPvPArea(x: number, y: number, plane: number): boolean {
     // TODO: Add Duel Arena detection when implemented
     return false;
 }
+
+/** Tutorial Island — deaths keep all items. */
+const TUTORIAL_ISLAND_BOUNDS = {
+    minX: 3050,
+    maxX: 3150,
+    minY: 3050,
+    maxY: 3135,
+};
+
+/** TzHaar Fight Cave / Inferno instance. */
+const FIGHT_CAVES_BOUNDS = {
+    minX: 2400,
+    maxX: 2447,
+    minY: 5056,
+    maxY: 5119,
+};
+
+/** Mage Arena underground cave (lever teleport). */
+const MAGE_ARENA_SAFE_BOUNDS = {
+    minX: 3105,
+    maxX: 3120,
+    minY: 3930,
+    maxY: 3950,
+};
+
+/** Pest Control lander docks. */
+const PEST_CONTROL_LANDER_BOUNDS = {
+    minX: 2655,
+    maxX: 2675,
+    minY: 2638,
+    maxY: 2658,
+};
+
+function isWithinBounds(
+    x: number,
+    y: number,
+    bounds: { minX: number; maxX: number; minY: number; maxY: number },
+): boolean {
+    return x >= bounds.minX && x <= bounds.maxX && y >= bounds.minY && y <= bounds.maxY;
+}
+
+/**
+ * Check if dying at this position is a safe death (no item loss).
+ * Used by PlayerDeathService.determineDeathType().
+ */
+export function isSafeDeathZone(x: number, y: number, plane: number): boolean {
+    if (plane !== 0) {
+        return false;
+    }
+    if (isWithinBounds(x, y, TUTORIAL_ISLAND_BOUNDS)) {
+        return true;
+    }
+    if (isWithinBounds(x, y, FIGHT_CAVES_BOUNDS)) {
+        return true;
+    }
+    if (isWithinBounds(x, y, MAGE_ARENA_SAFE_BOUNDS)) {
+        return true;
+    }
+    if (isWithinBounds(x, y, PEST_CONTROL_LANDER_BOUNDS)) {
+        return true;
+    }
+    // LMS lobby — safe outside the arena itself
+    if (
+        x >= LMS_LOBBY_MIN_X &&
+        x <= LMS_LOBBY_MAX_X &&
+        y >= LMS_LOBBY_MIN_Y &&
+        y <= LMS_LOBBY_MAX_Y
+    ) {
+        return true;
+    }
+    return false;
+}

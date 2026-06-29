@@ -359,34 +359,96 @@ export class CombatEngine {
                 Math.max(0, equipmentEffects.damageMultiplier),
         );
 
-        // Defender profile (magic defence)
-        const defBonuses = this.aggregatePlayerBonuses(defender);
-        const defStyle = this.resolveAttackStyle(defender, defBonuses);
-        const defStance = this.resolveStanceBonuses(defender, defStyle);
-        const prayedDefence = Math.floor(
-            this.getBoostedLevel(defender, SkillId.Defence) *
-                this.getPrayerMultiplier(defender, "defence"),
-        );
-        const prayedMagic = Math.floor(
-            this.getBoostedLevel(defender, SkillId.Magic) *
-                this.getPrayerMultiplier(defender, "magic"),
-        );
-        const effMagicDef = this.computeMagicDefenceEffectiveLevel(
-            Math.max(1, prayedDefence + (defStance.defence ?? 0)),
-            Math.max(1, prayedMagic),
-        );
-        const magicDefBonusIndex = DEFENCE_BONUS_INDEX[AttackBonusIndex.Magic];
-        const defBonus = defBonuses[magicDefBonusIndex] ?? 0;
-        const defenceRoll = CombatFormulas.defenceRoll({
-            effectiveLevel: effMagicDef,
-            bonus: this.clampEquipmentBonus(defBonus),
-        });
+        const defenceRoll = this.computePlayerDefenceRoll(defender, atkStyle);
 
         const hitChance = this.computeHitChance(attackRoll, defenceRoll);
         const landed = this.rng.next() < hitChance;
         const damage = landed ? this.rollDamage(Math.max(0, maxHit)) : 0;
         return { hitLanded: landed, maxHit, damage };
     }
+
+    /**
+     * Roll a player-vs-player hit for melee, ranged, or magic.
+     * Melee uses the attacker's active style (stab/slash/crush) for defender bonus selection.
+     */
+    planPlayerVsPlayer(
+        attacker: PlayerState,
+        defender: PlayerState,
+        modifiers?: PlayerAttackModifiers,
+    ): {
+        hitLanded: boolean;
+        maxHit: number;
+        damage: number;
+    } {
+        const atkBonuses = this.aggregatePlayerBonuses(attacker);
+        const atkStyle = this.resolveAttackStyle(attacker, atkBonuses);
+        if (atkStyle.kind === AttackType.Magic) {
+            return this.planPlayerVsPlayerMagic(attacker, defender);
+        }
+
+        const equipment = this.getPlayerEquipment(attacker);
+        const hp = this.getPlayerHitpoints(attacker);
+        const targetInfo: TargetInfo = {
+            species: [],
+            magicLevel: this.getBoostedLevel(defender, SkillId.Magic),
+            isUndead: false,
+            isDemon: false,
+            isDragon: false,
+            isKalphite: false,
+        };
+        const equipmentEffects = calculateEquipmentBonuses(
+            equipment,
+            atkStyle.kind,
+            targetInfo,
+            { onTask: false },
+            hp.current,
+            hp.max,
+            this.getBoostedLevel(attacker, SkillId.Magic),
+            undefined,
+        );
+        const baseProfile = this.computePlayerAttackProfile(
+            { player: attacker, npc: defender as unknown as NpcState, attackSpeed: 4 },
+            equipmentEffects,
+        );
+
+        const accuracyMultiplierRaw = modifiers?.accuracyMultiplier;
+        const accuracyMultiplier = Number.isFinite(accuracyMultiplierRaw)
+            ? accuracyMultiplierRaw
+            : 1;
+        const maxHitMultiplierRaw = modifiers?.maxHitMultiplier;
+        const maxHitMultiplier = Number.isFinite(maxHitMultiplierRaw) ? maxHitMultiplierRaw : 1;
+        const forceHit = !!modifiers?.forceHit;
+
+        let attackRoll = Math.floor(
+            Math.max(0, baseProfile.attackRoll) * Math.max(0, equipmentEffects.accuracyMultiplier),
+        );
+        let maxHit = Math.floor(
+            Math.max(0, baseProfile.maxHit + equipmentEffects.maxHitBonus) *
+                Math.max(0, equipmentEffects.damageMultiplier),
+        );
+        attackRoll = Math.floor(
+            attackRoll *
+                Math.max(0, typeof accuracyMultiplier === "number" ? accuracyMultiplier : 1),
+        );
+        maxHit = Math.floor(
+            maxHit * Math.max(0, typeof maxHitMultiplier === "number" ? maxHitMultiplier : 1),
+        );
+
+        const defenceRoll = this.computePlayerDefenceRoll(defender, baseProfile.style);
+        const hitChance = forceHit ? 1 : this.computeHitChance(attackRoll, defenceRoll);
+        const landed = forceHit ? true : this.rng.next() < hitChance;
+        let damage = landed ? this.rollDamage(Math.max(0, maxHit)) : 0;
+        if (landed && damage > 0 && equipmentEffects.damageProcs?.length) {
+            for (const proc of equipmentEffects.damageProcs) {
+                const chance = Math.max(0, Math.min(1, proc.chance));
+                if (chance > 0 && this.rng.next() < chance) {
+                    damage = Math.max(0, Math.floor(damage * Math.max(0, proc.multiplier)));
+                }
+            }
+        }
+        return { hitLanded: landed, maxHit, damage };
+    }
+
     planPlayerAttack(
         context: PlayerAttackContext,
         modifiers?: PlayerAttackModifiers,
@@ -1564,6 +1626,75 @@ export class CombatEngine {
     private computeMagicDefenceEffectiveLevel(defenceLevel: number, magicLevel: number): number {
         // Magic defence uses 70% magic, 30% defence (provider takes magic first).
         return CombatFormulas.effectiveMagicDefence(magicLevel, defenceLevel);
+    }
+
+    private bonusIndexToMeleeStyle(
+        index: AttackBonusIndex.Stab | AttackBonusIndex.Slash | AttackBonusIndex.Crush,
+    ): "stab" | "slash" | "crush" {
+        switch (index) {
+            case AttackBonusIndex.Stab:
+                return "stab";
+            case AttackBonusIndex.Crush:
+                return "crush";
+            case AttackBonusIndex.Slash:
+            default:
+                return "slash";
+        }
+    }
+
+    /** Defender roll for player-vs-player hits using the incoming attack style. */
+    private computePlayerDefenceRoll(defender: PlayerState, attackStyle: AttackStyle): number {
+        const defBonuses = this.aggregatePlayerBonuses(defender);
+        const defStyle = this.resolveAttackStyle(defender, defBonuses);
+        const defStance = this.resolveStanceBonuses(defender, defStyle);
+        const meleeStyle =
+            attackStyle.kind === AttackType.Melee
+                ? this.bonusIndexToMeleeStyle(
+                      attackStyle.bonusIndex as
+                          | AttackBonusIndex.Stab
+                          | AttackBonusIndex.Slash
+                          | AttackBonusIndex.Crush,
+                  )
+                : undefined;
+        const defenceBonus = this.getPlayerDefenceBonus(
+            defender,
+            attackStyle.kind,
+            meleeStyle ?? "slash",
+        );
+        const clampedBonus = this.clampEquipmentBonus(defenceBonus);
+
+        switch (attackStyle.kind) {
+            case AttackType.Magic: {
+                const prayedDefence = Math.floor(
+                    this.getBoostedLevel(defender, SkillId.Defence) *
+                        this.getPrayerMultiplier(defender, "defence"),
+                );
+                const prayedMagic = Math.floor(
+                    this.getBoostedLevel(defender, SkillId.Magic) *
+                        this.getPrayerMultiplier(defender, "magic"),
+                );
+                const effMagicDef = this.computeMagicDefenceEffectiveLevel(
+                    Math.max(1, prayedDefence + (defStance.defence ?? 0)),
+                    Math.max(1, prayedMagic),
+                );
+                return CombatFormulas.defenceRoll({
+                    effectiveLevel: effMagicDef,
+                    bonus: clampedBonus,
+                });
+            }
+            case AttackType.Ranged:
+            case AttackType.Melee: {
+                const effDef = this.computeEffectiveLevel(
+                    this.getBoostedLevel(defender, SkillId.Defence),
+                    this.getPrayerMultiplier(defender, "defence"),
+                    defStance.defence ?? 0,
+                );
+                return CombatFormulas.defenceRoll({
+                    effectiveLevel: effDef,
+                    bonus: clampedBonus,
+                });
+            }
+        }
     }
 
     private resolveNpcDefenceBonus(

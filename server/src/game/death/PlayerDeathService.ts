@@ -26,7 +26,7 @@ import { getItemDefinition } from "../../data/items";
 import { logger } from "../../utils/logger";
 import type { ServerServices } from "../ServerServices";
 import { RUN_ENERGY_MAX } from "../actor";
-import { getWildernessLevel, isInWilderness } from "../combat/MultiCombatZones";
+import { getWildernessLevel, isInRaid, isInWilderness, isSafeDeathZone } from "../combat/MultiCombatZones";
 import { LockState } from "../model/LockState";
 import type { PlayerState } from "../player";
 import { DeathHookRegistry } from "./DeathHookRegistry";
@@ -327,6 +327,12 @@ export class PlayerDeathService {
         wildernessLevel: number,
         killer?: PlayerState,
     ): DeathType {
+        if (isSafeDeathZone(location.x, location.y, location.level)) {
+            return DeathType.SAFE;
+        }
+        if (isInRaid(location.x, location.y, location.level)) {
+            return DeathType.INSTANCED;
+        }
         if (killer) {
             return DeathType.PVP;
         }

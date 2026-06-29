@@ -262,7 +262,7 @@ export class SpellActionHandler {
     ): { hitLanded: boolean; maxHit: number; damage: number } {
         try {
             const engine = new CombatEngine();
-            const res = engine.planPlayerVsPlayerMagic(attacker, target);
+            const res = engine.planPlayerVsPlayer(attacker, target);
             return {
                 hitLanded: !!res.hitLanded,
                 maxHit: res.maxHit,
