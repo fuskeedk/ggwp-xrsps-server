@@ -5,6 +5,7 @@
  * NPC movement, chase, retreat, and retaliation authority remain in NpcManager.
  */
 import type { PathService } from "../../pathfinding/PathService";
+import { faceAngleRs } from "../../../../src/rs/utils/rotation";
 import {
     CardinalAdjacentRouteStrategy,
     ExactRouteStrategy,
@@ -25,6 +26,7 @@ import {
     hasDirectMeleePath,
     hasDirectMeleeReach,
     hasProjectileLineOfSightToNpc,
+    hasProjectileLineOfSightToRect,
     isWithinAttackRange,
 } from "./CombatAction";
 import { CombatEffectApplicator } from "./CombatEffectApplicator";
@@ -57,6 +59,7 @@ import {
 // =============================================================================
 
 const DEFAULT_MAGIC_CAST_SPOT = 90;
+const DEFAULT_RANGED_ATTACK_SPOT = 249;
 
 // =============================================================================
 // Helper Functions
@@ -141,6 +144,10 @@ export interface PlayerCombatManagerContext {
     pathService?: PathService;
     /** Get player's attack speed based on weapon */
     pickAttackSpeed: (player: PlayerState, targetType?: "npc" | "player") => number;
+    /** Projectile/melee hit delay for player attacks */
+    pickHitDelay?: (player: PlayerState) => number;
+    /** Attack animation sequence for the equipped weapon */
+    pickAttackSequence?: (player: PlayerState) => number;
     /** Get NPC hit delay (projectile travel time) */
     pickNpcHitDelay?: (npc: NpcState, player: PlayerState, attackSpeed: number) => number;
     /** Get special attack energy cost for a weapon */
@@ -505,38 +512,43 @@ export class PlayerCombatManager {
             }
         }
 
-        // Player vs Player autocast scheduling
+        // Player vs Player attack scheduling (magic autocast + melee/ranged)
         if (this.playerManager && this.actionScheduler) {
-            const schedulePlayerVsPlayerAutocast = (
+            const schedulePlayerVsPlayerAttack = (
                 player: PlayerState,
                 target: PlayerState,
                 attackDelay: number,
                 currentTick: number,
             ): boolean => {
                 const spellId = player.combat.spellId;
-                if (!(spellId > 0)) return false;
-                const modeRaw = player.combat.autocastMode;
-                const castMode =
-                    modeRaw === "defensive_autocast" ? "defensive_autocast" : ("autocast" as const);
-                const res = this.actionScheduler!.requestAction(
-                    player.id,
-                    {
-                        kind: "combat.autocast",
-                        data: {
-                            targetId: target.id,
-                            spellId: spellId,
-                            castMode,
+                if (player.combat.autocastEnabled && spellId > 0) {
+                    const modeRaw = player.combat.autocastMode;
+                    const castMode =
+                        modeRaw === "defensive_autocast"
+                            ? "defensive_autocast"
+                            : ("autocast" as const);
+                    const res = this.actionScheduler!.requestAction(
+                        player.id,
+                        {
+                            kind: "combat.autocast",
+                            data: {
+                                targetId: target.id,
+                                spellId: spellId,
+                                castMode,
+                            },
+                            groups: ["combat.attack"],
+                            cooldownTicks: Math.max(1, attackDelay),
+                            delayTicks: 0,
                         },
-                        groups: ["combat.attack"],
-                        cooldownTicks: Math.max(1, attackDelay),
-                        delayTicks: 0,
-                    },
-                    currentTick,
-                );
-                return !!res.ok;
+                        currentTick,
+                    );
+                    return !!res.ok;
+                }
+
+                return this.schedulePlayerVsPlayerMeleeRanged(player, target, currentTick, ctx);
             };
 
-            this.playerManager.updatePlayerAttacks(ctx.tick, schedulePlayerVsPlayerAutocast, {
+            this.playerManager.updatePlayerAttacks(ctx.tick, schedulePlayerVsPlayerAttack, {
                 pickPlayerAttackDelay: (player) => ctx.pickAttackSpeed(player, "player"),
             });
         }
@@ -834,6 +846,107 @@ export class PlayerCombatManager {
         if (sm && sm.getState() === CombatPhase.Attacking) {
             sm.forceState(CombatPhase.Cooldown, tick, "attack_executed");
         }
+    }
+
+    /**
+     * Schedule a melee or ranged player-vs-player attack.
+     * Magic autocast uses the combat.autocast path instead.
+     */
+    schedulePlayerVsPlayerMeleeRanged(
+        player: PlayerState,
+        target: PlayerState,
+        tick: number,
+        ctx: Pick<
+            PlayerCombatManagerContext,
+            "pickAttackSpeed" | "pickHitDelay" | "pickAttackSequence" | "getAttackReach" | "pathService" | "queueSpotAnimation"
+        >,
+    ): boolean {
+        if (!this.actionScheduler) return false;
+
+        const attackType = resolvePlayerAttackType(player.combat);
+        if (attackType === AttackType.Magic) return false;
+
+        const reach = ctx.getAttackReach?.(player) ?? resolvePlayerAttackReach(player.combat);
+        if (!isWithinAttackRange(player, target, reach)) return false;
+
+        const pathService = ctx.pathService;
+        if (reach <= 1) {
+            if (pathService && !hasDirectMeleeReach(player, target, pathService)) return false;
+        } else if (
+            pathService &&
+            !hasProjectileLineOfSightToRect(
+                player.tileX,
+                player.tileY,
+                player.level,
+                target.tileX,
+                target.tileY,
+                1,
+                1,
+                pathService,
+            )
+        ) {
+            return false;
+        }
+
+        if (!player.combat.isAttackReady(tick)) return false;
+
+        const attackSpeed = Math.max(1, ctx.pickAttackSpeed(player, "player"));
+        const hitDelay = Math.max(0, ctx.pickHitDelay?.(player) ?? 0);
+        const expectedHitTick = tick + hitDelay;
+
+        const plan = this.engine.planPlayerVsPlayer(player, target);
+        const style = plan.hitLanded ? HITMARK_DAMAGE : HITMARK_BLOCK;
+
+        const targetX = (target.tileX << 7) + 64;
+        const targetY = (target.tileY << 7) + 64;
+        if (player.x !== targetX || player.y !== targetY) {
+            player.setForcedOrientation(faceAngleRs(player.x, player.y, targetX, targetY));
+            player._pendingFace = { x: targetX, y: targetY };
+            player.pendingFaceTile = { x: target.tileX, y: target.tileY };
+        }
+        player.markSent();
+
+        const attackSeq = ctx.pickAttackSequence?.(player);
+        if (attackSeq !== undefined && attackSeq >= 0) {
+            player.queueOneShotSeq(attackSeq, 0);
+        }
+
+        if (attackType === AttackType.Ranged) {
+            ctx.queueSpotAnimation?.({
+                tick,
+                playerId: player.id,
+                spotId: DEFAULT_RANGED_ATTACK_SPOT,
+                delay: 0,
+            });
+        }
+
+        const res = this.actionScheduler.requestAction(
+            player.id,
+            {
+                kind: "combat.playerHit",
+                data: {
+                    targetId: target.id,
+                    damage: plan.damage,
+                    maxHit: plan.maxHit,
+                    style,
+                    attackDelay: attackSpeed,
+                    hitDelay,
+                    expectedHitTick,
+                    landed: plan.hitLanded,
+                    attackType,
+                },
+                groups: ["combat.hit"],
+                cooldownTicks: 0,
+                delayTicks: hitDelay,
+            },
+            tick,
+        );
+
+        if (res.ok) {
+            player.combat.attackDelay = attackSpeed;
+            this.onAttackExecuted(player.id, tick, attackSpeed);
+        }
+        return !!res.ok;
     }
 
     /**

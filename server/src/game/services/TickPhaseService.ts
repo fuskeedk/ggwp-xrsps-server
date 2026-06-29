@@ -670,6 +670,8 @@ export class TickPhaseService {
             pathService: this.svc.pathService!,
             pickAttackSpeed: (player, targetType) =>
                 this.svc.playerCombatService!.pickAttackSpeed(player, targetType),
+            pickHitDelay: (player) => this.svc.playerCombatService!.pickHitDelay(player),
+            pickAttackSequence: (player) => this.svc.playerCombatService!.pickAttackSequence(player),
             pickNpcHitDelay: (npc, player, attackSpeed) =>
                 this.svc.combatEffectService.pickNpcHitDelay(npc, player, attackSpeed),
             getWeaponSpecialCostPercent: (weaponItemId) =>

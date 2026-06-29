@@ -51,11 +51,25 @@ const makeEquipmentKey = (itemId: number, option?: string): RegistryKey =>
     `${itemId}#${normalizeOption(option)}`;
 
 const makeRegistrationResult = (
-    map: Map<RegistryKey, NpcInteractionHandler | LocInteractionHandler>,
+    map: Map<RegistryKey, LocInteractionHandler>,
     key: RegistryKey,
 ): ScriptRegistrationResult => ({
     unregister: () => {
         map.delete(key);
+    },
+});
+
+const makeNpcRegistrationResult = (
+    map: Map<RegistryKey, NpcInteractionHandler[]>,
+    key: RegistryKey,
+    handler: NpcInteractionHandler,
+): ScriptRegistrationResult => ({
+    unregister: () => {
+        const handlers = map.get(key);
+        if (!handlers) return;
+        const index = handlers.indexOf(handler);
+        if (index >= 0) handlers.splice(index, 1);
+        if (handlers.length === 0) map.delete(key);
     },
 });
 
@@ -66,7 +80,7 @@ function warnOverwrite(map: { has(key: unknown): boolean }, key: unknown, label:
 }
 
 export class ScriptRegistry implements IScriptRegistry {
-    private readonly npcHandlers = new Map<RegistryKey, NpcInteractionHandler>();
+    private readonly npcHandlers = new Map<RegistryKey, NpcInteractionHandler[]>();
     private readonly locHandlers = new Map<RegistryKey, LocInteractionHandler>();
     private readonly locActionHandlers = new Map<string, LocInteractionHandler>();
     private readonly npcActionHandlers = new Map<string, NpcInteractionHandler>();
@@ -90,9 +104,13 @@ export class ScriptRegistry implements IScriptRegistry {
         option?: string,
     ): ScriptRegistrationResult {
         const key = makeNpcKey(npcId, option);
-        warnOverwrite(this.npcHandlers, key, "npc");
-        this.npcHandlers.set(key, handler);
-        return makeRegistrationResult(this.npcHandlers, key);
+        const handlers = this.npcHandlers.get(key) ?? [];
+        if (handlers.length > 0) {
+            logger.info(`[script] adding npc handler for existing key "${key}"`);
+        }
+        handlers.push(handler);
+        this.npcHandlers.set(key, handlers);
+        return makeNpcRegistrationResult(this.npcHandlers, key, handler);
     }
 
     registerNpcScript(params: {
@@ -358,14 +376,14 @@ export class ScriptRegistry implements IScriptRegistry {
 
     findNpcInteraction(npcId: number, option?: string): NpcInteractionHandler | undefined {
         const key = makeNpcKey(npcId, option);
-        const direct = this.npcHandlers.get(key);
+        const direct = this.composeNpcHandlers(this.npcHandlers.get(key));
         if (direct) return direct;
         return this.npcActionHandlers.get(normalizeOption(option));
     }
 
     findNpcInteractionDirect(npcId: number, option?: string): NpcInteractionHandler | undefined {
         const key = makeNpcKey(npcId, option);
-        return this.npcHandlers.get(key);
+        return this.composeNpcHandlers(this.npcHandlers.get(key));
     }
 
     findNpcAction(option?: string): NpcInteractionHandler | undefined {
@@ -476,6 +494,30 @@ export class ScriptRegistry implements IScriptRegistry {
 
     getTickHandlers(): ReadonlySet<TickHandler> {
         return this.tickHandlers;
+    }
+
+    private composeNpcHandlers(
+        handlers: NpcInteractionHandler[] | undefined,
+    ): NpcInteractionHandler | undefined {
+        if (!handlers || handlers.length === 0) return undefined;
+        if (handlers.length === 1) return handlers[0];
+        return (event) => {
+            const stableHandlers = [...handlers];
+            for (const handler of stableHandlers) {
+                const beforeModal =
+                    event.services.dialog.getInterfaceService()?.getCurrentChatboxModal(
+                        event.player,
+                    );
+                const result = handler(event);
+                if (result instanceof Promise) return result;
+                const afterModal =
+                    event.services.dialog.getInterfaceService()?.getCurrentChatboxModal(
+                        event.player,
+                    );
+                if (beforeModal === undefined && afterModal !== undefined) return;
+                if (afterModal !== undefined && afterModal !== beforeModal) return;
+            }
+        };
     }
 
     clearAll(): void {
