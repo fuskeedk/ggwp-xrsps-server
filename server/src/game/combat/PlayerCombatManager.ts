@@ -186,6 +186,14 @@ export interface PlayerCombatManagerContext {
         delay?: number;
         height?: number;
     }) => void;
+    /** Consume ranged ammo when attacking another player. */
+    consumeRangedAmmo?: (
+        player: PlayerState,
+        target: PlayerState,
+        weaponItemId: number,
+        hitCount: number,
+        tick: number,
+    ) => boolean;
     /** Callback when magic attack is scheduled (for rune consumption, etc.) */
     onMagicAttack?: (event: {
         player: PlayerState;
@@ -858,7 +866,13 @@ export class PlayerCombatManager {
         tick: number,
         ctx: Pick<
             PlayerCombatManagerContext,
-            "pickAttackSpeed" | "pickHitDelay" | "pickAttackSequence" | "getAttackReach" | "pathService" | "queueSpotAnimation"
+            | "pickAttackSpeed"
+            | "pickHitDelay"
+            | "pickAttackSequence"
+            | "getAttackReach"
+            | "pathService"
+            | "queueSpotAnimation"
+            | "consumeRangedAmmo"
         >,
     ): boolean {
         if (!this.actionScheduler) return false;
@@ -889,6 +903,12 @@ export class PlayerCombatManager {
         }
 
         if (!player.combat.isAttackReady(tick)) return false;
+
+        const weaponItemId = player.combat.weaponItemId ?? -1;
+        if (attackType === AttackType.Ranged && weaponItemId > 0) {
+            const ammoOk = ctx.consumeRangedAmmo?.(player, target, weaponItemId, 1, tick) ?? true;
+            if (!ammoOk) return false;
+        }
 
         const attackSpeed = Math.max(1, ctx.pickAttackSpeed(player, "player"));
         const hitDelay = Math.max(0, ctx.pickHitDelay?.(player) ?? 0);

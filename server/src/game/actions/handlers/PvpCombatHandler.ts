@@ -250,24 +250,25 @@ export class PvpCombatHandler {
      */
     handlePvpAutoRetaliate(attacker: PlayerState, target: PlayerState, targetId: number): void {
         try {
-            if (
-                target.combat.autoRetaliate &&
-                target.combat.autocastEnabled &&
-                Number.isFinite(target.combat.spellId) &&
-                target.combat.spellId > 0
-            ) {
-                const targetSock = this.services.getPlayerSocket(targetId);
-                if (targetSock) {
-                    const st = this.services.getInteractionState(targetSock);
-                    const alreadyOnAttacker =
-                        st?.kind === "playerCombat" && (st.playerId ?? 0) === attacker.id;
-                    const isIdle = !st;
-                    const isBusyNpc = st?.kind === "npcCombat";
-                    const isBusyPlayer = st?.kind === "playerCombat" && !alreadyOnAttacker;
-                    if (!isBusyNpc && !isBusyPlayer && (isIdle || alreadyOnAttacker)) {
-                        this.services.startPlayerCombat(targetSock, attacker.id);
-                    }
-                }
+            if (!target.combat.autoRetaliate) return;
+
+            const targetSock = this.services.getPlayerSocket(targetId);
+            if (!targetSock) return;
+
+            const st = this.services.getInteractionState(targetSock);
+            const alreadyOnAttacker =
+                st?.kind === "playerCombat" && (st.playerId ?? 0) === attacker.id;
+            const isIdle = !st;
+            const isBusyNpc = st?.kind === "npcCombat";
+            const isBusyPlayer = st?.kind === "playerCombat" && !alreadyOnAttacker;
+            if (isBusyNpc || (isBusyPlayer && !alreadyOnAttacker)) return;
+            if (!isIdle && !alreadyOnAttacker) return;
+
+            const spellId = target.combat.spellId ?? -1;
+            const magicAutocast =
+                target.combat.autocastEnabled && Number.isFinite(spellId) && spellId > 0;
+            if (magicAutocast || isIdle || alreadyOnAttacker) {
+                this.services.startPlayerCombat(targetSock, attacker.id);
             }
         } catch (err) {
             logger.warn("[combat] failed to handle pvp auto-retaliate", err);

@@ -1,5 +1,9 @@
 import { logger } from "../../../utils/logger";
 import { AmmoType, getAmmoType } from "../../combat/AmmoSystem";
+import {
+    consumeBlowpipeShot,
+    isBlowpipeWeapon,
+} from "../../combat/BlowpipeSystem";
 import { AttackType } from "../../combat/AttackType";
 import { DegradationSystem, getChargesUsed, setChargesUsed } from "../../combat/DegradationSystem";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
@@ -25,8 +29,54 @@ export function handleRangedAmmoConsumption(
     tick: number,
     effects: ActionEffect[],
 ): ActionExecutionResult {
+    return handleRangedAmmoConsumptionAt(
+        services,
+        player,
+        weaponItemId,
+        hitCount,
+        tick,
+        npc.tileX,
+        npc.tileY,
+        npc.level,
+        effects,
+    );
+}
+
+export function handleRangedAmmoConsumptionAt(
+    services: CombatActionServices,
+    player: PlayerState,
+    weaponItemId: number,
+    hitCount: number,
+    tick: number,
+    targetX: number,
+    targetY: number,
+    targetLevel: number,
+    effects: ActionEffect[],
+): ActionExecutionResult {
     const equip = services.getEquipArray(player);
     const equipQty = services.getEquipQtyArray(player);
+
+    if (isBlowpipeWeapon(weaponItemId)) {
+        const appearance = player.appearance;
+        if (!appearance) {
+            return { ok: false, reason: "appearance_missing" };
+        }
+        const result = consumeBlowpipeShot(player, appearance, hitCount);
+        if (!result.ok) {
+            if (result.chatMessage) {
+                services.queueChatMessage({
+                    messageType: "game",
+                    text: result.chatMessage,
+                    targetPlayerIds: [player.id],
+                });
+            }
+            return { ok: false, reason: result.reason ?? "ammo_missing" };
+        }
+        services.markEquipmentDirty(player);
+        services.markAppearanceDirty(player);
+        effects.push({ type: "appearanceUpdate", playerId: player.id });
+        return { ok: true };
+    }
 
     // ========================================================================
     // Degradable Weapon Handling (Crystal Bow, Bow of Faerdhinen, etc.)
@@ -115,8 +165,8 @@ export function handleRangedAmmoConsumption(
         ammoId,
         ammoQty,
         capeId,
-        npc.tileX,
-        npc.tileY,
+        targetX,
+        targetY,
         Math.random,
     );
 
@@ -155,13 +205,13 @@ export function handleRangedAmmoConsumption(
     }
 
     if (result.dropped && result.quantityUsed && result.quantityUsed > 0) {
-        const dropX = result.dropTileX ?? npc.tileX;
-        const dropY = result.dropTileY ?? npc.tileY;
+        const dropX = result.dropTileX ?? targetX;
+        const dropY = result.dropTileY ?? targetY;
         const inWilderness = services.isInWilderness(dropX, dropY);
         services.spawnGroundItem(
             ammoId,
             result.quantityUsed,
-            { x: dropX, y: dropY, level: npc.level },
+            { x: dropX, y: dropY, level: targetLevel },
             tick,
             {
                 ownerId: player.id,

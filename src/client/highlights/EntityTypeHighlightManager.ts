@@ -77,4 +77,16 @@ export class EntityTypeHighlightManager {
         this.typesBySlot.delete(normalizedSlot);
         this.stylesBySlot.delete(normalizedSlot);
     }
+
+    findStyleForType(typeId: number): EntityTypeHighlightStyle | undefined {
+        const normalizedTypeId = typeId | 0;
+        for (const [slot, types] of this.typesBySlot) {
+            if (!types.has(normalizedTypeId)) continue;
+            const style = this.stylesBySlot.get(slot);
+            if (style?.colorRgb !== undefined) {
+                return style;
+            }
+        }
+        return undefined;
+    }
 }

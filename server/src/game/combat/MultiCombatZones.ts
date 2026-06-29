@@ -713,8 +713,11 @@ export function isInPvPArea(x: number, y: number, plane: number): boolean {
     ) {
         return true;
     }
+    // Emir's Arena / legacy Duel Arena combat area
+    if (isWithinBounds(x, y, DUEL_ARENA_BOUNDS) && plane === 0) {
+        return true;
+    }
     // TODO: Add PvP world detection when implemented
-    // TODO: Add Duel Arena detection when implemented
     return false;
 }
 
@@ -750,6 +753,14 @@ const PEST_CONTROL_LANDER_BOUNDS = {
     maxY: 2658,
 };
 
+/** Emir's Arena / legacy Duel Arena (safe deaths, no item loss). */
+const DUEL_ARENA_BOUNDS = {
+    minX: 3329,
+    maxX: 3393,
+    minY: 3203,
+    maxY: 3279,
+};
+
 function isWithinBounds(
     x: number,
     y: number,
@@ -776,6 +787,9 @@ export function isSafeDeathZone(x: number, y: number, plane: number): boolean {
         return true;
     }
     if (isWithinBounds(x, y, PEST_CONTROL_LANDER_BOUNDS)) {
+        return true;
+    }
+    if (isWithinBounds(x, y, DUEL_ARENA_BOUNDS)) {
         return true;
     }
     // LMS lobby — safe outside the arena itself

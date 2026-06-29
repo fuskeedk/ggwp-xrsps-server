@@ -54,7 +54,11 @@ import type {
     CombatPlayerHitActionData,
 } from "../actionPayloads";
 import type { ActionEffect, ActionExecutionResult, ActionRequest, ScheduledAction } from "../types";
-import { handleAutocastRuneConsumption, handleRangedAmmoConsumption } from "./CombatHandlerUtils";
+import {
+    handleAutocastRuneConsumption,
+    handleRangedAmmoConsumption,
+    handleRangedAmmoConsumptionAt,
+} from "./CombatHandlerUtils";
 import { CompanionHitHandler } from "./CompanionHitHandler";
 import { NpcHitHandler } from "./NpcHitHandler";
 import { NpcRetaliationHandler } from "./NpcRetaliationHandler";
@@ -1331,6 +1335,34 @@ export class CombatActionHandler {
             this.svc.effectDispatcher!.dispatchActionEffects(effects);
         }
         return { ok: true, cooldownTicks: attackDelay, groups: ["combat.attack"], effects };
+    }
+
+    /**
+     * Consume ranged ammo for a player-vs-player swing.
+     */
+    consumeRangedAmmoForPlayerTarget(
+        player: PlayerState,
+        target: PlayerState,
+        weaponItemId: number,
+        hitCount: number,
+        tick: number,
+    ): ActionExecutionResult {
+        const effects: ActionEffect[] = [];
+        const result = handleRangedAmmoConsumptionAt(
+            this.subServices,
+            player,
+            weaponItemId,
+            hitCount,
+            tick,
+            target.tileX,
+            target.tileY,
+            target.level,
+            effects,
+        );
+        if (!this.svc.activeFrame && effects.length > 0) {
+            this.svc.effectDispatcher?.dispatchActionEffects(effects);
+        }
+        return result;
     }
 
     /**

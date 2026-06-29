@@ -680,6 +680,14 @@ export class TickPhaseService {
             queueSpotAnimation: (event) => {
                 this.svc.broadcastService.enqueueSpotAnimation(event);
             },
+            consumeRangedAmmo: (player, target, weaponItemId, hitCount, tick) =>
+                !!this.svc.combatActionHandler?.consumeRangedAmmoForPlayerTarget(
+                    player,
+                    target,
+                    weaponItemId,
+                    hitCount,
+                    tick,
+                ).ok,
             onMagicAttack: ({ player, npc, plan, tick }) =>
                 this.svc.spellActionHandler!.handleAutocastMagicAttack({
                     player,
