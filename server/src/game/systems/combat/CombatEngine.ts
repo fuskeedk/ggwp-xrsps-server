@@ -208,7 +208,8 @@ const MAGIC_DAMAGE_INDEX = 12;
 const MAGIC_WEAPON_CATEGORIES = new Set<number>([18, 24, 29]);
 // Powered staff categories always use magic attacks (built-in spell, no autocast needed)
 const POWERED_STAFF_CATEGORIES = new Set<number>([24]); // POWERED_STAFF (includes Tumeken's Shadow)
-const RANGED_WEAPON_CATEGORIES = new Set<number>([3, 5, 6, 7, 8, 19]);
+const SALAMANDER_WEAPON_CATEGORY = 6;
+const RANGED_WEAPON_CATEGORIES = new Set<number>([3, 5, 7, 8, 19]);
 const MAGIC_DART_SPELL_ID = 4176;
 const MELEE_STYLE_BY_SLOT: MeleeStyleMode[] = [
     MeleeStyle.Accurate,
@@ -1241,16 +1242,16 @@ export class CombatEngine {
             }
             case AttackType.Ranged: {
                 // OSRS ranged stance bonuses:
-                // Accurate: +3 ranged (used for BOTH attack roll AND max hit)
+                // Accurate: +3 ranged accuracy only
                 // Rapid: no bonus (speed bonus handled elsewhere)
-                // Longrange: +1 ranged, +3 defence (and +2 attack range)
+                // Longrange: +1 ranged accuracy, +3 defence (and +2 attack range)
                 switch (style.mode) {
                     case RangedStyle.Accurate:
-                        return { ranged: 3, rangedStrength: 3 };
+                        return { ranged: 3 };
                     case RangedStyle.Rapid:
                         return {}; // No stat bonus, speed bonus handled in pickAttackSpeed
                     case RangedStyle.Longrange:
-                        return { ranged: 1, rangedStrength: 1, defence: 3 };
+                        return { ranged: 1, defence: 3 };
                     default:
                         return {};
                 }
@@ -1337,6 +1338,27 @@ export class CombatEngine {
                 return { kind: AttackType.Magic, mode, bonusIndex: AttackBonusIndex.Magic };
             }
             // Autocast disabled or no spell selected - fall through to melee (e.g., "pound" style)
+        }
+        if (category === SALAMANDER_WEAPON_CATEGORY) {
+            if (styleSlot === 0) {
+                return {
+                    kind: AttackType.Melee,
+                    mode: MeleeStyle.Aggressive,
+                    bonusIndex: AttackBonusIndex.Slash,
+                };
+            }
+            if (styleSlot === 1) {
+                return {
+                    kind: AttackType.Ranged,
+                    mode: RangedStyle.Accurate,
+                    bonusIndex: AttackBonusIndex.Ranged,
+                };
+            }
+            return {
+                kind: AttackType.Magic,
+                mode: MagicStyle.Accurate,
+                bonusIndex: AttackBonusIndex.Magic,
+            };
         }
         if (RANGED_WEAPON_CATEGORIES.has(category)) {
             const mode =

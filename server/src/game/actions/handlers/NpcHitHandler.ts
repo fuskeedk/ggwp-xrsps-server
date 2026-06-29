@@ -12,7 +12,7 @@
 import { logger } from "../../../utils/logger";
 import { AttackType } from "../../combat/AttackType";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
-import type { NpcState } from "../../npc";
+import type { NpcCombatStat, NpcState } from "../../npc";
 import type { PlayerState } from "../../player";
 import { getPoweredStaffSpellData } from "../../spells/SpellDataProvider";
 import type { PoweredStaffSpellData } from "../../spells/SpellDataProvider";
@@ -448,9 +448,56 @@ export class NpcHitHandler {
             }
         }
 
+        this.handleNpcSpecialStatDrains(npc, se, dealt);
+
         const sync = player.skillSystem.takeSkillSync();
         if (sync) {
             this.services.queueSkillSnapshot(player.id, sync);
+        }
+    }
+
+    private handleNpcSpecialStatDrains(
+        npc: NpcState,
+        effects: NonNullable<SpecialAttackPayload["effects"]>,
+        damageDealt: number,
+    ): void {
+        const dealt = Math.max(0, Math.trunc(damageDealt));
+
+        if (
+            typeof effects.drainDefencePercent === "number" &&
+            Number.isFinite(effects.drainDefencePercent) &&
+            effects.drainDefencePercent > 0
+        ) {
+            npc.drainCombatStatPercent("defence", effects.drainDefencePercent);
+        }
+
+        if (
+            dealt > 0 &&
+            typeof effects.drainDefenceByDamage === "number" &&
+            Number.isFinite(effects.drainDefenceByDamage) &&
+            effects.drainDefenceByDamage > 0
+        ) {
+            npc.drainCombatStat("defence", Math.floor(dealt * effects.drainDefenceByDamage), {
+                onlyIfNotDrained: !!effects.drainDefenceOnlyIfNotDrained,
+            });
+        }
+
+        if (dealt > 0 && effects.drainMagicByDamage) {
+            npc.drainCombatStat("magic", dealt);
+        }
+
+        if (dealt > 0 && effects.drainCombatStatByDamage) {
+            this.drainNpcCombatStatsByDamage(npc, dealt);
+        }
+    }
+
+    private drainNpcCombatStatsByDamage(npc: NpcState, damageDealt: number): void {
+        let remaining = Math.max(0, Math.trunc(damageDealt));
+        const drainOrder: NpcCombatStat[] = ["defence", "strength", "attack", "magic", "ranged"];
+        for (const stat of drainOrder) {
+            if (remaining <= 0) break;
+            const drained = npc.drainCombatStat(stat, remaining);
+            remaining -= drained;
         }
     }
 

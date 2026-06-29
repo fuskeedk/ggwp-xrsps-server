@@ -10,7 +10,7 @@ import { getSpellData } from "../../game/spells/SpellDataProvider";
 import { logger } from "../../utils/logger";
 import type { MessageHandlerServices } from "../MessageHandlers";
 import type { MessageHandler, MessageRouter } from "../MessageRouter";
-import { requireStaff } from "../../../gamemodes/ggwp/auth";
+import { requireStaff, formatGgwpStaffChatPrefix } from "../../../gamemodes/ggwp/auth";
 
 const DEBUG_SCROLL_TITLE = "Clue Compass";
 const DEBUG_SCROLL_OPTIONS = [
@@ -714,6 +714,9 @@ function createChatHandler(services: MessageHandlerServices): MessageHandler<"ch
             // Regular chat message
             const senderName = sender.name || "Player";
             const messageType = payload.messageType === "game" ? "game" : "public";
+            const staffChatPrefix =
+                messageType === "public" ? formatGgwpStaffChatPrefix(sender) : "";
+            const chatText = staffChatPrefix ? `${staffChatPrefix} ${text}` : text;
             const colorIdRaw = payload.colorId;
             const effectIdRaw = payload.effectId;
             let colorId =
@@ -745,7 +748,7 @@ function createChatHandler(services: MessageHandlerServices): MessageHandler<"ch
                 playerId: sender.id,
                 from: senderName,
                 prefix: DEFAULT_CHAT_PREFIX,
-                text,
+                text: chatText,
                 playerType: services.getPublicChatPlayerType(sender),
                 colorId,
                 effectId,

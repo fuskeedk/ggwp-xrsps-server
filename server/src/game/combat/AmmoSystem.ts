@@ -135,6 +135,7 @@ const ADAMANT_BOLTS = 9143;
 const RUNITE_BOLTS = 9144;
 const DRAGON_BOLTS = 21905;
 const BROAD_BOLTS = 11875;
+const BOLT_RACK = 4740;
 
 // Enchanted bolts
 const OPAL_BOLTS_E = 9236;
@@ -469,7 +470,7 @@ const CROSSBOW_BOLT_REQUIREMENTS: Map<number, number[]> = new Map([
     [ARMADYL_CROSSBOW, ALL_BOLTS],
     [ZARYTE_CROSSBOW, ALL_BOLTS],
     [DRAGON_HUNTER_CROSSBOW, ALL_BOLTS],
-    [KARIL_CROSSBOW, ALL_BOLTS], // Actually uses bolt racks, simplified here
+    [KARIL_CROSSBOW, [BOLT_RACK]],
 ]);
 
 // Javelins for ballistae

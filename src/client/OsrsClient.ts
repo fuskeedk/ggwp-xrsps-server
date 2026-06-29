@@ -1233,14 +1233,14 @@ export class OsrsClient {
             osrsRenderer?: GameRenderer;
             osrsClient?: OsrsClient;
         };
-        // Always enable projectile debug flags unless explicitly disabled by user.
+        // Projectile debug is opt-in; do not flood production consoles by default.
         try {
-            if (globalState.DEBUG_PROJECTILES === undefined) globalState.DEBUG_PROJECTILES = true;
+            if (globalState.DEBUG_PROJECTILES === undefined) globalState.DEBUG_PROJECTILES = false;
             if (globalState.DEBUG_PROJECTILES_VERBOSE === undefined) {
-                globalState.DEBUG_PROJECTILES_VERBOSE = true;
+                globalState.DEBUG_PROJECTILES_VERBOSE = false;
             }
             if (globalState.DEBUG_PROJECTILES_TRAJ === undefined) {
-                globalState.DEBUG_PROJECTILES_TRAJ = true;
+                globalState.DEBUG_PROJECTILES_TRAJ = false;
             }
         } catch {}
         this.renderer = createRenderer(rendererType, this);
@@ -8842,11 +8842,6 @@ export class OsrsClient {
     }
 
     setSelectedSpell(spell: SelectedSpellInfo | null, sourceWidget?: any): void {
-        // DEBUG: Log setSelectedSpell call
-        console.log(
-            `[setSelectedSpell] Called with spell=${spell?.spellName}, sourceWidget=${sourceWidget?.uid}`,
-        );
-
         // Fire onTargetLeave on previous source widget if we're switching targets
         if (ClientState.selectedSpellSourceWidget) {
             this.fireOnTargetLeave(ClientState.selectedSpellSourceWidget);
@@ -8881,9 +8876,6 @@ export class OsrsClient {
         }
 
         // Fire onTargetEnter on the new source widget
-        console.log(
-            `[setSelectedSpell] After set: isSpellSelected=${ClientState.isSpellSelected}, sourceWidget=${ClientState.selectedSpellSourceWidget?.uid}`,
-        );
         if (ClientState.selectedSpellSourceWidget) {
             this.fireOnTargetEnter(ClientState.selectedSpellSourceWidget);
             try {
@@ -8892,8 +8884,6 @@ export class OsrsClient {
                     "spell-target-enter",
                 );
             } catch {}
-        } else {
-            console.log(`[setSelectedSpell] No sourceWidget to fire onTargetEnter`);
         }
     }
 

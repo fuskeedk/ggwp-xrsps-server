@@ -668,7 +668,8 @@ export class TickPhaseService {
             tick: frame.tick,
             npcLookup: (npcId) => npcManager?.getById(npcId),
             pathService: this.svc.pathService!,
-            pickAttackSpeed: (player) => this.svc.playerCombatService!.pickAttackSpeed(player),
+            pickAttackSpeed: (player, targetType) =>
+                this.svc.playerCombatService!.pickAttackSpeed(player, targetType),
             pickNpcHitDelay: (npc, player, attackSpeed) =>
                 this.svc.combatEffectService.pickNpcHitDelay(npc, player, attackSpeed),
             getWeaponSpecialCostPercent: (weaponItemId) =>
@@ -742,7 +743,10 @@ export class TickPhaseService {
                     }
                 }
                 this.svc.varpSyncService.syncCombatTargetPlayerVarp(player);
-                player.combat.attackDelay = this.svc.playerCombatService!.pickAttackSpeed(player);
+                player.combat.attackDelay = this.svc.playerCombatService!.pickAttackSpeed(
+                    player,
+                    "npc",
+                );
             });
             this.svc.players.forEachBot((bot) => {
                 const seqData = bot.popPendingSeq() as { seqId: number; delay: number } | undefined;

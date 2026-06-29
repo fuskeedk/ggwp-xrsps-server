@@ -140,7 +140,7 @@ export function registerMessageHandlers(svc: ServerServices, router: MessageRout
             svc.players!.startNpcAttack(ws, npc, tick, attackSpeed, modifierFlags),
         startNpcInteraction: (ws, npc, option, modifierFlags) =>
             svc.players?.startNpcInteraction(ws, npc, option, modifierFlags),
-        pickAttackSpeed: (player) => svc.playerCombatService!.pickAttackSpeed(player),
+        pickAttackSpeed: (player) => svc.playerCombatService!.pickAttackSpeed(player, "npc"),
         startCombat: (player, npc, tick, attackSpeed) =>
             svc.playerCombatManager?.startCombat(player, npc, tick, attackSpeed),
         hasNpcOption: (npc, option) => svc.npcManager?.hasNpcOption(npc, option) ?? false,

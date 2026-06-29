@@ -68,6 +68,22 @@ export interface NpcCombatProfile {
     species: string[];
 }
 
+export type NpcCombatStat = "attack" | "strength" | "defence" | "magic" | "ranged";
+type NpcCombatLevelKey =
+    | "attackLevel"
+    | "strengthLevel"
+    | "defenceLevel"
+    | "magicLevel"
+    | "rangedLevel";
+
+const NPC_COMBAT_STAT_KEYS: Record<NpcCombatStat, NpcCombatLevelKey> = {
+    attack: "attackLevel",
+    strength: "strengthLevel",
+    defence: "defenceLevel",
+    magic: "magicLevel",
+    ranged: "rangedLevel",
+};
+
 /**
  * Default combat profile for NPCs without stats defined.
  * Represents a very weak level 1 NPC.
@@ -180,6 +196,7 @@ export class NpcState extends Actor {
      * Loaded at spawn time - no runtime lookups needed.
      */
     readonly combat: NpcCombatProfile;
+    private readonly baseCombatProfile: NpcCombatProfile;
     private hitpoints: number;
     private maxHitpoints: number;
     private combatLevel: number;
@@ -277,8 +294,15 @@ export class NpcState extends Actor {
             1,
             Math.trunc(options.aggressionSearchDelayTicks ?? TARGET_SEARCH_INTERVAL),
         );
-        // Combat profile - use provided or default
-        this.combat = options.combatProfile ?? DEFAULT_NPC_COMBAT_PROFILE;
+        // Combat profile - keep per-NPC mutable current stats plus immutable spawn/base stats.
+        this.combat = {
+            ...(options.combatProfile ?? DEFAULT_NPC_COMBAT_PROFILE),
+            species: [...(options.combatProfile ?? DEFAULT_NPC_COMBAT_PROFILE).species],
+        };
+        this.baseCombatProfile = {
+            ...this.combat,
+            species: [...this.combat.species],
+        };
 
         this.setTurnSpeed(this.rotationSpeed);
 
@@ -370,6 +394,7 @@ export class NpcState extends Actor {
         this.clearInteractionTarget();
         this.clearPendingSeqs();
         this.hitpoints = this.maxHitpoints;
+        this.restoreCombatProfile();
         this.poisonEffect = undefined;
         this.venomEffect = undefined;
         this.diseaseEffect = undefined;
@@ -377,6 +402,55 @@ export class NpcState extends Actor {
         this.freezeExpiryTick = 0;
         this.freezeImmunityUntilTick = 0;
         this.returningToSpawn = false;
+    }
+
+    getBaseCombatLevel(stat: NpcCombatStat): number {
+        const key = NPC_COMBAT_STAT_KEYS[stat];
+        return Math.max(0, Math.trunc(Number(this.baseCombatProfile[key]) || 0));
+    }
+
+    getCurrentCombatLevel(stat: NpcCombatStat): number {
+        const key = NPC_COMBAT_STAT_KEYS[stat];
+        return Math.max(0, Math.trunc(Number(this.combat[key]) || 0));
+    }
+
+    isCombatStatDrained(stat: NpcCombatStat): boolean {
+        return this.getCurrentCombatLevel(stat) < this.getBaseCombatLevel(stat);
+    }
+
+    drainCombatStat(
+        stat: NpcCombatStat,
+        amount: number,
+        options: { onlyIfNotDrained?: boolean } = {},
+    ): number {
+        const drainAmount = Math.max(0, Math.trunc(amount));
+        if (drainAmount <= 0) return 0;
+        if (options.onlyIfNotDrained && this.isCombatStatDrained(stat)) return 0;
+        const key = NPC_COMBAT_STAT_KEYS[stat];
+        const current = this.getCurrentCombatLevel(stat);
+        const next = Math.max(0, current - drainAmount);
+        this.combat[key] = next;
+        return current - next;
+    }
+
+    drainCombatStatPercent(
+        stat: NpcCombatStat,
+        percent: number,
+        options: { onlyIfNotDrained?: boolean } = {},
+    ): number {
+        const normalized = Math.max(0, percent);
+        if (normalized <= 0) return 0;
+        const current = this.getCurrentCombatLevel(stat);
+        if (current <= 0) return 0;
+        const amount = Math.max(1, Math.floor(current * normalized));
+        return this.drainCombatStat(stat, amount, options);
+    }
+
+    restoreCombatProfile(): void {
+        Object.assign(this.combat, {
+            ...this.baseCombatProfile,
+            species: [...this.baseCombatProfile.species],
+        });
     }
 
     beginSpawnRecovery(): void {

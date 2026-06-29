@@ -117,6 +117,9 @@ export interface SpecialAttackPayload {
         prayerFraction?: number;
         siphonRunEnergyPercent?: number;
         prayerDisableTicks?: number;
+        drainDefencePercent?: number;
+        drainDefenceByDamage?: number;
+        drainDefenceOnlyIfNotDrained?: boolean;
         drainMagicByDamage?: boolean;
         drainCombatStatByDamage?: boolean;
         ignoreProtectionPrayer?: boolean;
@@ -229,7 +232,7 @@ export interface CombatActionServices {
     /** Pick attack animation sequence for player. */
     pickAttackSequence(player: PlayerState): number;
     /** Pick attack speed for player. */
-    pickAttackSpeed(player: PlayerState): number;
+    pickAttackSpeed(player: PlayerState, targetType?: "npc" | "player"): number;
     /** Pick hit delay for player's weapon. */
     pickHitDelay(player: PlayerState): number;
     /** Get player's attack reach (range). */
@@ -623,7 +626,8 @@ export class CombatActionHandler {
             markAppearanceDirty: (player) => player.markAppearanceDirty(),
 
             pickAttackSequence: (player) => svc.playerCombatService!.pickAttackSequence(player),
-            pickAttackSpeed: (player) => svc.playerCombatService!.pickAttackSpeed(player),
+            pickAttackSpeed: (player, targetType) =>
+                svc.playerCombatService!.pickAttackSpeed(player, targetType),
             pickHitDelay: (player) => svc.playerCombatService!.pickHitDelay(player),
             getPlayerAttackReach: (player) => svc.playerCombatService!.getPlayerAttackReach(player),
             pickNpcFaceTile: (player, npc) => svc.playerCombatService!.pickNpcFaceTile(player, npc),
@@ -1125,7 +1129,7 @@ export class CombatActionHandler {
             attackDelay = data.attackDelay;
         }
         if (attackDelay === undefined) {
-            attackDelay = this.svc.playerCombatService!.pickAttackSpeed(player);
+            attackDelay = this.svc.playerCombatService!.pickAttackSpeed(player, "npc");
         }
         attackDelay = Math.max(1, attackDelay);
         player.combat.attackDelay = attackDelay;

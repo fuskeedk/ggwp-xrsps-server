@@ -97,6 +97,9 @@ type SpecialAttackPayload = {
         prayerFraction?: number;
         freezeTicks?: number;
         prayerDisableTicks?: number;
+        drainDefencePercent?: number;
+        drainDefenceByDamage?: number;
+        drainDefenceOnlyIfNotDrained?: boolean;
         drainMagicByDamage?: boolean;
         drainCombatStatByDamage?: boolean;
         ignoreProtectionPrayer?: boolean;
@@ -137,7 +140,7 @@ export interface PlayerCombatManagerContext {
     /** Path service for routing and LoS checks */
     pathService?: PathService;
     /** Get player's attack speed based on weapon */
-    pickAttackSpeed: (player: PlayerState) => number;
+    pickAttackSpeed: (player: PlayerState, targetType?: "npc" | "player") => number;
     /** Get NPC hit delay (projectile travel time) */
     pickNpcHitDelay?: (npc: NpcState, player: PlayerState, attackSpeed: number) => number;
     /** Get special attack energy cost for a weapon */
@@ -534,7 +537,7 @@ export class PlayerCombatManager {
             };
 
             this.playerManager.updatePlayerAttacks(ctx.tick, schedulePlayerVsPlayerAutocast, {
-                pickPlayerAttackDelay: (player) => ctx.pickAttackSpeed(player),
+                pickPlayerAttackDelay: (player) => ctx.pickAttackSpeed(player, "player"),
             });
         }
 
@@ -657,7 +660,7 @@ export class PlayerCombatManager {
             case CombatPhase.Attacking:
                 // Attack is ready - schedule the attack
                 if (ctx.schedulePlayerAttack && state.engagement.playerAutoAttack) {
-                    const attackSpeed = ctx.pickAttackSpeed(player);
+                    const attackSpeed = ctx.pickAttackSpeed(player, "npc");
                     state.timing.attackSpeed = attackSpeed;
                     player.combat.attackDelay = attackSpeed;
 
@@ -1078,7 +1081,7 @@ export class PlayerCombatManager {
             return { ok: false, hitDelay: 0 };
         }
 
-        const playerAttackSpeed = Math.max(1, ctx.pickAttackSpeed(player));
+        const playerAttackSpeed = Math.max(1, ctx.pickAttackSpeed(player, "npc"));
         player.combat.attackDelay = playerAttackSpeed;
         const weaponItemId = player.combat.weaponItemId ?? -1;
         let special: SpecialAttackPayload | undefined;
@@ -1114,6 +1117,15 @@ export class PlayerCombatManager {
                 }
                 if (specialDef.effects?.drainRunEnergy !== undefined) {
                     effects.siphonRunEnergyPercent = specialDef.effects.drainRunEnergy;
+                }
+                if (specialDef.effects?.drainDefence !== undefined) {
+                    effects.drainDefencePercent = specialDef.effects.drainDefence;
+                }
+                if (specialDef.effects?.drainDefenceByDamage !== undefined) {
+                    effects.drainDefenceByDamage = specialDef.effects.drainDefenceByDamage;
+                    if (specialDef.effects.drainDefenceOnlyIfNotDrained) {
+                        effects.drainDefenceOnlyIfNotDrained = true;
+                    }
                 }
                 const prayerDisableTicks = (
                     specialDef.effects as { prayerDisableTicks?: number } | undefined
