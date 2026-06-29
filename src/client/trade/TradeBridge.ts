@@ -60,6 +60,7 @@ type TradeBridgeHost = {
     invalidateTradeWidgets?: () => void;
     onTradeRequest?: (fromName: string, fromPlayerId: number) => void;
     onTradeSessionOpen?: () => void;
+    onTradeClosed?: () => void;
 };
 
 type ParsedTradeQuantity = number | "prompt" | null;
@@ -102,6 +103,30 @@ function looksLikeOfferOption(option: string): boolean {
 function looksLikeRemoveOption(option: string): boolean {
     const normalized = option.trim().toLowerCase();
     return normalized === "" || normalized.startsWith("remove");
+}
+
+function looksLikeTradeRequestAccept(option: string): boolean {
+    const normalized = option.trim().toLowerCase();
+    return (
+        normalized === "accept" ||
+        normalized === "accept trade" ||
+        normalized === "accept invitation" ||
+        normalized.includes("accept trade") ||
+        normalized.includes("click here to accept") ||
+        normalized.includes("click to accept")
+    );
+}
+
+function looksLikeTradeRequestDecline(option: string): boolean {
+    const normalized = option.trim().toLowerCase();
+    return (
+        normalized === "decline" ||
+        normalized === "decline trade" ||
+        normalized === "decline invitation" ||
+        normalized.includes("decline trade") ||
+        normalized.includes("click here to decline") ||
+        normalized.includes("click to decline")
+    );
 }
 
 export class TradeBridge {
@@ -152,15 +177,11 @@ export class TradeBridge {
         const normalizedOption = (option ?? "").trim().toLowerCase();
 
         if (!state.open && state.requestFrom) {
-            if (
-                normalizedOption === "accept trade" ||
-                normalizedOption === "accept" ||
-                normalizedOption === "accept invitation"
-            ) {
+            if (looksLikeTradeRequestAccept(normalizedOption)) {
                 sendTradeAcceptRequest(state.requestFrom.playerId | 0);
                 return true;
             }
-            if (normalizedOption === "decline trade" || normalizedOption === "decline") {
+            if (looksLikeTradeRequestDecline(normalizedOption)) {
                 sendTradeDeclineRequest(state.requestFrom.playerId | 0);
                 return true;
             }
@@ -362,6 +383,7 @@ export class TradeBridge {
             this.clearInventories();
             this.lastStage = "closed";
             markInvTransmit(93);
+            this.host.onTradeClosed?.();
             return;
         }
 

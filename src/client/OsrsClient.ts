@@ -269,6 +269,7 @@ import { PlayerEcs } from "./ecs/PlayerEcs";
 import { TileHighlightManager } from "./highlights/TileHighlightManager";
 import { PlayerInteractionSystem } from "./interactions/PlayerInteractionSystem";
 import {
+    TRADE_CONFIRM_INTERFACE,
     TRADE_MAIN_INTERFACE,
     TRADE_SIDE_INTERFACE,
     TradeBridge,
@@ -390,7 +391,41 @@ const TRADE_ACCEPT_CHAT_TEXT = "<col=0000ff>Accept trade</col>";
 const TRADE_DECLINE_CHAT_TEXT = "<col=0000ff>Decline trade</col>";
 
 function stripChatTags(value: string): string {
-    return value.replace(/<[^>]+>/g, "").trim();
+    return value
+        .replace(/<[^>]+>/g, "")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function resolveWidgetGroupId(widgetUid: number): number {
+    const uid = widgetUid | 0;
+    const group = (uid >>> 16) & 0xffff;
+    return group !== 0 ? group : uid & 0xffff;
+}
+
+function isTradeAcceptText(value: string): boolean {
+    const normalized = stripChatTags(value).toLowerCase();
+    return (
+        normalized === "accept" ||
+        normalized === "accept trade" ||
+        normalized === "accept invitation" ||
+        normalized.includes("accept trade") ||
+        normalized.includes("click here to accept") ||
+        normalized.includes("click to accept")
+    );
+}
+
+function isTradeDeclineText(value: string): boolean {
+    const normalized = stripChatTags(value).toLowerCase();
+    return (
+        normalized === "decline" ||
+        normalized === "decline trade" ||
+        normalized === "decline invitation" ||
+        normalized.includes("decline trade") ||
+        normalized.includes("click here to decline") ||
+        normalized.includes("click to decline")
+    );
 }
 
 function activateCountInputDialog(
@@ -1845,7 +1880,7 @@ export class OsrsClient {
             sendResumePauseButton: (widgetUid: number, childIndex: number) => {
                 const pending = self.pendingTradeRequest;
                 if (pending) {
-                    const group = (widgetUid >>> 16) & 0xffff;
+                    const group = resolveWidgetGroupId(widgetUid);
                     if (group === CHATBOX_INTERFACE_GROUP) {
                         if (childIndex === 1) {
                             sendTradeDeclineRequest(pending.fromPlayerId);
@@ -2256,12 +2291,16 @@ export class OsrsClient {
                 this.beginCountInputDialog(this.countInputPrompt);
             },
             invalidateTradeWidgets: () => {
+                this.refreshTradeWidgetTransmits();
                 this.widgetManager?.invalidateAll();
             },
             onTradeRequest: (fromName, fromPlayerId) => {
                 this.showTradeRequestMeslayer(fromName, fromPlayerId | 0);
             },
             onTradeSessionOpen: () => {
+                this.clearTradeRequestMeslayer();
+            },
+            onTradeClosed: () => {
                 this.clearTradeRequestMeslayer();
             },
         });
@@ -2418,6 +2457,13 @@ export class OsrsClient {
                         }
                     }
                     this.triggerInitialVarTransmitForGroup(payload.groupId);
+                    if (
+                        (payload.groupId | 0) === TRADE_MAIN_INTERFACE ||
+                        (payload.groupId | 0) === TRADE_CONFIRM_INTERFACE ||
+                        (payload.groupId | 0) === TRADE_SIDE_INTERFACE
+                    ) {
+                        this.refreshTradeWidgetTransmits(true);
+                    }
                     if (Array.isArray(payload.hiddenUids)) {
                         for (const rawUid of payload.hiddenUids) {
                             const uid = Number(rawUid) | 0;
@@ -5041,13 +5087,12 @@ export class OsrsClient {
         }
 
         for (const raw of candidates) {
-            const normalized = raw.toLowerCase();
-            if (normalized === "accept trade" || normalized === "accept") {
+            if (isTradeAcceptText(raw)) {
                 sendTradeAcceptRequest(pending.fromPlayerId);
                 this.clearTradeRequestMeslayer();
                 return true;
             }
-            if (normalized === "decline trade" || normalized === "decline") {
+            if (isTradeDeclineText(raw)) {
                 sendTradeDeclineRequest(pending.fromPlayerId);
                 this.clearTradeRequestMeslayer();
                 return true;
@@ -6215,6 +6260,22 @@ export class OsrsClient {
                 }
             }
         }
+    }
+
+    /**
+     * Force trade interface widgets to rebuild from client-side trade inventories.
+     *
+     * Trade offer grids (inv 149 / invother 150) are rendered by onInvTransmit handlers
+     * on groups 335/334. Network trade updates can arrive after processWidgetTransmits()
+     * has already run for the tick, so markInvTransmit alone is not enough (same pattern as bank).
+     */
+    private refreshTradeWidgetTransmits(force = false): void {
+        if (!force && !this.tradeBridge?.isTradeOpen()) {
+            return;
+        }
+        this.triggerInvTransmitForGroup(TRADE_MAIN_INTERFACE);
+        this.triggerInvTransmitForGroup(TRADE_CONFIRM_INTERFACE);
+        this.triggerInvTransmitForGroup(TRADE_SIDE_INTERFACE);
     }
 
     /**
@@ -10807,6 +10868,9 @@ export class OsrsClient {
         // Mark inv cycle with specific inventory ID - handlers fire during processWidgetTransmits()
         // Inventory ID 93 is the player inventory in OSRS
         markInvTransmit(93);
+        if (this.tradeBridge?.isTradeOpen()) {
+            this.refreshTradeWidgetTransmits();
+        }
     }
 
     /**
