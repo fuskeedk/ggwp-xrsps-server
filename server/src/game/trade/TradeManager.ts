@@ -48,6 +48,12 @@ type TradeRequestState = {
 const REQUEST_TIMEOUT_TICKS = 64; // ~38.4 seconds at 600ms ticks
 const MAX_TRADE_QUANTITY = 2_147_483_647;
 
+function resolveWidgetGroupId(widgetId: number): number {
+    const uid = widgetId | 0;
+    const group = (uid >>> 16) & 0xffff;
+    return group !== 0 ? group : uid & 0xffff;
+}
+
 export class TradeManager {
     private readonly requests = new Map<string, TradeRequestState>();
     private readonly sessions = new Map<string, TradeSession>();
@@ -198,8 +204,8 @@ export class TradeManager {
         childIndex: number,
         currentTick: number,
     ): boolean {
-        const group = (widgetId >>> 16) & 0xffff;
-        if (group !== 162) return false;
+        const group = resolveWidgetGroupId(widgetId);
+        if (group !== CHATBOX_GROUP_ID) return false;
         const fromId = this.findIncomingRequestFrom(player.id);
         if (fromId === undefined) return false;
         this.respondToTradeRequest(player, fromId, childIndex !== 1, currentTick);
@@ -316,6 +322,7 @@ export class TradeManager {
         const key = this.buildRequestKey(fromId, responder.id);
         const req = this.requests.get(key);
         if (!req || req.toId !== responder.id) {
+            this.clearTradeRequestMeslayer(responder.id);
             this.svc.messagingService.sendGameMessageToPlayer(
                 responder,
                 "Unable to find that player to trade with.",
@@ -327,6 +334,7 @@ export class TradeManager {
 
         const initiator = this.svc.players?.getById(fromId);
         if (!initiator) {
+            this.clearTradeRequestMeslayer(responder.id);
             this.svc.messagingService.sendGameMessageToPlayer(
                 responder,
                 "Unable to find that player to trade with.",

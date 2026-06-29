@@ -390,7 +390,41 @@ const TRADE_ACCEPT_CHAT_TEXT = "<col=0000ff>Accept trade</col>";
 const TRADE_DECLINE_CHAT_TEXT = "<col=0000ff>Decline trade</col>";
 
 function stripChatTags(value: string): string {
-    return value.replace(/<[^>]+>/g, "").trim();
+    return value
+        .replace(/<[^>]+>/g, "")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function resolveWidgetGroupId(widgetUid: number): number {
+    const uid = widgetUid | 0;
+    const group = (uid >>> 16) & 0xffff;
+    return group !== 0 ? group : uid & 0xffff;
+}
+
+function isTradeAcceptText(value: string): boolean {
+    const normalized = stripChatTags(value).toLowerCase();
+    return (
+        normalized === "accept" ||
+        normalized === "accept trade" ||
+        normalized === "accept invitation" ||
+        normalized.includes("accept trade") ||
+        normalized.includes("click here to accept") ||
+        normalized.includes("click to accept")
+    );
+}
+
+function isTradeDeclineText(value: string): boolean {
+    const normalized = stripChatTags(value).toLowerCase();
+    return (
+        normalized === "decline" ||
+        normalized === "decline trade" ||
+        normalized === "decline invitation" ||
+        normalized.includes("decline trade") ||
+        normalized.includes("click here to decline") ||
+        normalized.includes("click to decline")
+    );
 }
 
 function activateCountInputDialog(
@@ -1845,7 +1879,7 @@ export class OsrsClient {
             sendResumePauseButton: (widgetUid: number, childIndex: number) => {
                 const pending = self.pendingTradeRequest;
                 if (pending) {
-                    const group = (widgetUid >>> 16) & 0xffff;
+                    const group = resolveWidgetGroupId(widgetUid);
                     if (group === CHATBOX_INTERFACE_GROUP) {
                         if (childIndex === 1) {
                             sendTradeDeclineRequest(pending.fromPlayerId);
@@ -5041,13 +5075,12 @@ export class OsrsClient {
         }
 
         for (const raw of candidates) {
-            const normalized = raw.toLowerCase();
-            if (normalized === "accept trade" || normalized === "accept") {
+            if (isTradeAcceptText(raw)) {
                 sendTradeAcceptRequest(pending.fromPlayerId);
                 this.clearTradeRequestMeslayer();
                 return true;
             }
-            if (normalized === "decline trade" || normalized === "decline") {
+            if (isTradeDeclineText(raw)) {
                 sendTradeDeclineRequest(pending.fromPlayerId);
                 this.clearTradeRequestMeslayer();
                 return true;

@@ -104,6 +104,30 @@ function looksLikeRemoveOption(option: string): boolean {
     return normalized === "" || normalized.startsWith("remove");
 }
 
+function looksLikeTradeRequestAccept(option: string): boolean {
+    const normalized = option.trim().toLowerCase();
+    return (
+        normalized === "accept" ||
+        normalized === "accept trade" ||
+        normalized === "accept invitation" ||
+        normalized.includes("accept trade") ||
+        normalized.includes("click here to accept") ||
+        normalized.includes("click to accept")
+    );
+}
+
+function looksLikeTradeRequestDecline(option: string): boolean {
+    const normalized = option.trim().toLowerCase();
+    return (
+        normalized === "decline" ||
+        normalized === "decline trade" ||
+        normalized === "decline invitation" ||
+        normalized.includes("decline trade") ||
+        normalized.includes("click here to decline") ||
+        normalized.includes("click to decline")
+    );
+}
+
 export class TradeBridge {
     private unsubscribe?: () => void;
     private lastStage: "offer" | "confirm" | "closed" = "closed";
@@ -152,15 +176,11 @@ export class TradeBridge {
         const normalizedOption = (option ?? "").trim().toLowerCase();
 
         if (!state.open && state.requestFrom) {
-            if (
-                normalizedOption === "accept trade" ||
-                normalizedOption === "accept" ||
-                normalizedOption === "accept invitation"
-            ) {
+            if (looksLikeTradeRequestAccept(normalizedOption)) {
                 sendTradeAcceptRequest(state.requestFrom.playerId | 0);
                 return true;
             }
-            if (normalizedOption === "decline trade" || normalizedOption === "decline") {
+            if (looksLikeTradeRequestDecline(normalizedOption)) {
                 sendTradeDeclineRequest(state.requestFrom.playerId | 0);
                 return true;
             }
