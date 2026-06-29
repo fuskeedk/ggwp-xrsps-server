@@ -269,6 +269,7 @@ import { PlayerEcs } from "./ecs/PlayerEcs";
 import { TileHighlightManager } from "./highlights/TileHighlightManager";
 import { PlayerInteractionSystem } from "./interactions/PlayerInteractionSystem";
 import {
+    TRADE_CONFIRM_INTERFACE,
     TRADE_MAIN_INTERFACE,
     TRADE_SIDE_INTERFACE,
     TradeBridge,
@@ -2290,6 +2291,7 @@ export class OsrsClient {
                 this.beginCountInputDialog(this.countInputPrompt);
             },
             invalidateTradeWidgets: () => {
+                this.refreshTradeWidgetTransmits();
                 this.widgetManager?.invalidateAll();
             },
             onTradeRequest: (fromName, fromPlayerId) => {
@@ -2452,6 +2454,13 @@ export class OsrsClient {
                         }
                     }
                     this.triggerInitialVarTransmitForGroup(payload.groupId);
+                    if (
+                        (payload.groupId | 0) === TRADE_MAIN_INTERFACE ||
+                        (payload.groupId | 0) === TRADE_CONFIRM_INTERFACE ||
+                        (payload.groupId | 0) === TRADE_SIDE_INTERFACE
+                    ) {
+                        this.refreshTradeWidgetTransmits();
+                    }
                     if (Array.isArray(payload.hiddenUids)) {
                         for (const rawUid of payload.hiddenUids) {
                             const uid = Number(rawUid) | 0;
@@ -6248,6 +6257,22 @@ export class OsrsClient {
                 }
             }
         }
+    }
+
+    /**
+     * Force trade interface widgets to rebuild from client-side trade inventories.
+     *
+     * Trade offer grids (inv 149 / invother 150) are rendered by onInvTransmit handlers
+     * on groups 335/334. Network trade updates can arrive after processWidgetTransmits()
+     * has already run for the tick, so markInvTransmit alone is not enough (same pattern as bank).
+     */
+    private refreshTradeWidgetTransmits(): void {
+        if (!this.tradeBridge?.isTradeOpen()) {
+            return;
+        }
+        this.triggerInvTransmitForGroup(TRADE_MAIN_INTERFACE);
+        this.triggerInvTransmitForGroup(TRADE_CONFIRM_INTERFACE);
+        this.triggerInvTransmitForGroup(TRADE_SIDE_INTERFACE);
     }
 
     /**
@@ -10840,6 +10865,9 @@ export class OsrsClient {
         // Mark inv cycle with specific inventory ID - handlers fire during processWidgetTransmits()
         // Inventory ID 93 is the player inventory in OSRS
         markInvTransmit(93);
+        if (this.tradeBridge?.isTradeOpen()) {
+            this.refreshTradeWidgetTransmits();
+        }
     }
 
     /**
