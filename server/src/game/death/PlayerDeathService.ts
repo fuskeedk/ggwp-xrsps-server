@@ -401,6 +401,7 @@ export class PlayerDeathService {
                     privateTicks,
                     durationTicks: 300,
                 },
+                player.worldViewId,
             );
         }
     }

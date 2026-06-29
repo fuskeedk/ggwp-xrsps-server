@@ -930,6 +930,9 @@ export class OsrsClient {
     tradeOtherInventory: Inventory = new Inventory(28);
     private tradeBridge!: TradeBridge;
     private inventorySeededFromServer: boolean = false;
+    isMembersWorld: boolean = true;
+    isMemberAccount: boolean = true;
+    membershipDaysRemaining: number = 0;
 
     // Track last layout dimensions to avoid re-running layout every frame
     private _lastLayoutWidth: number = 0;
@@ -995,6 +998,18 @@ export class OsrsClient {
             this.renderer.invalidateRoofState();
             this.widgetManager?.invalidateAll();
         }
+    }
+
+    setMembershipState(member: boolean, membershipDays?: number): void {
+        this.isMemberAccount = member;
+        this.membershipDaysRemaining = Math.max(
+            0,
+            Math.min(
+                99_999,
+                Number.isFinite(membershipDays) ? Math.floor(membershipDays as number) : 0,
+            ),
+        );
+        this.widgetManager?.invalidateAll();
     }
 
     private unsubscribeWidgetEvents?: () => void;
@@ -1423,6 +1438,9 @@ export class OsrsClient {
             },
             getStaffModLevel: () => {
                 return self.localPlayerIsAdmin ? 2 : 0;
+            },
+            isMembersWorld: () => {
+                return self.isMembersWorld;
             },
             getIdleTimerRemainingMs: () => {
                 return self.inputManager.getIdleLogoutRemainingMs();
@@ -12655,10 +12673,16 @@ export class OsrsClient {
             console.warn("[OsrsClient] GfxManager clear error:", err);
         }
 
-        // Reset controlled player ID
+        // Clear controlled player ID
         this.controlledPlayerServerId = -1;
         this.lastPlayerSyncLocalIndex = -1;
         this.localPlayerIsAdmin = false;
+
+        try {
+            this.tradeBridge?.stop();
+        } catch (err) {
+            console.warn("[OsrsClient] TradeBridge stop error:", err);
+        }
 
         // Clear menus
         try {

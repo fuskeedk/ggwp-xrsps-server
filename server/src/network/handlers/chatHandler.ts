@@ -10,6 +10,7 @@ import { getSpellData } from "../../game/spells/SpellDataProvider";
 import { logger } from "../../utils/logger";
 import type { MessageHandlerServices } from "../MessageHandlers";
 import type { MessageHandler, MessageRouter } from "../MessageRouter";
+import { requireStaff } from "../../../gamemodes/ggwp/auth";
 
 const DEBUG_SCROLL_TITLE = "Clue Compass";
 const DEBUG_SCROLL_OPTIONS = [
@@ -36,6 +37,46 @@ const DEBUG_SCROLL_OPTIONS = [
 ];
 
 const DEFAULT_CHAT_PREFIX = "";
+
+const STAFF_ONLY_HARDCODED_COMMANDS = new Set([
+    "allrunes",
+    "ancient",
+    "arceuus",
+    "bond",
+    "clear",
+    "item",
+    "kill",
+    "levelup",
+    "lunar",
+    "onehealth",
+    "pos",
+    "quest",
+    "randomitem",
+    "rubytest",
+    "scroll",
+    "smithing",
+    "standard",
+    "tickstats",
+    "whip",
+]);
+
+const STAFF_ONLY_SCRIPT_COMMANDS = new Set(["itemspawner", "resetquests", "sail"]);
+
+function sendCommandDenied(
+    sender: PlayerState,
+    services: Pick<MessageHandlerServices, "queueChatMessage">,
+): void {
+    const denied = requireStaff(sender) ?? "You do not have permission to use that command.";
+    services.queueChatMessage({
+        messageType: "game",
+        text: denied,
+        targetPlayerIds: [sender.id],
+    });
+}
+
+function isStaffOnlyCommand(root: string): boolean {
+    return STAFF_ONLY_HARDCODED_COMMANDS.has(root) || STAFF_ONLY_SCRIPT_COMMANDS.has(root);
+}
 
 function pickRandomUnownedCollectionLogItemId(player: PlayerState): number | null {
     const candidates = Array.from(getCollectionLogItems()).filter(
@@ -260,11 +301,20 @@ function createChatHandler(services: MessageHandlerServices): MessageHandler<"ch
 
             // Handle :: commands
             if (text.startsWith("::")) {
-                const cmd = text.slice(2).toLowerCase().trim();
+                const rawCmd = text.slice(2).trim();
+                const cmd = rawCmd.toLowerCase();
                 const senderName = sender.name || "Player";
                 logger.info(`[cmd] Player ${sender.id} (${senderName}) used command: ::${cmd}`);
-                const parts = cmd.split(/\s+/).filter((part) => part.length > 0);
-                const root = parts[0] ?? "";
+                const parts = rawCmd.split(/\s+/).filter((part) => part.length > 0);
+                const root = (parts[0] ?? "").toLowerCase();
+
+                if (isStaffOnlyCommand(root) && requireStaff(sender)) {
+                    sendCommandDenied(sender, services);
+                    logger.info(
+                        `[cmd] denied staff command ::${root} for player ${sender.id} (${senderName})`,
+                    );
+                    return;
+                }
 
                 if (root === "tickstats") {
                     const stats = services.getTickerStats();

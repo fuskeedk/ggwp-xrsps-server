@@ -8,7 +8,7 @@ const ADMIN_USERNAMES = new Set(
         process.env.ADMIN_USERNAMES ??
         process.env.ADMIN_PLAYERS ??
         process.env.ADMIN_NAMES ??
-        "fuskee"
+        ""
     )
         .split(",")
         .map((value) => value.trim().toLowerCase())

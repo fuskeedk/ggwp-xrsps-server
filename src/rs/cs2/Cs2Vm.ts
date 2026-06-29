@@ -207,6 +207,9 @@ export interface Cs2Context {
     /** Staff moderator level for CS2 command scripts (0 = player, 1+ = staff). */
     getStaffModLevel?: () => number;
 
+    /** Whether this world is a members world (map_members CS2 opcode). */
+    isMembersWorld?: () => boolean;
+
     /** Optional hook for RuneLite runelite_callback scripts. */
     onRuneliteCallback?: (eventName: string) => void;
 
@@ -872,6 +875,7 @@ export class Cs2Vm {
             // Run energy (0-10000 internal units)
             getRunEnergy: vm.context.getRunEnergy,
             getStaffModLevel: vm.context.getStaffModLevel,
+            isMembersWorld: vm.context.isMembersWorld,
             onRuneliteCallback: vm.context.onRuneliteCallback,
 
             // Idle timer (ms remaining until AFK logout)

@@ -247,6 +247,9 @@ export interface HandlerContext {
     /** Staff moderator level for CS2 command scripts (0 = player, 1+ = staff). */
     getStaffModLevel?: () => number;
 
+    /** Whether this world is a members world (map_members CS2 opcode). */
+    isMembersWorld?: () => boolean;
+
     /** Optional hook for RuneLite runelite_callback scripts. */
     onRuneliteCallback?: (eventName: string) => void;
 

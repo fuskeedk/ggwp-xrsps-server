@@ -2434,6 +2434,11 @@ function processServerMessage(msg: any): void {
             if (mv && mv.cs2Vm) {
                 const scriptId = payload.scriptId | 0;
                 const args = payload.args || [];
+                if (scriptId === 828 || scriptId === 2498) {
+                    const member = (Number(args[0] ?? 0) | 0) === 1;
+                    const days = Number(mv.varManager?.getVarp?.(1780) ?? 0);
+                    mv.setMembershipState?.(member, days);
+                }
                 console.log(`[runClientScript] executing script ${scriptId} with args:`, args);
                 const script = mv.cs2Vm.context?.loadScript?.(scriptId);
                 if (script) {

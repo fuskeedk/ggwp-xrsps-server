@@ -1,5 +1,6 @@
-import type { PlayerState } from "../../../src/game/player";
+import { canUseMembersContent } from "../../../src/game/membership";
 import { SkillId } from "../../../../src/rs/skill/skills";
+import type { PlayerState } from "../../../src/game/player";
 import { type IScriptRegistry, type ScriptServices } from "../../../src/game/scripts/types";
 import { skillCapeForSkill } from "../skillCapes/skillCapes";
 import { startSkillCapeExplanation } from "../skillCapes/skillCapePurchases";
@@ -225,7 +226,7 @@ export function registerShopInteractionHandlers(
             const claimedCombatRewards = claims >= 1;
             const hasRuneMysteries =
                 player.varps.getVarpValue(RUNE_MYSTERIES_VARP) >= RUNE_MYSTERIES_COMPLETE_VALUE;
-            const isMembersWorld = false; // TODO: adapt to world type if available
+            const hasMembersAccess = canUseMembersContent(player);
 
             const continueToStandard = () =>
                 openAuburyStandardOptions(player, services, auburyNpcTypeId, hasRuneMysteries);
@@ -253,7 +254,7 @@ export function registerShopInteractionHandlers(
                         }
                         player.varps.setVarpValue(COMBAT_PATH_REWARD_VARP, 1);
 
-                        if (!isMembersWorld) {
+                        if (!hasMembersAccess) {
                             openNpcDialog(
                                 player,
                                 services,
@@ -273,7 +274,7 @@ export function registerShopInteractionHandlers(
                 return;
             }
 
-            if (hasVoucher && !isMembersWorld && !claimedCombatRewards) {
+            if (hasVoucher && !hasMembersAccess && !claimedCombatRewards) {
                 openNpcDialog(
                     player,
                     services,
@@ -288,7 +289,7 @@ export function registerShopInteractionHandlers(
                 return;
             }
 
-            if (hasVoucher && claimedCombatRewards && !isMembersWorld) {
+            if (hasVoucher && claimedCombatRewards && !hasMembersAccess) {
                 openNpcDialog(
                     player,
                     services,

@@ -221,7 +221,7 @@ export function registerClientOps(handlers: HandlerMap): void {
     });
 
     handlers.set(Opcodes.MAP_MEMBERS, (ctx) => {
-        ctx.pushInt(1);
+        ctx.pushInt(ctx.isMembersWorld?.() === false ? 0 : 1);
     });
 
     handlers.set(Opcodes.STAFFMODLEVEL, (ctx) => {
