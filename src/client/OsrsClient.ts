@@ -2300,6 +2300,9 @@ export class OsrsClient {
             onTradeSessionOpen: () => {
                 this.clearTradeRequestMeslayer();
             },
+            onTradeClosed: () => {
+                this.clearTradeRequestMeslayer();
+            },
         });
         this.unsubscribeWidgetEvents = subscribeWidgetEvents((payload) => {
             if (payload.action !== "set_text" && (payload as any).uid !== 10616865) {
@@ -2459,7 +2462,7 @@ export class OsrsClient {
                         (payload.groupId | 0) === TRADE_CONFIRM_INTERFACE ||
                         (payload.groupId | 0) === TRADE_SIDE_INTERFACE
                     ) {
-                        this.refreshTradeWidgetTransmits();
+                        this.refreshTradeWidgetTransmits(true);
                     }
                     if (Array.isArray(payload.hiddenUids)) {
                         for (const rawUid of payload.hiddenUids) {
@@ -6266,8 +6269,8 @@ export class OsrsClient {
      * on groups 335/334. Network trade updates can arrive after processWidgetTransmits()
      * has already run for the tick, so markInvTransmit alone is not enough (same pattern as bank).
      */
-    private refreshTradeWidgetTransmits(): void {
-        if (!this.tradeBridge?.isTradeOpen()) {
+    private refreshTradeWidgetTransmits(force = false): void {
+        if (!force && !this.tradeBridge?.isTradeOpen()) {
             return;
         }
         this.triggerInvTransmitForGroup(TRADE_MAIN_INTERFACE);

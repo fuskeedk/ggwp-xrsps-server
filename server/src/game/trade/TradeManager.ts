@@ -207,7 +207,10 @@ export class TradeManager {
         const group = resolveWidgetGroupId(widgetId);
         if (group !== CHATBOX_GROUP_ID) return false;
         const fromId = this.findIncomingRequestFrom(player.id);
-        if (fromId === undefined) return false;
+        if (fromId === undefined) {
+            this.clearTradeRequestMeslayer(player.id);
+            return true;
+        }
         this.respondToTradeRequest(player, fromId, childIndex !== 1, currentTick);
         return true;
     }
@@ -231,6 +234,10 @@ export class TradeManager {
             if (req.expireTick <= currentTick) {
                 this.requests.delete(key);
                 this.clearTradeRequestMeslayer(req.toId);
+                this.svc.broadcastService.queueTradeMessage(req.toId, {
+                    kind: "close",
+                    reason: "The trade offer has expired.",
+                });
                 const fromPlayer = this.svc.players?.getById(req.fromId);
                 if (fromPlayer) {
                     this.svc.messagingService.sendGameMessageToPlayer(

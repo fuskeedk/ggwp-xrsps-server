@@ -60,6 +60,7 @@ type TradeBridgeHost = {
     invalidateTradeWidgets?: () => void;
     onTradeRequest?: (fromName: string, fromPlayerId: number) => void;
     onTradeSessionOpen?: () => void;
+    onTradeClosed?: () => void;
 };
 
 type ParsedTradeQuantity = number | "prompt" | null;
@@ -382,6 +383,7 @@ export class TradeBridge {
             this.clearInventories();
             this.lastStage = "closed";
             markInvTransmit(93);
+            this.host.onTradeClosed?.();
             return;
         }
 
