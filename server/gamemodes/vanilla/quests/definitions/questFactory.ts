@@ -148,7 +148,10 @@ export function simpleQuest(opts: {
                         npcName: step.npc.name,
                     };
                     if (getQuestStage(player, q) < q.startedValue) return;
-                    if (getQuestStage(player, q) >= q.completionValue) return;
+                    if (getQuestStage(player, q) >= q.completionValue) {
+                        startConversation(ctx, [{ npc: ["That part of the quest is already done."] }]);
+                        return;
+                    }
                     if (getQuestFlag(player, q.key, step.flag)) {
                         startConversation(ctx, [{ npc: ["You already did that part."] }]);
                         return;
@@ -328,7 +331,10 @@ export function autoQuest(
                         npcName: step.npc.name,
                     };
                     if (getQuestStage(player, q) < q.startedValue) return;
-                    if (getQuestStage(player, q) >= q.completionValue) return;
+                    if (getQuestStage(player, q) >= q.completionValue) {
+                        startConversation(ctx, [{ npc: ["That part of the quest is already done."] }]);
+                        return;
+                    }
                     if (getQuestFlag(player, q.key, step.flag)) {
                         startConversation(ctx, [{ npc: ["You already did that part."] }]);
                         return;

@@ -1467,7 +1467,10 @@ const templeOfIkovQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 3446, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 3446, npcName: "Guardian of Armadyl" };
             if (getQuestStage(player, templeOfIkovQuest) < templeOfIkovQuest.startedValue) return;
-            if (getQuestStage(player, templeOfIkovQuest) >= templeOfIkovQuest.completionValue) return;
+            if (getQuestStage(player, templeOfIkovQuest) >= templeOfIkovQuest.completionValue) {
+                startConversation(ctx, [{ npc: ["Armadyl's will be done."] }]);
+                return;
+            }
             startConversation(ctx, [
                 { exec: (d) => setQuestFlag(d.player, templeOfIkovQuest.key, "spoke_guardian", true) },
                 { npc: ["Lucien is evil! Stop him from taking the staff."] },
@@ -1706,7 +1709,10 @@ const undergroundPassQuest: QuestDefinition = {
     register(registry): void {
         registerQuestNpcTalk(registry, 6204, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 6204, npcName: "Edmond" };
-            if (getQuestStage(player, undergroundPassQuest) >= undergroundPassQuest.completionValue) return;
+            if (getQuestStage(player, undergroundPassQuest) >= undergroundPassQuest.completionValue) {
+                startConversation(ctx, [{ npc: ["Iban is gone. The pass is safe."] }]);
+                return;
+            }
             // King Lathas not spawned — use King Roald as alternate start after biohazard
             if (!isVarpAtLeast(player, 68, 16)) return;
             const stage = getQuestStage(player, undergroundPassQuest);

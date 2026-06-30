@@ -15,7 +15,6 @@ import { knightsSwordQuest } from "./definitions/knightsSword";
 import { membersQuestPack } from "./definitions/membersQuestPack";
 import { membersQuestPack2 } from "./definitions/membersQuestPack2";
 import { membersQuestPack3 } from "./definitions/membersQuestPack3";
-// import { generatedAutoQuests } from "./definitions/generatedAutoQuests";
 import { generatedAutoQuests } from "./definitions/generatedAutoQuests";
 import { sheepShearerQuest } from "./definitions/sheepShearer";
 import type { QuestDefinition } from "./types";

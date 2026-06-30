@@ -164,7 +164,10 @@ const lostCityQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 1160, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 1160, npcName: "Wizard" };
             if (getQuestStage(player, lostCityQuest) < lostCityQuest.startedValue) return;
-            if (getQuestStage(player, lostCityQuest) >= lostCityQuest.completionValue) return;
+            if (getQuestStage(player, lostCityQuest) >= lostCityQuest.completionValue) {
+                startConversation(ctx, [{ npc: ["Zanaris awaits through the shed in the swamp."] }]);
+                return;
+            }
             if (hasItem(player, services, DRAMEN_STAFF)) {
                 startConversation(ctx, [{ npc: ["Equip the staff and enter the shed in the swamp centre."] }]);
                 return;
@@ -262,8 +265,10 @@ const treeGnomeVillageQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 4963, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 4963, npcName: "King Bolren" };
             const stage = getQuestStage(player, treeGnomeVillageQuest);
+            if (stage < treeGnomeVillageQuest.startedValue) {
+                return;
+            }
             if (stage >= treeGnomeVillageQuest.completionValue) {
-                startConversation(ctx, [{ npc: ["The village is safe once more. Thank you!"] }]);
                 return;
             }
             if (hasItem(player, services, ORB_OF_PROTECTION, 2)) {

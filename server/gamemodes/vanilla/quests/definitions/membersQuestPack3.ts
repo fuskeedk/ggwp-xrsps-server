@@ -272,7 +272,9 @@ const inSearchOfTheMyrequeQuest: QuestDefinition = {
             const ctx: DialogueContext = { player, services, npcId: 2985, npcName: "Velorina" };
             const q = inSearchOfTheMyrequeQuest;
             const stage = getQuestStage(player, q);
-            if (stage >= q.completionValue) return;
+            if (stage >= q.completionValue) {
+                return;
+            }
             if (getQuestFlag(player, q.key, "found_hideout")) {
                 startConversation(ctx, [
                     { npc: ["You found them!"] },
@@ -408,7 +410,13 @@ const ghostsAhoyQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 2985, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 2985, npcName: "Velorina" };
             const q = ghostsAhoyQuest;
-            if (getQuestStage(player, q) >= q.completionValue) return;
+            if (getQuestStage(player, q) >= q.completionValue) {
+                startConversation(ctx, [{ npc: ["Port Phasmatys is free at last."] }]);
+                return;
+            }
+            if (getQuestStage(player, q) < q.startedValue) {
+                return;
+            }
             if (getQuestFlag(player, q.key, "got_bone_mead")) {
                 startConversation(ctx, [
                     { npc: ["Phasmatys is free!"] },
@@ -530,7 +538,13 @@ const horrorFromTheDeepQuest: QuestDefinition = {
             const ctx: DialogueContext = { player, services, npcId: 3479, npcName: "Morgan" };
             const q = horrorFromTheDeepQuest;
             const stage = getQuestStage(player, q);
-            if (stage >= q.completionValue) return;
+            if (stage >= q.completionValue) {
+                startConversation(ctx, [{ npc: ["The lighthouse is safe again."] }]);
+                return;
+            }
+            if (stage < q.startedValue) {
+                return;
+            }
             if (getQuestFlag(player, q.key, "defeated_horror")) {
                 startConversation(ctx, [
                     { npc: ["You saved the lighthouse!"] },
@@ -699,7 +713,10 @@ const regicideQuest: QuestDefinition = {
             const ctx: DialogueContext = { player, services, npcId: 4963, npcName: "King Bolren" };
             const q = regicideQuest;
             const stage = getQuestStage(player, q);
-            if (stage >= q.completionValue) return;
+            if (stage >= q.completionValue) {
+                startConversation(ctx, [{ npc: ["Tirannwn holds many secrets yet."] }]);
+                return;
+            }
             if (stage >= q.startedValue) {
                 startConversation(ctx, [{ npc: ["Speak with Lord Iorwerth in Tirannwn."] }]);
                 return;
