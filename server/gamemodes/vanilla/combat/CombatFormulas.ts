@@ -48,15 +48,15 @@ function effectiveMagicDefence(magicLevel: number, defenceLevel: number): number
 }
 
 function npcEffectiveAttack(attackLevel: number): number {
-    return attackLevel + 8;
+    return attackLevel + 9;
 }
 
 function npcEffectiveStrength(strengthLevel: number): number {
-    return strengthLevel + 8;
+    return strengthLevel + 9;
 }
 
 function npcEffectiveDefence(defenceLevel: number): number {
-    return defenceLevel + 8;
+    return defenceLevel + 9;
 }
 
 function getNpcAttackBonus(profile: NpcAttackBonusProfile, attackType: AttackType): number {
@@ -99,8 +99,21 @@ function npcMaxHit(profile: NpcMaxHitProfile): number {
     if (profile.maxHit > 0) {
         return profile.maxHit;
     }
-    const effectiveStr = npcEffectiveStrength(profile.strengthLevel);
-    return maxHit({ effectiveStrength: effectiveStr, strengthBonus: profile.strengthBonus });
+    const attackType = profile.attackType ?? AttackType.Melee;
+    const strengthLevel =
+        attackType === AttackType.Magic
+            ? (profile.magicLevel ?? profile.strengthLevel)
+            : attackType === AttackType.Ranged
+              ? (profile.rangedLevel ?? profile.strengthLevel)
+              : profile.strengthLevel;
+    const strengthBonus =
+        attackType === AttackType.Magic
+            ? (profile.magicStrengthBonus ?? profile.strengthBonus)
+            : attackType === AttackType.Ranged
+              ? (profile.rangedStrengthBonus ?? profile.strengthBonus)
+              : profile.strengthBonus;
+    const effectiveStr = npcEffectiveStrength(strengthLevel);
+    return maxHit({ effectiveStrength: effectiveStr, strengthBonus });
 }
 
 function calculateNpcVsPlayer(
@@ -110,7 +123,13 @@ function calculateNpcVsPlayer(
 ): NpcVsPlayerResult {
     const type = attackType ?? npcProfile.attackType;
 
-    const npcEffAtk = npcEffectiveAttack(npcProfile.attackLevel);
+    const npcAttackLevel =
+        type === AttackType.Magic
+            ? (npcProfile.magicLevel ?? npcProfile.attackLevel)
+            : type === AttackType.Ranged
+              ? (npcProfile.rangedLevel ?? npcProfile.attackLevel)
+              : npcProfile.attackLevel;
+    const npcEffAtk = npcEffectiveAttack(npcAttackLevel);
     const npcAtkBonus = getNpcAttackBonus(npcProfile, type);
     const npcAtkRoll = attackRoll({ effectiveLevel: npcEffAtk, bonus: npcAtkBonus });
 
@@ -135,7 +154,7 @@ function calculateNpcVsPlayer(
 
     return {
         hitChance: hitChance(npcAtkRoll, playerDefRoll),
-        maxHit: npcMaxHit(npcProfile),
+        maxHit: npcMaxHit({ ...npcProfile, attackType: type }),
     };
 }
 

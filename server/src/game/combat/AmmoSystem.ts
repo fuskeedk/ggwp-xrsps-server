@@ -13,6 +13,7 @@
 import { EquipmentSlot } from "../../../../src/rs/config/player/Equipment";
 import { getProviderRegistry } from "../providers/ProviderRegistry";
 import type { AmmoDataProvider } from "./AmmoDataProvider";
+import { ALL_MODERN_CHARGE_WEAPON_IDS } from "./ModernChargeWeaponSystem";
 
 // =============================================================================
 // Item ID Constants
@@ -46,11 +47,11 @@ const CRYSTAL_BOW_4 = 4220;
 const CRYSTAL_BOW_3 = 4221;
 const CRYSTAL_BOW_2 = 4222;
 const CRYSTAL_BOW_1 = 4223;
-// Newer crystal bow variants
-const CRYSTAL_BOW_23983 = 23983;
-const CRYSTAL_BOW_24123 = 24123;
-const BOW_OF_FAERDHINEN = 25862;
+// Newer crystal bow variants (charged IDs handled via ModernChargeWeaponSystem)
 const CRAW_BOW = 22550;
+
+// Karil's crossbow (full + degraded Barrows variants)
+const KARIL_CROSSBOW_DEGRADED = [4934, 4935, 4936, 4937, 4938] as const;
 
 // Crossbows
 const BRONZE_CROSSBOW = 9174;
@@ -135,6 +136,7 @@ const ADAMANT_BOLTS = 9143;
 const RUNITE_BOLTS = 9144;
 const DRAGON_BOLTS = 21905;
 const BROAD_BOLTS = 11875;
+const BOLT_RACK = 4740;
 
 // Enchanted bolts
 const OPAL_BOLTS_E = 9236;
@@ -266,6 +268,7 @@ const CROSSBOW_WEAPONS = new Set([
     ZARYTE_CROSSBOW,
     DRAGON_HUNTER_CROSSBOW,
     KARIL_CROSSBOW,
+    ...KARIL_CROSSBOW_DEGRADED,
 ]);
 
 const BALLISTA_WEAPONS = new Set([LIGHT_BALLISTA, HEAVY_BALLISTA]);
@@ -283,9 +286,7 @@ const NO_AMMO_WEAPONS = new Set([
     CRYSTAL_BOW_3,
     CRYSTAL_BOW_2,
     CRYSTAL_BOW_1,
-    CRYSTAL_BOW_23983,
-    CRYSTAL_BOW_24123,
-    BOW_OF_FAERDHINEN,
+    ...ALL_MODERN_CHARGE_WEAPON_IDS,
     TOXIC_BLOWPIPE, // Uses internal scales + darts
     // Knives
     BRONZE_KNIFE,
@@ -469,8 +470,12 @@ const CROSSBOW_BOLT_REQUIREMENTS: Map<number, number[]> = new Map([
     [ARMADYL_CROSSBOW, ALL_BOLTS],
     [ZARYTE_CROSSBOW, ALL_BOLTS],
     [DRAGON_HUNTER_CROSSBOW, ALL_BOLTS],
-    [KARIL_CROSSBOW, ALL_BOLTS], // Actually uses bolt racks, simplified here
+    [KARIL_CROSSBOW, [BOLT_RACK]],
 ]);
+
+for (const karilId of KARIL_CROSSBOW_DEGRADED) {
+    CROSSBOW_BOLT_REQUIREMENTS.set(karilId, [BOLT_RACK]);
+}
 
 // Javelins for ballistae
 const ALL_JAVELINS = [

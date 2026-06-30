@@ -110,6 +110,13 @@ function resolvePositiveStat(value: number, fallback: number): number {
     return Number.isFinite(value) && value > 0 ? Math.trunc(value) : fallback;
 }
 
+function resolveMeleeAttackStyle(style?: string): "stab" | "slash" | "crush" {
+    if (style === "stab" || style === "crush") {
+        return style;
+    }
+    return "slash";
+}
+
 function buildCombatProfile(npcType: NpcType, stats?: NpcCombatStatsData): NpcCombatProfile {
     if (!stats) {
         return {
@@ -138,6 +145,7 @@ function buildCombatProfile(npcType: NpcType, stats?: NpcCombatStatsData): NpcCo
                 npcType.attackSpeed,
                 DEFAULT_NPC_COMBAT_PROFILE.attackSpeed,
             ),
+            meleeAttackStyle: DEFAULT_NPC_COMBAT_PROFILE.meleeAttackStyle,
         };
     }
     return {
@@ -158,6 +166,7 @@ function buildCombatProfile(npcType: NpcType, stats?: NpcCombatStatsData): NpcCo
         maxHit: stats.maxHit,
         attackSpeed: stats.attackSpeed,
         attackType: stats.attackType,
+        meleeAttackStyle: resolveMeleeAttackStyle(stats.attackStyle),
         species: stats.species ?? [],
     };
 }

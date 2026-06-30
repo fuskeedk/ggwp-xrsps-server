@@ -12,6 +12,14 @@ export class PlayerEquipmentAccessor {
         return Math.max(0, this.chargeMap.get(itemId) ?? 0);
     }
 
+    /** Returns undefined when no charge entry exists for the item. */
+    getChargesOrUndefined(itemId: number): number | undefined {
+        if (!this.chargeMap.has(itemId)) {
+            return undefined;
+        }
+        return Math.max(0, this.chargeMap.get(itemId) ?? 0);
+    }
+
     setCharges(itemId: number, charges: number): void {
         if (!Number.isFinite(charges) || charges <= 0) {
             this.chargeMap.delete(itemId);

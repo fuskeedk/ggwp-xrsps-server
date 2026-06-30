@@ -341,7 +341,6 @@ const priestInPerilQuest: QuestDefinition = {
             const ctx: DialogueContext = { player, services, npcId: 5215, npcName: "King Roald" };
             const stage = getQuestStage(player, priestInPerilQuest);
             if (stage >= priestInPerilQuest.completionValue) {
-                startConversation(ctx, [{ npc: ["Morytania is open thanks to you."] }]);
                 return;
             }
             if (stage >= priestInPerilQuest.startedValue) {
@@ -377,10 +376,9 @@ const priestInPerilQuest: QuestDefinition = {
 
         const drezelHandler = (event: NpcInteractionEvent, drezelName: string): void => {
             const { player, services } = event;
-            const ctx: DialogueContext = { player, services, npcId: event.npcId, npcName: drezelName };
+            const ctx: DialogueContext = { player, services, npcId: event.npc.typeId, npcName: drezelName };
             if (getQuestStage(player, priestInPerilQuest) < priestInPerilQuest.startedValue) return;
             if (getQuestStage(player, priestInPerilQuest) >= priestInPerilQuest.completionValue) {
-                startConversation(ctx, [{ npc: ["Thank you for saving me."] }]);
                 return;
             }
             if (!getQuestFlag(player, priestInPerilQuest.key, "freed_drezel")) {
@@ -463,7 +461,6 @@ const plagueCityQuest: QuestDefinition = {
             const ctx: DialogueContext = { player, services, npcId: 6204, npcName: "Edmond" };
             const stage = getQuestStage(player, plagueCityQuest);
             if (stage >= plagueCityQuest.completionValue) {
-                startConversation(ctx, [{ npc: ["Elena is home safe. Thank you!"] }]);
                 return;
             }
             if (getQuestFlag(player, plagueCityQuest.key, "rescued_elena")) {
@@ -526,7 +523,9 @@ const plagueCityQuest: QuestDefinition = {
 
         registerQuestNpcTalk(registry, 2011, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 2011, npcName: "Elena" };
-            if (getQuestStage(player, plagueCityQuest) < plagueCityQuest.startedValue) return;
+            const stage = getQuestStage(player, plagueCityQuest);
+            if (stage >= plagueCityQuest.completionValue) return;
+            if (stage < plagueCityQuest.startedValue) return;
             if (getQuestFlag(player, plagueCityQuest.key, "rescued_elena")) {
                 startConversation(ctx, [{ npc: ["Thank you for saving me!"] }]);
                 return;
@@ -714,7 +713,6 @@ const junglePotionQuest: QuestDefinition = {
             const ctx: DialogueContext = { player, services, npcId: 4625, npcName: "Trufitus" };
             const stage = getQuestStage(player, junglePotionQuest);
             if (stage >= junglePotionQuest.completionValue) {
-                startConversation(ctx, [{ npc: ["The potion saved our village. Thank you."] }]);
                 return;
             }
             if (stage >= junglePotionQuest.startedValue) {
@@ -807,7 +805,6 @@ const merlinsCrystalQuest: QuestDefinition = {
             const ctx: DialogueContext = { player, services, npcId: 3531, npcName: "King Arthur" };
             const stage = getQuestStage(player, merlinsCrystalQuest);
             if (stage >= merlinsCrystalQuest.completionValue) {
-                startConversation(ctx, [{ npc: ["Merlin is free. Camelot owes you a debt."] }]);
                 return;
             }
             if (stage >= merlinsCrystalQuest.startedValue) {

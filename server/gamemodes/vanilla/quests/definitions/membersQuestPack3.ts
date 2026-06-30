@@ -217,9 +217,10 @@ const bigChompyBirdQuest = simpleQuest({
 const elementalWorkshopIIQuest = simpleQuest({
     key: "elemental_workshop_ii",
     name: "Elemental Workshop II",
-    varpId: 273,
+    varpId: -1,
+    progressVarbitId: 2639,
     startedValue: 1,
-    completionValue: 2,
+    completionValue: 100,
     rewards: {
         questPoints: 1,
         xp: [
@@ -887,6 +888,5 @@ export const membersQuestPack3: QuestDefinition[] = [
     eaglesPeakQuest,
     regicideQuest,
     rovingElvesQuest,
-    mageArenaQuest,
     oneSmallFavourQuest,
 ];

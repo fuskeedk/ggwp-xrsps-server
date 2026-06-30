@@ -15,8 +15,8 @@ import { knightsSwordQuest } from "./definitions/knightsSword";
 import { membersQuestPack } from "./definitions/membersQuestPack";
 import { membersQuestPack2 } from "./definitions/membersQuestPack2";
 import { membersQuestPack3 } from "./definitions/membersQuestPack3";
-// Auto-generated quest stubs disabled — use hand-crafted F2P/members packs only.
 // import { generatedAutoQuests } from "./definitions/generatedAutoQuests";
+import { generatedAutoQuests } from "./definitions/generatedAutoQuests";
 import { sheepShearerQuest } from "./definitions/sheepShearer";
 import type { QuestDefinition } from "./types";
 import { buildQuestMap, setAllCacheQuestDisplayNames } from "../widgets/questListData";
@@ -32,6 +32,7 @@ const QUEST_DEFINITIONS: QuestDefinition[] = [
     ...additionalMembersQuests,
     ...membersQuestPack2,
     ...membersQuestPack3,
+    ...generatedAutoQuests,
     gardenOfDeathQuest,
 ];
 

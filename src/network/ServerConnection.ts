@@ -580,6 +580,20 @@ type ClientToServer =
 const getEnv = (key: string): string | undefined =>
     typeof process !== "undefined" && process.env ? process.env[key] : undefined;
 
+function isWsDebugEnabled(): boolean {
+    try {
+        return (globalThis as any).__wsDebug === true;
+    } catch {
+        return false;
+    }
+}
+
+function wsDebugLog(...args: unknown[]): void {
+    if (isWsDebugEnabled()) {
+        console.log(...args);
+    }
+}
+
 const DEFAULT_URL = "ws://localhost:43594";
 const LOGIN_CONNECT_RETRY_DELAY_MS = 1000;
 
@@ -1576,7 +1590,7 @@ export function initServerConnection(url: string = DEFAULT_URL) {
 
             // If reconnecting with stored credentials, automatically re-login
             if (wasReconnecting && sessionUsername && sessionPassword) {
-                console.log("[ws] Reconnected - attempting session resumption...");
+                wsDebugLog("[ws] Reconnected - attempting session resumption...");
                 send({
                     type: "login",
                     payload: {
@@ -1598,7 +1612,7 @@ export function initServerConnection(url: string = DEFAULT_URL) {
                 send({ type: "handshake", payload: { clientType, name: "Player" } });
             }
             // eslint-disable-next-line no-console
-            console.log(`[ws] connected to ${url}`);
+            wsDebugLog(`[ws] connected to ${url}`);
             // Track as global singleton so subsequent refreshes can close it before re-init
             try {
                 const g: any = (typeof window !== "undefined" ? window : globalThis) as any;
@@ -1680,8 +1694,7 @@ export function initServerConnection(url: string = DEFAULT_URL) {
  */
 function processServerMessage(msg: any): void {
     if (msg.type === "welcome") {
-        // eslint-disable-next-line no-console
-        console.log(
+        wsDebugLog(
             `[ws] welcome tickMs=${msg.payload.tickMs} serverTime=${msg.payload.serverTime}`,
         );
         lastWelcome = msg.payload;
@@ -1694,7 +1707,7 @@ function processServerMessage(msg: any): void {
         for (const cb of welcomeListeners) cb(msg.payload);
     } else if (msg.type === "login_response") {
         // Handle login response from server
-        console.log(`[ws] login_response success=${msg.payload.success}`);
+        wsDebugLog(`[ws] login_response success=${msg.payload.success}`);
         for (const cb of loginResponseListeners) {
             try {
                 cb(msg.payload);
@@ -1704,7 +1717,7 @@ function processServerMessage(msg: any): void {
         }
     } else if (msg.type === "logout_response") {
         // Handle logout response from server
-        console.log(`[ws] logout_response success=${msg.payload.success}`);
+        wsDebugLog(`[ws] logout_response success=${msg.payload.success}`);
         for (const cb of logoutResponseListeners) {
             try {
                 cb(msg.payload);
@@ -1845,7 +1858,7 @@ function processServerMessage(msg: any): void {
             try {
                 if ((globalThis as any).__syncDebug === true) {
                     const localState = playerSyncContext.stateFor(localIndex);
-                    console.log("[sync-debug] player_sync", {
+                console.log("[sync-debug] player_sync", {
                         baseX,
                         baseY,
                         localIndex,
@@ -2159,7 +2172,7 @@ function processServerMessage(msg: any): void {
         }
     } else if (msg.type === "widget") {
         if (msg.payload.action !== "set_text" && (msg.payload as any).uid !== 10616865) {
-            console.log("[ServerConnection] recv widget", msg.payload);
+            wsDebugLog("[ServerConnection] recv widget", msg.payload);
         }
         const payload = msg.payload as WidgetServerPayload;
         for (const cb of widgetListeners) cb(payload);
@@ -2205,9 +2218,9 @@ function processServerMessage(msg: any): void {
         try {
             const { loadFromPayload } = require("../shared/gamemode/GamemodeContentStore");
             loadFromPayload(msg.payload);
-            console.log(`[ws] gamemode_data loaded: ${msg.payload?.gamemodeId ?? "unknown"}`);
+            wsDebugLog(`[ws] gamemode_data loaded: ${msg.payload?.gamemodeId ?? "unknown"}`);
         } catch (err) {
-            console.log("[ws] failed to load gamemode_data", err);
+            wsDebugLog("[ws] failed to load gamemode_data", err);
         }
     } else if (msg.type === "notification") {
         const payload = msg.payload as NotificationEvent;
@@ -2380,19 +2393,19 @@ function processServerMessage(msg: any): void {
                 // Apply attack option varps to ClientState for menu building
                 if (varpId === VARP_OPTION_ATTACK_PRIORITY_PLAYER) {
                     ClientState.playerAttackOption = Math.max(0, Math.min(4, value | 0));
-                    console.log(
+                    wsDebugLog(
                         `[varp] Player attack option set to ${ClientState.playerAttackOption}`,
                     );
                 } else if (varpId === VARP_OPTION_ATTACK_PRIORITY_NPC) {
                     ClientState.npcAttackOption = Math.max(0, Math.min(3, value | 0));
-                    console.log(`[varp] NPC attack option set to ${ClientState.npcAttackOption}`);
+                    wsDebugLog(`[varp] NPC attack option set to ${ClientState.npcAttackOption}`);
                 } else if (varpId === VARP_FOLLOWER_INDEX) {
                     const followerIndex = value === 65535 ? -1 : value & 0xffff;
                     ClientState.followerIndex = followerIndex;
-                    console.log(`[varp] Follower index set to ${ClientState.followerIndex}`);
+                    wsDebugLog(`[varp] Follower index set to ${ClientState.followerIndex}`);
                 } else if (varpId === VARP_COMBAT_TARGET_PLAYER_INDEX) {
                     ClientState.combatTargetPlayerIndex = value === -1 ? -1 : value & 0x7ff;
-                    console.log(
+                    wsDebugLog(
                         `[varp] Combat target player index set to ${ClientState.combatTargetPlayerIndex}`,
                     );
                 }
@@ -2434,7 +2447,12 @@ function processServerMessage(msg: any): void {
             if (mv && mv.cs2Vm) {
                 const scriptId = payload.scriptId | 0;
                 const args = payload.args || [];
-                console.log(`[runClientScript] executing script ${scriptId} with args:`, args);
+                if (scriptId === 828 || scriptId === 2498) {
+                    const member = (Number(args[0] ?? 0) | 0) === 1;
+                    const days = Number(mv.varManager?.getVarp?.(1780) ?? 0);
+                    mv.setMembershipState?.(member, days);
+                }
+                wsDebugLog(`[runClientScript] executing script ${scriptId} with args:`, args);
                 const script = mv.cs2Vm.context?.loadScript?.(scriptId);
                 if (script) {
                     // Separate int and string args
@@ -2482,7 +2500,7 @@ function initSocketCloseHandler(ws: WebSocket): void {
         socket = null;
         const reasonPart = evt.reason ? `, reason=${evt.reason}` : "";
         // eslint-disable-next-line no-console
-        console.log(`[ws] disconnected (code=${evt.code}, clean=${evt.wasClean}${reasonPart})`);
+        wsDebugLog(`[ws] disconnected (code=${evt.code}, clean=${evt.wasClean}${reasonPart})`);
         // Clear the packet writer socket
         setPacketSocket(null);
         lastSkillsState = undefined;
@@ -2505,7 +2523,7 @@ function initSocketCloseHandler(ws: WebSocket): void {
                 !isIntentionalClose &&
                 reconnectAttempts < RECONNECT_MAX_ATTEMPTS;
 
-            console.log(
+            wsDebugLog(
                 `[ws] reconnect check: hasSession=${hasSession}, suppress=${suppress}, intentional=${isIntentionalClose}, attempts=${reconnectAttempts}/${RECONNECT_MAX_ATTEMPTS}, willReconnect=${shouldReconnect}`,
             );
 
@@ -2515,8 +2533,7 @@ function initSocketCloseHandler(ws: WebSocket): void {
                 isReconnecting = true;
                 reconnectAttempts++;
                 const delay = Math.min(reconnectDelayMs | 0, RECONNECT_DELAY_MAX_MS);
-                // eslint-disable-next-line no-console
-                console.log(
+                wsDebugLog(
                     `[ws] reconnecting in ${delay}ms... (attempt ${reconnectAttempts}/${RECONNECT_MAX_ATTEMPTS})`,
                 );
                 reconnectTimer = setTimeout(() => {
@@ -2543,8 +2560,7 @@ function initSocketCloseHandler(ws: WebSocket): void {
             if (!shouldReconnect && isReconnecting) {
                 // Reconnection attempts exhausted - notify failure
                 isReconnecting = false;
-                // eslint-disable-next-line no-console
-                console.log("[ws] reconnection failed after max attempts");
+                wsDebugLog("[ws] reconnection failed after max attempts");
                 for (const cb of reconnectFailedListeners) {
                     try {
                         cb();
@@ -3364,7 +3380,7 @@ export function sendLogin(username: string, password: string, revision: number =
 
     if (!socket || socket.readyState !== WebSocket.OPEN) {
         // Socket not open - need to reconnect first
-        console.log("[ws] Socket not open, reconnecting before login...");
+        wsDebugLog("[ws] Socket not open, reconnecting before login...");
         clearLoginConnectRetryTimer();
         connectForLogin(lastUrl, false);
 
@@ -3373,7 +3389,7 @@ export function sendLogin(username: string, password: string, revision: number =
             if (attemptId !== loginConnectAttemptId) return;
             if (socket && socket.readyState === WebSocket.OPEN) return;
 
-            console.log(
+            wsDebugLog(
                 `[ws] Login connect not established after ${LOGIN_CONNECT_RETRY_DELAY_MS}ms, retrying direct websocket connect...`,
             );
             connectForLogin(lastUrl, true);
@@ -3524,25 +3540,25 @@ export function sendChat(
     messageType: "public" | "game" = "public",
     chatType: number = 0,
 ): void {
-    console.log(`[sendChat] Attempting to send: "${text}"`);
+    wsDebugLog(`[sendChat] Attempting to send: "${text}"`);
     if (!socket || socket.readyState !== WebSocket.OPEN) {
-        console.log("[sendChat] Socket not ready");
+        wsDebugLog("[sendChat] Socket not ready");
         return;
     }
     const filtered = sanitizeChatText(String(text ?? ""));
     if (!filtered) {
-        console.log("[sendChat] Filtered text is empty");
+        wsDebugLog("[sendChat] Filtered text is empty");
         return;
     }
 
     const formatting = parseOutgoingPublicChat(filtered);
     const payloadText = formatting.text;
     if (!payloadText) {
-        console.log("[sendChat] Payload text is empty after formatting");
+        wsDebugLog("[sendChat] Payload text is empty after formatting");
         return;
     }
 
-    console.log(`[sendChat] Sending to server: "${payloadText}"`);
+    wsDebugLog(`[sendChat] Sending to server: "${payloadText}"`);
     send({
         type: "chat",
         payload: {

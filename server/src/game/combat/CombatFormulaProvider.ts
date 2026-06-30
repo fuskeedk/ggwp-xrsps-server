@@ -40,16 +40,25 @@ export interface NpcMaxHitProfile {
     maxHit: number;
     strengthLevel: number;
     strengthBonus: number;
+    attackType?: AttackType;
+    rangedLevel?: number;
+    magicLevel?: number;
+    rangedStrengthBonus?: number;
+    magicStrengthBonus?: number;
 }
 
 export interface NpcVsPlayerProfile {
     attackLevel: number;
+    magicLevel?: number;
+    rangedLevel?: number;
     attackBonus: number;
     magicBonus: number;
     rangedBonus: number;
     maxHit: number;
     strengthLevel: number;
     strengthBonus: number;
+    magicStrengthBonus?: number;
+    rangedStrengthBonus?: number;
     attackType: AttackType;
 }
 

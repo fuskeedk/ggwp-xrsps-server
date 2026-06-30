@@ -24,7 +24,7 @@ export interface EquipmentBonusResult {
     strengthLevelMultiplier: number;
     maxHitBonus: number;
     notes: string[];
-    damageProcs?: Array<{ type: "keris"; chance: number; multiplier: number }>;
+    damageProcs?: Array<{ type: "keris" | "ahrim_damned"; chance: number; multiplier: number }>;
     tumekenMagicAttackMultiplier?: number;
     tumekenMagicDamageMultiplier?: number;
 }
@@ -82,6 +82,8 @@ export interface EquipmentBonusProvider {
     hasVeracSet(equipment: number[]): boolean;
 
     hasAhrimsDamnedSet(equipment: number[]): boolean;
+
+    hasGuthansDamnedSet(equipment: number[]): boolean;
 }
 
 // =============================================================================
@@ -162,4 +164,8 @@ export function hasVeracSet(equipment: number[]): boolean {
 
 export function hasAhrimsDamnedSet(equipment: number[]): boolean {
     return ensureProvider().hasAhrimsDamnedSet(equipment);
+}
+
+export function hasGuthansDamnedSet(equipment: number[]): boolean {
+    return ensureProvider().hasGuthansDamnedSet(equipment);
 }

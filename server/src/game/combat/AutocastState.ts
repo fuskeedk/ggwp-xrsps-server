@@ -4,6 +4,7 @@ import {
     VARBIT_AUTOCAST_SPELL,
 } from "../../../../src/shared/vars";
 import type { PlayerState } from "../player";
+import { ensureEquipArrayOn } from "../equipment";
 import { canWeaponAutocastSpell, getAutocastIndexFromSpellId } from "../spells/SpellDataProvider";
 
 type AutocastSyncCallbacks = {
@@ -68,7 +69,11 @@ export function restoreAutocastState(
         return;
     }
 
-    const compatibility = canWeaponAutocastSpell(weaponItemId, spellId);
+    const compatibility = canWeaponAutocastSpell(
+        weaponItemId,
+        spellId,
+        ensureEquipArrayOn(player.appearance),
+    );
     if (!compatibility.compatible) {
         clearAutocastState(player, callbacks);
         return;

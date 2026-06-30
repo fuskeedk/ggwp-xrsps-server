@@ -70,6 +70,7 @@ function resolveMonstersCompletePath(): string | undefined {
     const candidates = [
         path.resolve("references/monsters-complete.json"),
         path.resolve(__dirname, "../../../references/monsters-complete.json"),
+        path.resolve(__dirname, "../../../data/raw/osrsbox/monsters-complete.json"),
     ];
     return candidates.find((candidate) => fs.existsSync(candidate));
 }

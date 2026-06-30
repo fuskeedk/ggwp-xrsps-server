@@ -121,6 +121,8 @@ export function completeQuest(
     services: ScriptServices,
     quest: QuestDefinition,
 ): void {
+    if (isQuestComplete(player, quest)) return;
+
     setQuestStage(player, quest, services, quest.completionValue);
 
     const questPointTotal =

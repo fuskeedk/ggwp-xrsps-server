@@ -2,10 +2,10 @@ import { SpellCaster } from "../spells/SpellCaster";
 import { getSpellData } from "../spells/SpellDataProvider";
 import { AttackType } from "./AttackType";
 
-export const RANGED_WEAPON_CATEGORIES = new Set<number>([3, 5, 6, 7, 8, 19]);
+export const RANGED_WEAPON_CATEGORIES = new Set<number>([3, 5, 7, 8, 19]);
 export const MAGIC_WEAPON_CATEGORIES = new Set<number>([18, 24, 29]);
 export const POWERED_STAFF_CATEGORIES = new Set<number>([24]);
-export const SALAMANDER_WEAPON_CATEGORY = 31;
+export const SALAMANDER_WEAPON_CATEGORY = 6;
 export const DEFAULT_NPC_MELEE_RANGE = 1;
 export const DEFAULT_NPC_RANGED_RANGE = 7;
 export const DEFAULT_NPC_MAGIC_RANGE = 10;

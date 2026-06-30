@@ -140,8 +140,12 @@ export interface SpellDataProvider {
     getSpellIdFromAutocastIndex(autocastIndex: number): number | undefined;
     getAutocastIndexFromSpellId(spellId: number): number | undefined;
     isSpellAutocastable(spellId: number): boolean;
-    buildVisibleAutocastIndices(weaponItemId: number): number[];
-    canWeaponAutocastSpell(weaponItemId: number, spellId: number): AutocastCompatibilityResult;
+    buildVisibleAutocastIndices(weaponItemId: number, equipment?: number[]): number[];
+    canWeaponAutocastSpell(
+        weaponItemId: number,
+        spellId: number,
+        equipment?: number[],
+    ): AutocastCompatibilityResult;
     getAutocastCompatibilityMessage(reason: AutocastCompatibilityResult["reason"]): string;
 
     // Powered staff
@@ -214,15 +218,16 @@ export function isSpellAutocastable(spellId: number): boolean {
     return ensureProvider().isSpellAutocastable(spellId);
 }
 
-export function buildVisibleAutocastIndices(weaponItemId: number): number[] {
-    return ensureProvider().buildVisibleAutocastIndices(weaponItemId);
+export function buildVisibleAutocastIndices(weaponItemId: number, equipment?: number[]): number[] {
+    return ensureProvider().buildVisibleAutocastIndices(weaponItemId, equipment);
 }
 
 export function canWeaponAutocastSpell(
     weaponItemId: number,
     spellId: number,
+    equipment?: number[],
 ): AutocastCompatibilityResult {
-    return ensureProvider().canWeaponAutocastSpell(weaponItemId, spellId);
+    return ensureProvider().canWeaponAutocastSpell(weaponItemId, spellId, equipment);
 }
 
 export function getAutocastCompatibilityMessage(

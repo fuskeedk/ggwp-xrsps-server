@@ -1,7 +1,20 @@
 import { logger } from "../../../utils/logger";
 import { AmmoType, getAmmoType } from "../../combat/AmmoSystem";
+import {
+    consumeBlowpipeShot,
+    isBlowpipeWeapon,
+} from "../../combat/BlowpipeSystem";
 import { AttackType } from "../../combat/AttackType";
 import { DegradationSystem, getChargesUsed, setChargesUsed } from "../../combat/DegradationSystem";
+import {
+    consumeModernChargeWeaponShot,
+    isModernChargeWeapon,
+} from "../../combat/ModernChargeWeaponSystem";
+import {
+    canFirePoweredStaff,
+    consumePoweredStaffCharge,
+    isChargeablePoweredStaff,
+} from "../../combat/PoweredStaffChargeSystem";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
 import type { NpcState } from "../../npc";
 import type { PlayerState } from "../../player";
@@ -25,8 +38,85 @@ export function handleRangedAmmoConsumption(
     tick: number,
     effects: ActionEffect[],
 ): ActionExecutionResult {
+    return handleRangedAmmoConsumptionAt(
+        services,
+        player,
+        weaponItemId,
+        hitCount,
+        tick,
+        npc.tileX,
+        npc.tileY,
+        npc.level,
+        effects,
+    );
+}
+
+export function handleRangedAmmoConsumptionAt(
+    services: CombatActionServices,
+    player: PlayerState,
+    weaponItemId: number,
+    hitCount: number,
+    tick: number,
+    targetX: number,
+    targetY: number,
+    targetLevel: number,
+    effects: ActionEffect[],
+): ActionExecutionResult {
     const equip = services.getEquipArray(player);
     const equipQty = services.getEquipQtyArray(player);
+
+    if (isBlowpipeWeapon(weaponItemId)) {
+        const appearance = player.appearance;
+        if (!appearance) {
+            return { ok: false, reason: "appearance_missing" };
+        }
+        const result = consumeBlowpipeShot(player, appearance, hitCount);
+        if (!result.ok) {
+            if (result.chatMessage) {
+                services.queueChatMessage({
+                    messageType: "game",
+                    text: result.chatMessage,
+                    targetPlayerIds: [player.id],
+                });
+            }
+            return { ok: false, reason: result.reason ?? "ammo_missing" };
+        }
+        services.markEquipmentDirty(player);
+        services.markAppearanceDirty(player);
+        effects.push({ type: "appearanceUpdate", playerId: player.id });
+        return { ok: true };
+    }
+
+    // ========================================================================
+    // Modern Charge Weapons (Crystal bow / Bow of faerdhinen post-SOTE)
+    // ========================================================================
+    if (isModernChargeWeapon(weaponItemId)) {
+        const result = consumeModernChargeWeaponShot(player, weaponItemId, hitCount);
+        if (!result.ok) {
+            return { ok: false, reason: "charge_weapon_error" };
+        }
+
+        if (result.chargeVarbit !== undefined && result.remainingCharges !== undefined) {
+            player.varps.setVarbitValue(result.chargeVarbit, result.remainingCharges);
+        }
+
+        if (result.newWeaponId !== weaponItemId) {
+            equip[EquipmentSlot.WEAPON] = result.newWeaponId;
+            services.markEquipmentDirty(player);
+            services.markAppearanceDirty(player);
+            effects.push({ type: "appearanceUpdate", playerId: player.id });
+        }
+
+        if (result.depleted && result.chatMessage) {
+            services.queueChatMessage({
+                messageType: "game",
+                text: result.chatMessage,
+                targetPlayerIds: [player.id],
+            });
+        }
+
+        return { ok: true };
+    }
 
     // ========================================================================
     // Degradable Weapon Handling (Crystal Bow, Bow of Faerdhinen, etc.)
@@ -115,8 +205,8 @@ export function handleRangedAmmoConsumption(
         ammoId,
         ammoQty,
         capeId,
-        npc.tileX,
-        npc.tileY,
+        targetX,
+        targetY,
         Math.random,
     );
 
@@ -155,19 +245,77 @@ export function handleRangedAmmoConsumption(
     }
 
     if (result.dropped && result.quantityUsed && result.quantityUsed > 0) {
-        const dropX = result.dropTileX ?? npc.tileX;
-        const dropY = result.dropTileY ?? npc.tileY;
+        const dropX = result.dropTileX ?? targetX;
+        const dropY = result.dropTileY ?? targetY;
         const inWilderness = services.isInWilderness(dropX, dropY);
         services.spawnGroundItem(
             ammoId,
             result.quantityUsed,
-            { x: dropX, y: dropY, level: npc.level },
+            { x: dropX, y: dropY, level: targetLevel },
             tick,
             {
                 ownerId: player.id,
                 privateTicks: inWilderness ? 0 : undefined,
             },
         );
+    }
+
+    return { ok: true };
+}
+
+export function handlePoweredStaffChargeConsumption(
+    services: CombatActionServices,
+    player: PlayerState,
+    weaponItemId: number,
+    hitCount: number,
+    effects: ActionEffect[],
+): ActionExecutionResult {
+    if (!isChargeablePoweredStaff(weaponItemId)) {
+        const readiness = canFirePoweredStaff(player, weaponItemId);
+        if (!readiness.ok) {
+            if (readiness.chatMessage) {
+                services.queueChatMessage({
+                    messageType: "game",
+                    text: readiness.chatMessage,
+                    targetPlayerIds: [player.id],
+                });
+            }
+            return { ok: false, reason: "staff_uncharged" };
+        }
+        return { ok: true };
+    }
+
+    const readiness = canFirePoweredStaff(player, weaponItemId);
+    if (!readiness.ok) {
+        if (readiness.chatMessage) {
+            services.queueChatMessage({
+                messageType: "game",
+                text: readiness.chatMessage,
+                targetPlayerIds: [player.id],
+            });
+        }
+        return { ok: false, reason: "staff_uncharged" };
+    }
+
+    const equip = services.getEquipArray(player);
+    const result = consumePoweredStaffCharge(player, weaponItemId, hitCount);
+    if (!result.ok) {
+        return { ok: false, reason: "staff_charge_error" };
+    }
+
+    if (result.newWeaponId !== weaponItemId) {
+        equip[EquipmentSlot.WEAPON] = result.newWeaponId;
+        services.markEquipmentDirty(player);
+        services.markAppearanceDirty(player);
+        effects.push({ type: "appearanceUpdate", playerId: player.id });
+    }
+
+    if (result.depleted && result.chatMessage) {
+        services.queueChatMessage({
+            messageType: "game",
+            text: result.chatMessage,
+            targetPlayerIds: [player.id],
+        });
     }
 
     return { ok: true };
@@ -185,7 +333,11 @@ export function handleAutocastRuneConsumption(
     }
 
     // Validate staff-spell compatibility
-    const compatibility = services.canWeaponAutocastSpell(weaponItemId, autocastSpellId);
+    const compatibility = services.canWeaponAutocastSpell(
+        weaponItemId,
+        autocastSpellId,
+        services.getEquipArray(player),
+    );
     if (!compatibility.compatible) {
         const message = services.getAutocastCompatibilityMessage(compatibility.reason);
         services.queueChatMessage({
