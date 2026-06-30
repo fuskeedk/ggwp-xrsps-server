@@ -332,7 +332,11 @@ export class SpellActionHandler {
         if (player.combat.lastSpellCastTick >= tick) return true;
 
         const weaponItemId = player.combat.weaponItemId;
-        const weaponCompatibility = canWeaponAutocastSpell(weaponItemId, spellId);
+        const weaponCompatibility = canWeaponAutocastSpell(
+            weaponItemId,
+            spellId,
+            player.appearance?.equip,
+        );
         if (!weaponCompatibility.compatible) {
             return true;
         }

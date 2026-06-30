@@ -68,6 +68,13 @@ export function getBarrowsPieceChain(itemId: number): BarrowsPieceChain | undefi
     return ITEM_TO_CHAIN.get(itemId);
 }
 
+/** All degraded Ahrim's staff item IDs (full through 0). */
+export const AHRIM_STAFF_IDS = new Set<number>([4710, 4862, 4863, 4864, 4865, 4866]);
+
+export function isAhrimsStaff(itemId: number): boolean {
+    return AHRIM_STAFF_IDS.has(itemId);
+}
+
 export function isBarrowsItem(itemId: number): boolean {
     return ITEM_TO_CHAIN.has(itemId);
 }

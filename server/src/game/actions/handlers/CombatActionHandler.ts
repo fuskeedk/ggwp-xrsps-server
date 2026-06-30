@@ -470,6 +470,7 @@ export interface CombatActionServices {
     canWeaponAutocastSpell(
         weaponId: number,
         spellId: number,
+        equipment?: number[],
     ): { compatible: boolean; reason?: string };
     /** Get autocast compatibility error message. */
     getAutocastCompatibilityMessage(reason?: string): string;
@@ -808,8 +809,8 @@ export class CombatActionHandler {
                     randFn,
                 ),
 
-            canWeaponAutocastSpell: (weaponId, spellId) =>
-                canWeaponAutocastSpell(weaponId, spellId),
+            canWeaponAutocastSpell: (weaponId, spellId, equipment) =>
+                canWeaponAutocastSpell(weaponId, spellId, equipment),
             getAutocastCompatibilityMessage: (reason) =>
                 getAutocastCompatibilityMessage(
                     reason as import("../../spells/SpellDataProvider").AutocastCompatibilityResult["reason"],

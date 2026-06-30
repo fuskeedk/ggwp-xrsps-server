@@ -333,7 +333,11 @@ export function handleAutocastRuneConsumption(
     }
 
     // Validate staff-spell compatibility
-    const compatibility = services.canWeaponAutocastSpell(weaponItemId, autocastSpellId);
+    const compatibility = services.canWeaponAutocastSpell(
+        weaponItemId,
+        autocastSpellId,
+        services.getEquipArray(player),
+    );
     if (!compatibility.compatible) {
         const message = services.getAutocastCompatibilityMessage(compatibility.reason);
         services.queueChatMessage({

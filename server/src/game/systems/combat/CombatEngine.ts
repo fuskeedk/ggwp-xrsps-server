@@ -366,7 +366,15 @@ export class CombatEngine {
 
         const hitChance = this.computeHitChance(attackRoll, defenceRoll);
         const landed = this.rng.next() < hitChance;
-        const damage = landed ? this.rollDamage(Math.max(0, maxHit)) : 0;
+        let damage = landed ? this.rollDamage(Math.max(0, maxHit)) : 0;
+        if (landed && damage > 0 && equipmentEffects.damageProcs?.length) {
+            for (const proc of equipmentEffects.damageProcs) {
+                const chance = Math.max(0, Math.min(1, proc.chance));
+                if (chance > 0 && this.rng.next() < chance) {
+                    damage = Math.max(0, Math.floor(damage * Math.max(0, proc.multiplier)));
+                }
+            }
+        }
         return { hitLanded: landed, maxHit, damage };
     }
 

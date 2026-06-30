@@ -167,6 +167,7 @@ class EquipmentBonusProviderImpl implements EquipmentBonusProvider {
         applyMagicBonuses(equipment, attackType, playerMagicLevel, spellId, result);
 
         applyTumekensShadowPassive(equipment, attackType, isInsideToA, result);
+        applyAhrimDamnedBonus(equipment, attackType, result);
 
         return result;
     }
@@ -215,15 +216,46 @@ class EquipmentBonusProviderImpl implements EquipmentBonusProvider {
     }
 
     hasAhrimsDamnedSet(equipment: number[]): boolean {
-        if (!hasBarrowsSet(equipment, "ahrim")) return false;
-        const neck = equipment[EquipmentSlot.AMULET];
-        return neck === AMULET_OF_DAMNED || neck === AMULET_OF_DAMNED_FULL;
+        return hasAhrimsDamnedSetEquipment(equipment);
+    }
+
+    hasGuthansDamnedSet(equipment: number[]): boolean {
+        return hasGuthansDamnedSetEquipment(equipment);
     }
 }
 
 // =============================================================================
 // Set Effect Checks
 // =============================================================================
+
+function hasAmuletOfDamned(equipment: number[]): boolean {
+    const neck = equipment[EquipmentSlot.AMULET];
+    return neck === AMULET_OF_DAMNED || neck === AMULET_OF_DAMNED_FULL;
+}
+
+function hasAhrimsDamnedSetEquipment(equipment: number[]): boolean {
+    return hasBarrowsSet(equipment, "ahrim") && hasAmuletOfDamned(equipment);
+}
+
+function hasGuthansDamnedSetEquipment(equipment: number[]): boolean {
+    return hasBarrowsSet(equipment, "guthan") && hasAmuletOfDamned(equipment);
+}
+
+function applyAhrimDamnedBonus(
+    equipment: number[],
+    attackType: AttackType,
+    result: EquipmentBonusResult,
+): void {
+    if (attackType !== AttackType.Magic || !hasAhrimsDamnedSetEquipment(equipment)) {
+        return;
+    }
+
+    if (!result.damageProcs) {
+        result.damageProcs = [];
+    }
+    result.damageProcs.push({ type: "ahrim_damned", chance: 0.25, multiplier: 1.3 });
+    result.notes.push("Ahrim's damned: 25% chance for +30% magic damage");
+}
 
 function hasVoidSet(equipment: number[]): boolean {
     const top = equipment[EquipmentSlot.BODY];

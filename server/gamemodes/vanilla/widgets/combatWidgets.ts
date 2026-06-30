@@ -72,6 +72,11 @@ const AUTOCAST_SPELLPOS_WEAPON_IDS = new Set<number>([
     4170, // Slayer's staff
     4675, // Ancient staff
     4710, // Ahrim's staff
+    4862, // Ahrim's staff 100
+    4863, // Ahrim's staff 75
+    4864, // Ahrim's staff 50
+    4865, // Ahrim's staff 25
+    4866, // Ahrim's staff 0
     6914, // Master wand
     8841, // Void knight mace
     11791, // Staff of the dead
@@ -312,7 +317,10 @@ export function registerCombatWidgetHandlers(
             return;
         }
         const weaponId = event.player.combat.pendingAutocastWeaponId ?? 0;
-        const visibleSpells = buildVisibleAutocastIndices(weaponId);
+        const visibleSpells = buildVisibleAutocastIndices(
+            weaponId,
+            event.player.appearance?.equip,
+        );
         // CC_CREATE childIndex is 1-based (slot 0 is a header/spacer), so subtract 1
         const arrayIndex = slot - 1;
         if (arrayIndex >= visibleSpells.length) {
@@ -419,7 +427,7 @@ function handleAutocastSpellSelection(
     // Validate staff-spell compatibility ()
     const equip = player.appearance?.equip;
     const weaponObjId = Array.isArray(equip) ? equip[EquipmentSlot.WEAPON] : 0;
-    const compatibility = canWeaponAutocastSpell(weaponObjId, spellId);
+    const compatibility = canWeaponAutocastSpell(weaponObjId, spellId, equip);
     if (!compatibility.compatible) {
         const message = getAutocastCompatibilityMessage(compatibility.reason);
         services.messaging.sendGameMessage(player, message);

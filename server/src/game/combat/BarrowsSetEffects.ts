@@ -9,11 +9,12 @@ import type { NpcState } from "../npc";
 import type { PlayerState } from "../player";
 import { AttackType } from "./AttackType";
 import { hasBarrowsSet } from "./BarrowsEquipment";
-import { hasAhrimsDamnedSet } from "./EquipmentBonusProvider";
+import { hasGuthansDamnedSet } from "./EquipmentBonusProvider";
 
 export const BARROWS_SET_PROC_CHANCE = 0.25;
 
 const TORAG_NPC_STATS = ["attack", "strength", "defence", "magic", "ranged"] as const;
+const GUTHAN_DAMNED_OVERHEAL_CAP = 10;
 
 function rollProc(random: () => number): boolean {
     return random() < BARROWS_SET_PROC_CHANCE;
@@ -36,6 +37,24 @@ function drainPlayerSkillFlat(player: PlayerState, skillId: SkillId, amount: num
     player.skillSystem.setSkillBoost(skillId, Math.max(1, current - amount));
 }
 
+function applyGuthanHeal(player: PlayerState, amount: number, equipment: number[]): void {
+    if (amount <= 0) return;
+
+    if (hasGuthansDamnedSet(equipment)) {
+        const skill = player.skillSystem.getSkill(SkillId.Hitpoints);
+        const baseLevel = skill.baseLevel;
+        const overhealCap = baseLevel + GUTHAN_DAMNED_OVERHEAL_CAP;
+        const current = player.skillSystem.getHitpointsCurrent?.() ?? baseLevel + skill.boost;
+        const healAmount = Math.min(amount, Math.max(0, overhealCap - current));
+        if (healAmount > 0) {
+            player.skillSystem.applyHitpointsHeal(healAmount);
+        }
+        return;
+    }
+
+    player.skillSystem.applyHitpointsHeal(amount);
+}
+
 /**
  * Apply barrows set passives when the player hits an NPC.
  * Returns true if player skills were modified (caller should sync).
@@ -53,7 +72,7 @@ export function applyBarrowsSetOnNpcHit(
     let skillsChanged = false;
 
     if (hasBarrowsSet(equipment, "guthan") && rollProc(random)) {
-        player.skillSystem.applyHitpointsHeal(damageDealt);
+        applyGuthanHeal(player, damageDealt, equipment);
         skillsChanged = true;
     }
 
@@ -69,9 +88,6 @@ export function applyBarrowsSetOnNpcHit(
         rollProc(random)
     ) {
         npc.drainCombatStat("strength", 5);
-        if (hasAhrimsDamnedSet(equipment)) {
-            npc.drainCombatStat("magic", 5);
-        }
     }
 
     return skillsChanged;
@@ -94,7 +110,7 @@ export function applyBarrowsSetOnPlayerHit(
     let changed = false;
 
     if (hasBarrowsSet(equipment, "guthan") && rollProc(random)) {
-        attacker.skillSystem.applyHitpointsHeal(damageDealt);
+        applyGuthanHeal(attacker, damageDealt, equipment);
         changed = true;
     }
 
@@ -122,9 +138,6 @@ export function applyBarrowsSetOnPlayerHit(
         rollProc(random)
     ) {
         drainPlayerSkillFlat(target, SkillId.Strength, 5);
-        if (hasAhrimsDamnedSet(equipment)) {
-            drainPlayerSkillFlat(target, SkillId.Magic, 5);
-        }
         changed = true;
     }
 
