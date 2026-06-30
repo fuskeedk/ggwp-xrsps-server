@@ -12,6 +12,7 @@ import { RUN_ENERGY_MAX } from "../../actor";
 import { AttackType } from "../../combat/AttackType";
 import { processBarrowsWeaponExposure } from "../../combat/BarrowsDegradationSystem";
 import { hasBarrowsSet } from "../../combat/BarrowsEquipment";
+import { applyBarrowsSetOnPlayerHit } from "../../combat/BarrowsSetEffects";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
 import { applyPoweredStaffHitEffects } from "../../combat/PoweredStaffEffects";
 import type { PlayerState } from "../../player";
@@ -274,6 +275,19 @@ export class PvpCombatHandler {
                 hitsplatTick,
                 special,
             );
+        }
+
+        if (didLand && targetHitsplat.amount > 0) {
+            const barrowsChanged = applyBarrowsSetOnPlayerHit(
+                player,
+                target,
+                attackType,
+                targetHitsplat.amount,
+            );
+            if (barrowsChanged) {
+                this.queueSkillSync(player);
+                this.queueSkillSync(target);
+            }
         }
 
         if (!this.services.isActiveFrame() && effects.length > 0) {

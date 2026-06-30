@@ -13,6 +13,7 @@ import { logger } from "../../../utils/logger";
 import { AttackType } from "../../combat/AttackType";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
 import { applyPoweredStaffHitEffects } from "../../combat/PoweredStaffEffects";
+import { applyBarrowsSetOnNpcHit } from "../../combat/BarrowsSetEffects";
 import type { NpcCombatStat, NpcState } from "../../npc";
 import type { PlayerState } from "../../player";
 import { getPoweredStaffSpellData } from "../../spells/SpellDataProvider";
@@ -182,6 +183,21 @@ export class NpcHitHandler {
 
         // Apply special attack effects
         this.handleSpecialAttackEffects(player, npc, data, hitLanded, npcHitsplat, tick);
+
+        if (hitLanded && npcHitsplat.amount > 0) {
+            const skillsChanged = applyBarrowsSetOnNpcHit(
+                player,
+                npc,
+                attackTypeHint ?? AttackType.Melee,
+                npcHitsplat.amount,
+            );
+            if (skillsChanged) {
+                const sync = player.skillSystem.takeSkillSync();
+                if (sync) {
+                    this.services.queueSkillSnapshot(player.id, sync);
+                }
+            }
+        }
 
         // Emit hitsplat effect
         if (!(isMagicAttack && !hitLanded)) {
