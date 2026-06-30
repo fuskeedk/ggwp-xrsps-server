@@ -64,6 +64,7 @@
     "data:validate-quests": "tsx scripts/validate-quest-registration.ts",
     "test:quests": "npm run data:validate-quests && tsx tests/quest-registration-parity.test.ts && tsx tests/quest-shared-npc-chains.test.ts && tsx tests/quest-chain-smoke.test.ts && tsx tests/quest-playability.test.ts",
     "test:combat": "tsx tests/jade-bolt-knockdown.test.ts",
+    "test:trade": "tsx tests/trade-manager.test.ts",
     "data:build-quest-playability": "tsx scripts/build-quest-playability-matrix.ts",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
