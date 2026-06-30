@@ -43,6 +43,7 @@ import type { SpellDataEntry } from "../../spells/SpellDataProvider";
 import {
     canWeaponAutocastSpell,
     getAutocastCompatibilityMessage,
+    getPoweredStaffSpellData,
     getSpellData,
 } from "../../spells/SpellDataProvider";
 import type {
@@ -54,7 +55,12 @@ import type {
     CombatPlayerHitActionData,
 } from "../actionPayloads";
 import type { ActionEffect, ActionExecutionResult, ActionRequest, ScheduledAction } from "../types";
-import { handleAutocastRuneConsumption, handleRangedAmmoConsumption } from "./CombatHandlerUtils";
+import {
+    handleAutocastRuneConsumption,
+    handlePoweredStaffChargeConsumption,
+    handleRangedAmmoConsumption,
+    handleRangedAmmoConsumptionAt,
+} from "./CombatHandlerUtils";
 import { CompanionHitHandler } from "./CompanionHitHandler";
 import { NpcHitHandler } from "./NpcHitHandler";
 import { NpcRetaliationHandler } from "./NpcRetaliationHandler";
@@ -117,6 +123,9 @@ export interface SpecialAttackPayload {
         prayerFraction?: number;
         siphonRunEnergyPercent?: number;
         prayerDisableTicks?: number;
+        drainDefencePercent?: number;
+        drainDefenceByDamage?: number;
+        drainDefenceOnlyIfNotDrained?: boolean;
         drainMagicByDamage?: boolean;
         drainCombatStatByDamage?: boolean;
         ignoreProtectionPrayer?: boolean;
@@ -229,7 +238,7 @@ export interface CombatActionServices {
     /** Pick attack animation sequence for player. */
     pickAttackSequence(player: PlayerState): number;
     /** Pick attack speed for player. */
-    pickAttackSpeed(player: PlayerState): number;
+    pickAttackSpeed(player: PlayerState, targetType?: "npc" | "player"): number;
     /** Pick hit delay for player's weapon. */
     pickHitDelay(player: PlayerState): number;
     /** Get player's attack reach (range). */
@@ -389,6 +398,7 @@ export interface CombatActionServices {
         damage: number,
         attackType: AttackType,
         sourceType: "player" | "npc",
+        tick?: number,
     ): number;
     /** Apply smite effect. */
     applySmite(attacker: PlayerState, target: PlayerState, damage: number): void;
@@ -460,6 +470,7 @@ export interface CombatActionServices {
     canWeaponAutocastSpell(
         weaponId: number,
         spellId: number,
+        equipment?: number[],
     ): { compatible: boolean; reason?: string };
     /** Get autocast compatibility error message. */
     getAutocastCompatibilityMessage(reason?: string): string;
@@ -623,7 +634,8 @@ export class CombatActionHandler {
             markAppearanceDirty: (player) => player.markAppearanceDirty(),
 
             pickAttackSequence: (player) => svc.playerCombatService!.pickAttackSequence(player),
-            pickAttackSpeed: (player) => svc.playerCombatService!.pickAttackSpeed(player),
+            pickAttackSpeed: (player, targetType) =>
+                svc.playerCombatService!.pickAttackSpeed(player, targetType),
             pickHitDelay: (player) => svc.playerCombatService!.pickHitDelay(player),
             getPlayerAttackReach: (player) => svc.playerCombatService!.getPlayerAttackReach(player),
             pickNpcFaceTile: (player, npc) => svc.playerCombatService!.pickNpcFaceTile(player, npc),
@@ -740,12 +752,13 @@ export class CombatActionHandler {
                 svc.npcManager?.scheduleDeathProcessing(npcId, killerPlayerId, deathTick);
             },
 
-            applyProtectionPrayers: (target, damage, attackType, sourceType) =>
+            applyProtectionPrayers: (target, damage, attackType, sourceType, tick) =>
                 svc.combatEffectService.applyProtectionPrayers(
                     target,
                     damage,
                     attackType,
                     sourceType,
+                    tick,
                 ),
             applySmite: (attacker, target, damage) =>
                 svc.combatEffectService.applySmite(attacker, target, damage),
@@ -796,8 +809,8 @@ export class CombatActionHandler {
                     randFn,
                 ),
 
-            canWeaponAutocastSpell: (weaponId, spellId) =>
-                canWeaponAutocastSpell(weaponId, spellId),
+            canWeaponAutocastSpell: (weaponId, spellId, equipment) =>
+                canWeaponAutocastSpell(weaponId, spellId, equipment),
             getAutocastCompatibilityMessage: (reason) =>
                 getAutocastCompatibilityMessage(
                     reason as import("../../spells/SpellDataProvider").AutocastCompatibilityResult["reason"],
@@ -966,6 +979,24 @@ export class CombatActionHandler {
             }
         }
 
+        // Magic powered staff charge consumption
+        if (plannedAttackType === AttackType.Magic) {
+            const poweredStaffData = weaponItemId > 0 ? getPoweredStaffSpellData(weaponItemId) : undefined;
+            if (poweredStaffData) {
+                const result = handlePoweredStaffChargeConsumption(
+                    this.subServices,
+                    player,
+                    weaponItemId,
+                    hitPayloads.length,
+                    effects,
+                );
+                if (!result.ok) {
+                    this.svc.playerCombatManager?.stopAutoAttack(player.id);
+                    return result;
+                }
+            }
+        }
+
         // Magic autocast rune consumption
         // Skip if onMagicAttack already handled runes at schedule time (prevents double consumption)
         if (
@@ -1125,7 +1156,7 @@ export class CombatActionHandler {
             attackDelay = data.attackDelay;
         }
         if (attackDelay === undefined) {
-            attackDelay = this.svc.playerCombatService!.pickAttackSpeed(player);
+            attackDelay = this.svc.playerCombatService!.pickAttackSpeed(player, "npc");
         }
         attackDelay = Math.max(1, attackDelay);
         player.combat.attackDelay = attackDelay;
@@ -1327,6 +1358,56 @@ export class CombatActionHandler {
             this.svc.effectDispatcher!.dispatchActionEffects(effects);
         }
         return { ok: true, cooldownTicks: attackDelay, groups: ["combat.attack"], effects };
+    }
+
+    /**
+     * Consume powered staff charges for a player-vs-player swing.
+     */
+    consumePoweredStaffChargeForPlayerTarget(
+        player: PlayerState,
+        weaponItemId: number,
+        hitCount: number,
+    ): ActionExecutionResult {
+        const effects: ActionEffect[] = [];
+        const result = handlePoweredStaffChargeConsumption(
+            this.subServices,
+            player,
+            weaponItemId,
+            hitCount,
+            effects,
+        );
+        if (!this.svc.activeFrame && effects.length > 0) {
+            this.svc.effectDispatcher?.dispatchActionEffects(effects);
+        }
+        return result;
+    }
+
+    /**
+     * Consume ranged ammo for a player-vs-player swing.
+     */
+    consumeRangedAmmoForPlayerTarget(
+        player: PlayerState,
+        target: PlayerState,
+        weaponItemId: number,
+        hitCount: number,
+        tick: number,
+    ): ActionExecutionResult {
+        const effects: ActionEffect[] = [];
+        const result = handleRangedAmmoConsumptionAt(
+            this.subServices,
+            player,
+            weaponItemId,
+            hitCount,
+            tick,
+            target.tileX,
+            target.tileY,
+            target.level,
+            effects,
+        );
+        if (!this.svc.activeFrame && effects.length > 0) {
+            this.svc.effectDispatcher?.dispatchActionEffects(effects);
+        }
+        return result;
     }
 
     /**

@@ -606,11 +606,22 @@ export class TradeManager {
             this.broadcastSession(session);
             return;
         }
-        if (
-            !this.applyOffersToInventory(a.player, b.offers) ||
-            !this.applyOffersToInventory(b.player, a.offers)
-        ) {
-            logger.warn(`[trade] finalize apply failed for session ${session.id}`);
+        if (!this.applyOffersToInventory(a.player, b.offers)) {
+            this.svc.messagingService.sendGameMessageToPlayer(
+                a.player,
+                "Trade failed. Please try again.",
+            );
+            this.svc.messagingService.sendGameMessageToPlayer(
+                b.player,
+                "Trade failed. Please try again.",
+            );
+            session.stage = TradeStage.Offer;
+            this.resetAcceptances(session);
+            this.broadcastSession(session);
+            return;
+        }
+        if (!this.applyOffersToInventory(b.player, a.offers)) {
+            this.rollbackReceivedOffers(a.player, b.offers);
             this.svc.messagingService.sendGameMessageToPlayer(
                 a.player,
                 "Trade failed. Please try again.",
@@ -639,6 +650,14 @@ export class TradeManager {
             }
         }
         return true;
+    }
+
+    private rollbackReceivedOffers(player: PlayerState, offers: TradeOfferState[]): void {
+        for (const offer of offers) {
+            if (offer.quantity <= 0) continue;
+            this.removeItemQuantityFromInventory(player, offer.itemId, offer.quantity);
+        }
+        this.queueInventorySnapshot(player);
     }
 
     private removeItemQuantityFromInventory(

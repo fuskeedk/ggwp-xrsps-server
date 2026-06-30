@@ -9289,7 +9289,71 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
             }
         }
 
+        this.appendCs2EntityTypeHighlights(out, getWeTransform);
+
         return out;
+    }
+
+    private appendCs2EntityTypeHighlights(
+        out: InteractHighlightDrawTarget[],
+        getWeTransform: (target: InteractHighlightTarget) => Float32Array | undefined,
+    ): void {
+        const npcHighlights = this.osrsClient.npcTypeHighlightManager;
+        const locHighlights = this.osrsClient.locTypeHighlightManager;
+        const npcEcs = this.osrsClient.npcEcs;
+
+        npcEcs.forEachActive((ecsId) => {
+            const npcTypeId = npcEcs.getNpcTypeId(ecsId) | 0;
+            const style = npcHighlights.findStyleForType(npcTypeId);
+            if (!style || style.colorRgb === undefined) return;
+
+            const target: NpcHighlightTarget = {
+                kind: "npc",
+                ecsId,
+                serverId: npcEcs.getServerId(ecsId) | 0,
+                npcTypeId,
+                plane: npcEcs.getLevel(ecsId) | 0,
+            };
+            const trianglePoints = this.buildHighlightTrianglePoints(target);
+            if (!trianglePoints || trianglePoints.length < 3) return;
+
+            out.push({
+                trianglePoints,
+                color: style.colorRgb,
+                alpha: Math.max(0.05, Math.min(1, style.alphaPercent / 100)),
+                worldEntityTransform: getWeTransform(target),
+            });
+        });
+
+        for (let mi = 0; mi < this.mapManager.visibleMapCount; mi++) {
+            const map = this.mapManager.visibleMaps[mi];
+            if (!map) continue;
+            for (const anim of map.locsAnimated) {
+                const locTypeId = anim.id | 0;
+                const style = locHighlights.findStyleForType(locTypeId);
+                if (!style || style.colorRgb === undefined) continue;
+
+                const tileX = (anim.x / 128) | 0;
+                const tileY = (anim.y / 128) | 0;
+                const target: LocHighlightTarget = {
+                    kind: "loc",
+                    locId: locTypeId,
+                    tileX,
+                    tileY,
+                    plane: anim.level | 0,
+                    locRotation: anim.rotation,
+                };
+                const trianglePoints = this.buildHighlightTrianglePoints(target);
+                if (!trianglePoints || trianglePoints.length < 3) continue;
+
+                out.push({
+                    trianglePoints,
+                    color: style.colorRgb,
+                    alpha: Math.max(0.05, Math.min(1, style.alphaPercent / 100)),
+                    worldEntityTransform: getWeTransform(target),
+                });
+            }
+        }
     }
 
     private syncInteractHighlightActiveTargetFromLocalInteraction(): void {

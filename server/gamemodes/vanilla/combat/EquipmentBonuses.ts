@@ -15,6 +15,11 @@ import type {
     SlayerTaskInfo,
     TargetInfo,
 } from "../../../src/game/combat/EquipmentBonusProvider";
+import {
+    BOW_OF_FAERDHINEN_CHARGED_IDS,
+    MODERN_CRYSTAL_BOW_CHARGED_IDS,
+} from "../../../src/game/combat/ModernChargeWeaponSystem";
+import { hasBarrowsSet } from "../../../src/game/combat/BarrowsEquipment";
 
 // =============================================================================
 // Item ID Constants
@@ -89,9 +94,10 @@ const CRYSTAL_HELM = 23971;
 const CRYSTAL_BODY = 23975;
 const CRYSTAL_LEGS = 23979;
 const CRYSTAL_BOW_IDS = new Set([
-    4212, 4214, 4215, 4216, 4217, 4218, 4219, 4220, 4221, 4222, 4223, 23983, 24123,
+    4212, 4214, 4215, 4216, 4217, 4218, 4219, 4220, 4221, 4222, 4223,
+    ...MODERN_CRYSTAL_BOW_CHARGED_IDS,
 ]);
-const BOW_OF_FAERDHINEN = 25862;
+const BOW_OF_FAERDHINEN_IDS = new Set(BOW_OF_FAERDHINEN_CHARGED_IDS);
 
 const TOME_OF_FIRE = 20714;
 const TOME_OF_FIRE_SPELL_IDS = new Set<number>([3279, 3291, 3307, 3321, 21879]);
@@ -102,23 +108,8 @@ const MYSTIC_SMOKE_STAFF = 12000;
 const CHAOS_GAUNTLETS = 777;
 const CHAOS_BOLT_SPELL_IDS = new Set<number>([3281, 3285, 3288, 3291]);
 
-const DHAROKS_HELM = 4716;
-const DHAROKS_PLATEBODY = 4720;
-const DHAROKS_PLATELEGS = 4722;
-const DHAROKS_GREATAXE = 4718;
-
-const VERACS_HELM = 4753;
-const VERACS_BRASSARD = 4757;
-const VERACS_PLATESKIRT = 4759;
-const VERACS_FLAIL = 4755;
-
 const AMULET_OF_DAMNED = 12851;
 const AMULET_OF_DAMNED_FULL = 12853;
-
-const AHRIMS_HOOD = 4708;
-const AHRIMS_ROBETOP = 4712;
-const AHRIMS_ROBESKIRT = 4714;
-const AHRIMS_STAFF = 4710;
 
 const TUMEKENS_SHADOW = 27275;
 const TUMEKENS_SHADOW_UNCHARGED = 27277;
@@ -171,6 +162,7 @@ class EquipmentBonusProviderImpl implements EquipmentBonusProvider {
         applyMagicBonuses(equipment, attackType, playerMagicLevel, spellId, result);
 
         applyTumekensShadowPassive(equipment, attackType, isInsideToA, result);
+        applyAhrimDamnedBonus(equipment, attackType, result);
 
         return result;
     }
@@ -215,41 +207,50 @@ class EquipmentBonusProviderImpl implements EquipmentBonusProvider {
     }
 
     hasVeracSet(equipment: number[]): boolean {
-        const helm = equipment[EquipmentSlot.HEAD];
-        const body = equipment[EquipmentSlot.BODY];
-        const legs = equipment[EquipmentSlot.LEGS];
-        const weapon = equipment[EquipmentSlot.WEAPON];
-
-        return (
-            helm === VERACS_HELM &&
-            body === VERACS_BRASSARD &&
-            legs === VERACS_PLATESKIRT &&
-            weapon === VERACS_FLAIL
-        );
+        return hasBarrowsSet(equipment, "verac");
     }
 
     hasAhrimsDamnedSet(equipment: number[]): boolean {
-        const helm = equipment[EquipmentSlot.HEAD];
-        const body = equipment[EquipmentSlot.BODY];
-        const legs = equipment[EquipmentSlot.LEGS];
-        const weapon = equipment[EquipmentSlot.WEAPON];
-        const neck = equipment[EquipmentSlot.AMULET];
+        return hasAhrimsDamnedSetEquipment(equipment);
+    }
 
-        const hasAhrims =
-            helm === AHRIMS_HOOD &&
-            body === AHRIMS_ROBETOP &&
-            legs === AHRIMS_ROBESKIRT &&
-            weapon === AHRIMS_STAFF;
-
-        const hasDamned = neck === AMULET_OF_DAMNED || neck === AMULET_OF_DAMNED_FULL;
-
-        return hasAhrims && hasDamned;
+    hasGuthansDamnedSet(equipment: number[]): boolean {
+        return hasGuthansDamnedSetEquipment(equipment);
     }
 }
 
 // =============================================================================
 // Set Effect Checks
 // =============================================================================
+
+function hasAmuletOfDamned(equipment: number[]): boolean {
+    const neck = equipment[EquipmentSlot.AMULET];
+    return neck === AMULET_OF_DAMNED || neck === AMULET_OF_DAMNED_FULL;
+}
+
+function hasAhrimsDamnedSetEquipment(equipment: number[]): boolean {
+    return hasBarrowsSet(equipment, "ahrim") && hasAmuletOfDamned(equipment);
+}
+
+function hasGuthansDamnedSetEquipment(equipment: number[]): boolean {
+    return hasBarrowsSet(equipment, "guthan") && hasAmuletOfDamned(equipment);
+}
+
+function applyAhrimDamnedBonus(
+    equipment: number[],
+    attackType: AttackType,
+    result: EquipmentBonusResult,
+): void {
+    if (attackType !== AttackType.Magic || !hasAhrimsDamnedSetEquipment(equipment)) {
+        return;
+    }
+
+    if (!result.damageProcs) {
+        result.damageProcs = [];
+    }
+    result.damageProcs.push({ type: "ahrim_damned", chance: 0.25, multiplier: 1.3 });
+    result.notes.push("Ahrim's damned: 25% chance for +30% magic damage");
+}
 
 function hasVoidSet(equipment: number[]): boolean {
     const top = equipment[EquipmentSlot.BODY];
@@ -323,18 +324,7 @@ function applyDharokBonus(
     playerMaxHp: number,
     result: EquipmentBonusResult,
 ): void {
-    const helm = equipment[EquipmentSlot.HEAD];
-    const body = equipment[EquipmentSlot.BODY];
-    const legs = equipment[EquipmentSlot.LEGS];
-    const weapon = equipment[EquipmentSlot.WEAPON];
-
-    const hasFull =
-        helm === DHAROKS_HELM &&
-        body === DHAROKS_PLATEBODY &&
-        legs === DHAROKS_PLATELEGS &&
-        weapon === DHAROKS_GREATAXE;
-
-    if (!hasFull) return;
+    if (!hasBarrowsSet(equipment, "dharok")) return;
 
     const missingHp = Math.max(0, playerMaxHp - playerHp);
     const bonus = (missingHp * playerMaxHp) / 10000;
@@ -413,7 +403,7 @@ function applyCrystalBonus(
     if (attackType !== AttackType.Ranged) return;
 
     const weapon = equipment[EquipmentSlot.WEAPON];
-    const isCrystalBow = CRYSTAL_BOW_IDS.has(weapon) || weapon === BOW_OF_FAERDHINEN;
+    const isCrystalBow = CRYSTAL_BOW_IDS.has(weapon) || BOW_OF_FAERDHINEN_IDS.has(weapon);
 
     if (!isCrystalBow) return;
 

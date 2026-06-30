@@ -22,6 +22,7 @@ import type {
     ScriptServices,
     WidgetActionEvent,
 } from "../../src/game/scripts/types";
+import { requireStaff } from "../../gamemodes/ggwp/auth";
 import { buildItemSpawnerModalGroup } from "./widget/itemSpawner.cs2";
 
 const ITEM_SPAWNER_ID = 50100;
@@ -150,6 +151,9 @@ function openItemSpawnerModal(
     player: PlayerState,
     query?: string,
 ): string {
+    const denied = requireStaff(player);
+    if (denied) return denied;
+
     const interfaceService = services.dialog.getInterfaceService?.();
     if (!interfaceService) return "Interface service unavailable.";
 
@@ -188,10 +192,20 @@ export function register(registry: IScriptRegistry, services: ScriptServices): v
     ensureRegistered();
 
     registry.registerItemAction(ITEM_SPAWNER_ID, (event) => {
+        const denied = requireStaff(event.player);
+        if (denied) {
+            event.services.messaging.sendGameMessage(event.player, denied);
+            return;
+        }
         openItemSpawnerModal(event.services, event.player);
     });
 
     registry.registerCommand("itemspawner", (event) => {
+        const denied = requireStaff(event.player);
+        if (denied) {
+            return denied;
+        }
+
         const result = services.inventory.addItemToInventory(event.player, ITEM_SPAWNER_ID, 1);
         if (result.added >= 1) {
             services.inventory.snapshotInventory(event.player);
@@ -232,6 +246,12 @@ export function register(registry: IScriptRegistry, services: ScriptServices): v
     for (let slotIndex = 0; slotIndex < ITEM_SPAWNER_MODAL_RESULT_SLOT_COUNT; slotIndex++) {
         const componentId = ITEM_SPAWNER_MODAL_COMPONENT_SLOT_ICON_START + slotIndex;
         registry.onButton(ITEM_SPAWNER_MODAL_GROUP_ID, componentId, (event: WidgetActionEvent) => {
+            const denied = requireStaff(event.player);
+            if (denied) {
+                event.services.messaging.sendGameMessage(event.player, denied);
+                return;
+            }
+
             const selectedItemId = typeof event.itemId === "number" ? event.itemId | 0 : -1;
             if (!(selectedItemId > 0)) return;
 

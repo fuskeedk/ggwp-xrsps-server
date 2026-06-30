@@ -22,6 +22,9 @@ import {
     wasInstantUtilitySpecialHandledAtTick,
 } from "../../game/combat/InstantUtilitySpecialProvider";
 import { getSpecialAttack } from "../../game/combat/SpecialAttackProvider";
+import {
+    tryGrantGraniteMaulCombo,
+} from "../../game/combat/GraniteMaulCombo";
 import type { PlayerState } from "../../game/player";
 import { logger } from "../../utils/logger";
 import type { MessageHandlerServices } from "../MessageHandlers";
@@ -152,6 +155,9 @@ function handleSpecialAttackVarp(
     p.varps.setVarpValue(VARP_SPECIAL_ATTACK, normalizedVarpValue);
     if (normalizedVarpValue !== value) {
         sendVarpCorrection(services, ws, VARP_SPECIAL_ATTACK, normalizedVarpValue);
+    }
+    if (desired) {
+        tryGrantGraniteMaulCombo(p, weaponId, services.getCurrentTick());
     }
     services.queueCombatState(p);
 }

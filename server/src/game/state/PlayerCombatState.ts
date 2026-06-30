@@ -73,6 +73,12 @@ export class PlayerCombatState {
     freezeExpiryTick: number = 0;
     freezeImmunityUntilTick: number = 0;
 
+    /** Tick when the player last started a weapon attack animation. */
+    lastAttackSwingTick: number = Number.MIN_SAFE_INTEGER;
+
+    /** Protection prayers disabled until this tick (PvP special attacks). */
+    prayerDisabledUntilTick: number = 0;
+
     // Special attack energy
     specialEnergy: number = 1000; // SPECIAL_ENERGY_MAX
     nextSpecialRegenTick: number = 0;
@@ -84,6 +90,8 @@ export class PlayerCombatState {
     // Equipment degradation
     degradationCharges: ChargeTracker = createChargeTracker();
     degradationLastItemId: Map<number, number> = new Map();
+    /** Barrows combat exposure ticks keyed by slot*1e6+itemId. */
+    barrowsCombatTicks: Map<number, number> = new Map();
 
     // Freeze query methods
 
@@ -98,6 +106,14 @@ export class PlayerCombatState {
 
     isFreezeImmune(currentTick: number): boolean {
         return currentTick < this.freezeImmunityUntilTick;
+    }
+
+    isPrayerDisabled(currentTick: number): boolean {
+        return currentTick < this.prayerDisabledUntilTick;
+    }
+
+    disableProtectionPrayersUntil(untilTick: number): void {
+        this.prayerDisabledUntilTick = Math.max(this.prayerDisabledUntilTick, untilTick);
     }
 
     getFreezeRemaining(currentTick: number): number {
@@ -149,6 +165,11 @@ export class PlayerCombatState {
     /** Push the global attack timer forward; never pulls it back. */
     delayNextAttack(untilTick: number): void {
         this.nextAttackAvailableTick = Math.max(this.nextAttackAvailableTick, untilTick);
+    }
+
+    /** Allow an attack on the current tick (granite maul combo). */
+    allowImmediateAttack(tick: number): void {
+        this.nextAttackAvailableTick = Math.min(this.nextAttackAvailableTick, tick);
     }
 
     getInteractingNpc(): NpcState | null {

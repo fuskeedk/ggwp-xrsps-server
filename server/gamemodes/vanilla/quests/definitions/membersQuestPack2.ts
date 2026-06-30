@@ -17,6 +17,7 @@ import {
 } from "../helpers";
 import type { QuestDefinition, QuestItemRequirement } from "../types";
 import { simpleQuest } from "./questFactory";
+import { isQuestInProgress } from "../questSharedNpcYield";
 import { addItemIfMissing, hasItem, isVarpAtLeast } from "./questUtils";
 
 const PRIEST_IN_PERIL = 302;
@@ -172,7 +173,6 @@ const grandTreeQuest: QuestDefinition = {
             const ctx: DialogueContext = { player, services, npcId: 1423, npcName: "King Narnode Shareen" };
             const stage = getQuestStage(player, grandTreeQuest);
             if (stage >= grandTreeQuest.completionValue) {
-                startConversation(ctx, [{ npc: ["The Grand Tree lives on!"] }]);
                 return;
             }
             if (getQuestFlag(player, grandTreeQuest.key, "defeated_demon")) {
@@ -979,6 +979,11 @@ const deathPlateauQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 4119, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 4119, npcName: "Godric" };
             if (getQuestStage(player, deathPlateauQuest) < deathPlateauQuest.startedValue) return;
+            if (getQuestStage(player, deathPlateauQuest) >= deathPlateauQuest.completionValue) return;
+            if (getQuestFlag(player, deathPlateauQuest.key, "rescued_godric")) {
+                startConversation(ctx, [{ npc: ["I'm safe thanks to you."] }]);
+                return;
+            }
             startConversation(ctx, [
                 { npc: ["Thank you! Let's get down from here!"] },
                 { exec: (d) => setQuestFlag(d.player, deathPlateauQuest.key, "rescued_godric", true) },
@@ -1325,6 +1330,9 @@ const familyCrestQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 4984, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 4984, npcName: "Dimintheis" };
             const stage = getQuestStage(player, familyCrestQuest);
+            if (stage < familyCrestQuest.startedValue && isQuestInProgress(player, "family_pest")) {
+                return;
+            }
             if (stage >= familyCrestQuest.completionValue) {
                 startConversation(ctx, [{ npc: ["The crest is whole again!"] }]);
                 return;
@@ -1433,7 +1441,6 @@ const templeOfIkovQuest: QuestDefinition = {
             const ctx: DialogueContext = { player, services, npcId: 3443, npcName: "Lucien" };
             const stage = getQuestStage(player, templeOfIkovQuest);
             if (stage >= templeOfIkovQuest.completionValue) {
-                startConversation(ctx, [{ npc: ["Curse you!"] }]);
                 return;
             }
             if (stage >= templeOfIkovQuest.startedValue) {
@@ -1467,7 +1474,10 @@ const templeOfIkovQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 3446, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 3446, npcName: "Guardian of Armadyl" };
             if (getQuestStage(player, templeOfIkovQuest) < templeOfIkovQuest.startedValue) return;
-            if (getQuestStage(player, templeOfIkovQuest) >= templeOfIkovQuest.completionValue) return;
+            if (getQuestStage(player, templeOfIkovQuest) >= templeOfIkovQuest.completionValue) {
+                startConversation(ctx, [{ npc: ["Armadyl's will be done."] }]);
+                return;
+            }
             startConversation(ctx, [
                 { exec: (d) => setQuestFlag(d.player, templeOfIkovQuest.key, "spoke_guardian", true) },
                 { npc: ["Lucien is evil! Stop him from taking the staff."] },
@@ -1706,11 +1716,13 @@ const undergroundPassQuest: QuestDefinition = {
     register(registry): void {
         registerQuestNpcTalk(registry, 6204, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 6204, npcName: "Edmond" };
-            if (getQuestStage(player, undergroundPassQuest) >= undergroundPassQuest.completionValue) return;
+            if (getQuestStage(player, undergroundPassQuest) >= undergroundPassQuest.completionValue) {
+                startConversation(ctx, [{ npc: ["Iban is gone. The pass is safe."] }]);
+                return;
+            }
             // King Lathas not spawned — use King Roald as alternate start after biohazard
             if (!isVarpAtLeast(player, 68, 16)) return;
             const stage = getQuestStage(player, undergroundPassQuest);
-            if (stage >= undergroundPassQuest.completionValue) return;
             if (getQuestFlag(player, undergroundPassQuest.key, "defeated_iban")) {
                 startConversation(ctx, [
                     { npc: ["Iban is defeated. The pass is clear."] },
@@ -1751,6 +1763,10 @@ const undergroundPassQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 3443, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 3443, npcName: "Lucien" };
             if (getQuestStage(player, undergroundPassQuest) < undergroundPassQuest.startedValue) return;
+            if (getQuestStage(player, undergroundPassQuest) >= undergroundPassQuest.completionValue) {
+                startConversation(ctx, [{ npc: ["Iban's reign is over."] }]);
+                return;
+            }
             if (getQuestFlag(player, undergroundPassQuest.key, "defeated_iban")) return;
             startConversation(ctx, [
                 { npc: ["Iban's spirit is broken. Take his staff."] },

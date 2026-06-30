@@ -6,8 +6,16 @@ import {
 } from "../../../../src/rs/prayer/prayers";
 import { SkillId } from "../../../../src/rs/skill/skills";
 import { getItemDefinition } from "../../data/items";
+import { getVeracDamnedPrayerBonus } from "../combat/BarrowsDamnedEffects";
+import { ensureEquipArrayOn } from "../equipment";
 import { PlayerState } from "../player";
 import type { PrayerSystemProvider, PrayerTickResult } from "./PrayerSystemProvider";
+
+const PROTECTION_PRAYERS = new Set<PrayerName>([
+    "protect_from_melee",
+    "protect_from_missiles",
+    "protect_from_magic",
+]);
 
 export type PrayerSelectionError = { prayer: PrayerName; message: string };
 
@@ -22,11 +30,17 @@ export type PrayerSelectionResult = {
 export { PrayerTickResult };
 
 export class PrayerSystem implements PrayerSystemProvider {
-    applySelection(player: PlayerState, requested: Iterable<string>): PrayerSelectionResult {
+    applySelection(
+        player: PlayerState,
+        requested: Iterable<string>,
+        currentTick?: number,
+    ): PrayerSelectionResult {
         const normalized = this.normalizeRequest(requested);
         const errors: PrayerSelectionError[] = [];
         const skill = player.skillSystem.getSkill(SkillId.Prayer);
         const currentLevel = Math.max(0, skill.baseLevel + skill.boost);
+        const prayerDisabled =
+            currentTick !== undefined && player.combat.isPrayerDisabled(currentTick);
         if (currentLevel <= 0 && normalized.length > 0) {
             errors.push({
                 prayer: normalized[0],
@@ -42,6 +56,13 @@ export class PrayerSystem implements PrayerSystemProvider {
         }
         const next: PrayerName[] = [];
         for (const prayer of normalized) {
+            if (prayerDisabled && PROTECTION_PRAYERS.has(prayer)) {
+                errors.push({
+                    prayer,
+                    message: "You are unable to use that prayer at the moment.",
+                });
+                continue;
+            }
             const def = getPrayerDefinition(prayer);
             if (!this.meetsLevel(skill.baseLevel, def)) {
                 errors.push({
@@ -186,8 +207,7 @@ export class PrayerSystem implements PrayerSystemProvider {
     }
 
     private computePrayerBonus(player: PlayerState): number {
-        const equip = player.appearance?.equip;
-        if (!equip) return 0;
+        const equip = ensureEquipArrayOn(player.appearance);
         let total = 0;
         for (const itemId of equip) {
             if (!(itemId > 0)) continue;
@@ -197,6 +217,6 @@ export class PrayerSystem implements PrayerSystemProvider {
             const prayerBonus = bonuses[13] ?? 0;
             total += prayerBonus;
         }
-        return total;
+        return total + getVeracDamnedPrayerBonus(equip);
     }
 }

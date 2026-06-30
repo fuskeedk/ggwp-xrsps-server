@@ -8,20 +8,43 @@
  * - handleMagicPvpEffects (magic spell effects in PvP)
  */
 import { logger } from "../../../utils/logger";
+import { RUN_ENERGY_MAX } from "../../actor";
 import { AttackType } from "../../combat/AttackType";
+import { BoltEffectType } from "../../combat/AmmoSystem";
+import { processBarrowsWeaponExposure } from "../../combat/BarrowsDegradationSystem";
+import { rollDharokDamnedRecoilDamage } from "../../combat/BarrowsDamnedEffects";
+import { hasBarrowsSet } from "../../combat/BarrowsEquipment";
+import { applyBarrowsSetOnPlayerHit } from "../../combat/BarrowsSetEffects";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
+import { applyPoweredStaffHitEffects } from "../../combat/PoweredStaffEffects";
 import type { PlayerState } from "../../player";
 import { getPoweredStaffSpellData } from "../../spells/SpellDataProvider";
 import type { PoweredStaffSpellData } from "../../spells/SpellDataProvider";
 import type { CombatAutocastActionData, CombatPlayerHitActionData } from "../actionPayloads";
 import type { ActionEffect, ActionExecutionResult } from "../types";
-import type { CombatActionServices } from "./CombatActionHandler";
+import type { CombatActionServices, SpecialAttackPayload } from "./CombatActionHandler";
+import { SkillId } from "../../../../../src/rs/skill/skills";
+import type { PrayerName } from "../../../../../src/rs/prayer/prayers";
 
 // ============================================================================
 // Constants
 // ============================================================================
 
 const COMBAT_SOUND_DELAY_CYCLES = 8;
+
+const PROTECTION_PRAYERS: PrayerName[] = [
+    "protect_from_melee",
+    "protect_from_missiles",
+    "protect_from_magic",
+];
+
+const PVP_COMBAT_SKILL_DRAIN_ORDER: SkillId[] = [
+    SkillId.Defence,
+    SkillId.Strength,
+    SkillId.Attack,
+    SkillId.Magic,
+    SkillId.Ranged,
+];
 
 // ============================================================================
 // Handler Class
@@ -129,6 +152,7 @@ export class PvpCombatHandler {
             spellId: explicitSpellIdRaw,
             attackType: rawAttackType,
             special,
+            ammoEffect,
         } = data;
         const damage = Math.max(0, rawDamage);
         const maxHit = Math.max(0, rawMaxHit);
@@ -153,9 +177,13 @@ export class PvpCombatHandler {
         // Apply damage with protection prayers
         const currentHp = target.skillSystem.getHitpointsCurrent?.() ?? 0;
         const actualDamage = Math.min(damage, currentHp);
-        const mitigatedDamage = special?.effects?.ignoreProtectionPrayer
-            ? actualDamage
-            : this.services.applyProtectionPrayers(target, actualDamage, attackType, "player");
+        const mitigatedDamage =
+            special?.effects?.ignoreProtectionPrayer ||
+            (attackType === AttackType.Melee &&
+                hasBarrowsSet(this.services.getEquipArray(player), "verac") &&
+                Math.random() < 0.25)
+                ? actualDamage
+                : this.services.applyProtectionPrayers(target, actualDamage, attackType, "player", tick);
         const landedFlag = landed === true ? true : landed === false ? false : undefined;
 
         // Apply damage
@@ -166,15 +194,71 @@ export class PvpCombatHandler {
             tick,
             maxHit,
         );
-        this.services.applySmite(player, target, targetHitsplat.amount);
+        let totalDamageDealt = targetHitsplat.amount;
+        if (damage2 !== undefined && damage2 > 0) {
+            const secondaryRaw = Math.min(damage2, target.skillSystem.getHitpointsCurrent?.() ?? 0);
+            const mitigatedSecondary =
+                special?.effects?.ignoreProtectionPrayer ||
+                (attackType === AttackType.Melee &&
+                    hasBarrowsSet(this.services.getEquipArray(player), "verac") &&
+                    Math.random() < 0.25)
+                    ? secondaryRaw
+                    : this.services.applyProtectionPrayers(
+                          target,
+                          secondaryRaw,
+                          attackType,
+                          "player",
+                          tick,
+                      );
+            const secondaryHitsplat = this.services.applyPlayerHitsplat(
+                target,
+                type2 ?? style,
+                mitigatedSecondary,
+                tick,
+                maxHit,
+            );
+            totalDamageDealt += secondaryHitsplat.amount;
+        }
+        this.services.applySmite(player, target, totalDamageDealt);
         this.services.tryActivateRedemption(target);
+        if (totalDamageDealt > 0) {
+            processBarrowsWeaponExposure(player);
+            const recoil = rollDharokDamnedRecoilDamage(
+                this.services.getEquipArray(target),
+                totalDamageDealt,
+            );
+            if (recoil > 0) {
+                const attackerRecoil = this.services.applyPlayerHitsplat(
+                    player,
+                    HITMARK_DAMAGE,
+                    recoil,
+                    tick,
+                    recoil,
+                );
+                if (attackerRecoil.amount > 0) {
+                    effects.push({
+                        type: "hitsplat",
+                        playerId: player.id,
+                        targetType: "player",
+                        targetId: player.id,
+                        damage: attackerRecoil.amount,
+                        style: attackerRecoil.style,
+                        sourceType: "player",
+                        sourcePlayerId: target.id,
+                        tick,
+                        hpCurrent: attackerRecoil.hpCurrent,
+                        hpMax: attackerRecoil.hpMax,
+                    });
+                }
+            }
+        }
         this.services.closeInterruptibleInterfaces(target);
         // Being attacked interrupts weak queue tasks (e.g. Home Teleport)
         target.interruptWeakQueues();
 
         this.services.log(
             "info",
-            `[combat] Player ${player.id} hit player ${targetId} for ${targetHitsplat.amount} damage (style=${style}, attackType=${attackType})`,
+            `[combat] Player ${player.id} hit player ${targetId} for ${totalDamageDealt} damage (style=${style}, attackType=${attackType})`,
         );
 
         // Stop one-shot spell interaction (keep for autocast)
@@ -219,6 +303,17 @@ export class PvpCombatHandler {
             });
         }
 
+        if (totalDamageDealt > 0) {
+            this.handlePvpAmmoEffects(
+                player,
+                target,
+                ammoEffect,
+                totalDamageDealt,
+                hitsplatTick,
+                effects,
+            );
+        }
+
         // Magic-specific effects
         if (isMagicAttack) {
             const resolvedSpellId =
@@ -237,6 +332,29 @@ export class PvpCombatHandler {
                 resolvedSpellId,
                 targetHitsplat.amount,
             );
+        } else if (special?.effects) {
+            this.handleSpecialPvpEffects(
+                player,
+                target,
+                targetId,
+                didLand,
+                targetHitsplat.amount,
+                hitsplatTick,
+                special,
+            );
+        }
+
+        if (didLand && totalDamageDealt > 0) {
+            const barrowsChanged = applyBarrowsSetOnPlayerHit(
+                player,
+                target,
+                attackType,
+                totalDamageDealt,
+            );
+            if (barrowsChanged) {
+                this.queueSkillSync(player);
+                this.queueSkillSync(target);
+            }
         }
 
         if (!this.services.isActiveFrame() && effects.length > 0) {
@@ -250,27 +368,257 @@ export class PvpCombatHandler {
      */
     handlePvpAutoRetaliate(attacker: PlayerState, target: PlayerState, targetId: number): void {
         try {
-            if (
-                target.combat.autoRetaliate &&
-                target.combat.autocastEnabled &&
-                Number.isFinite(target.combat.spellId) &&
-                target.combat.spellId > 0
-            ) {
-                const targetSock = this.services.getPlayerSocket(targetId);
-                if (targetSock) {
-                    const st = this.services.getInteractionState(targetSock);
-                    const alreadyOnAttacker =
-                        st?.kind === "playerCombat" && (st.playerId ?? 0) === attacker.id;
-                    const isIdle = !st;
-                    const isBusyNpc = st?.kind === "npcCombat";
-                    const isBusyPlayer = st?.kind === "playerCombat" && !alreadyOnAttacker;
-                    if (!isBusyNpc && !isBusyPlayer && (isIdle || alreadyOnAttacker)) {
-                        this.services.startPlayerCombat(targetSock, attacker.id);
-                    }
-                }
+            if (!target.combat.autoRetaliate) return;
+
+            const targetSock = this.services.getPlayerSocket(targetId);
+            if (!targetSock) return;
+
+            const st = this.services.getInteractionState(targetSock);
+            const alreadyOnAttacker =
+                st?.kind === "playerCombat" && (st.playerId ?? 0) === attacker.id;
+            const isIdle = !st;
+            const isBusyNpc = st?.kind === "npcCombat";
+            const isBusyPlayer = st?.kind === "playerCombat" && !alreadyOnAttacker;
+            if (isBusyNpc || (isBusyPlayer && !alreadyOnAttacker)) return;
+            if (!isIdle && !alreadyOnAttacker) return;
+
+            const spellId = target.combat.spellId ?? -1;
+            const magicAutocast =
+                target.combat.autocastEnabled && Number.isFinite(spellId) && spellId > 0;
+            if (magicAutocast || isIdle || alreadyOnAttacker) {
+                this.services.startPlayerCombat(targetSock, attacker.id);
             }
         } catch (err) {
             logger.warn("[combat] failed to handle pvp auto-retaliate", err);
+        }
+    }
+
+    /**
+     * Handle melee/ranged special attack effects on a player target.
+     */
+    handleSpecialPvpEffects(
+        attacker: PlayerState,
+        target: PlayerState,
+        targetId: number,
+        landed: boolean,
+        damageDealt: number,
+        tick: number,
+        special: SpecialAttackPayload,
+    ): void {
+        const effects = special.effects;
+        if (!effects || !landed) return;
+
+        const dealt = Math.max(0, damageDealt);
+
+        const freezeTicks = effects.freezeTicks;
+        if (typeof freezeTicks === "number" && Number.isFinite(freezeTicks) && freezeTicks > 0) {
+            target.applyFreeze(freezeTicks, tick);
+        }
+
+        if (
+            dealt > 0 &&
+            typeof effects.healFraction === "number" &&
+            Number.isFinite(effects.healFraction) &&
+            effects.healFraction > 0
+        ) {
+            attacker.skillSystem.applyHitpointsHeal(Math.floor(dealt * effects.healFraction));
+        }
+
+        if (
+            dealt > 0 &&
+            typeof effects.prayerFraction === "number" &&
+            Number.isFinite(effects.prayerFraction) &&
+            effects.prayerFraction > 0
+        ) {
+            const restore = Math.floor(dealt * effects.prayerFraction);
+            if (restore > 0) {
+                const current = attacker.prayer.getPrayerLevel();
+                const base = attacker.skillSystem.getSkill(SkillId.Prayer).baseLevel;
+                attacker.skillSystem.setSkillBoost(SkillId.Prayer, Math.min(base, current + restore));
+            }
+        }
+
+        if (
+            typeof effects.siphonRunEnergyPercent === "number" &&
+            Number.isFinite(effects.siphonRunEnergyPercent) &&
+            effects.siphonRunEnergyPercent > 0
+        ) {
+            const drainUnits = Math.floor(
+                (effects.siphonRunEnergyPercent / 100) * RUN_ENERGY_MAX,
+            );
+            if (drainUnits > 0) {
+                const targetUnits = target.energy.getRunEnergyUnits();
+                const transferred = Math.min(targetUnits, drainUnits);
+                if (transferred > 0) {
+                    target.energy.adjustRunEnergyUnits(-transferred);
+                    attacker.energy.adjustRunEnergyUnits(transferred);
+                }
+            }
+        }
+
+        if (
+            typeof effects.prayerDisableTicks === "number" &&
+            Number.isFinite(effects.prayerDisableTicks) &&
+            effects.prayerDisableTicks > 0
+        ) {
+            target.combat.disableProtectionPrayersUntil(tick + effects.prayerDisableTicks);
+            const active = target.prayer.getActivePrayers();
+            const next = Array.from(active).filter((prayer) => !PROTECTION_PRAYERS.includes(prayer));
+            if (next.length !== active.size) {
+                target.prayer.setActivePrayers(next);
+                this.services.queueCombatState(target);
+            }
+        }
+
+        this.handlePlayerSpecialStatDrains(target, effects, dealt, tick);
+
+        this.queueSkillSync(attacker);
+        this.queueSkillSync(target);
+        const targetSock = this.services.getPlayerSocket(targetId);
+        if (targetSock) {
+            this.services.sendSkillsMessage(targetSock, target);
+        }
+    }
+
+    private handlePlayerSpecialStatDrains(
+        target: PlayerState,
+        effects: NonNullable<SpecialAttackPayload["effects"]>,
+        damageDealt: number,
+        tick: number,
+    ): void {
+        const dealt = Math.max(0, Math.trunc(damageDealt));
+
+        if (
+            typeof effects.drainDefencePercent === "number" &&
+            Number.isFinite(effects.drainDefencePercent) &&
+            effects.drainDefencePercent > 0
+        ) {
+            this.drainPlayerSkillPercent(target, SkillId.Defence, effects.drainDefencePercent);
+        }
+
+        if (
+            dealt > 0 &&
+            typeof effects.drainDefenceByDamage === "number" &&
+            Number.isFinite(effects.drainDefenceByDamage) &&
+            effects.drainDefenceByDamage > 0
+        ) {
+            this.drainPlayerSkillByAmount(
+                target,
+                SkillId.Defence,
+                Math.floor(dealt * effects.drainDefenceByDamage),
+                !!effects.drainDefenceOnlyIfNotDrained,
+            );
+        }
+
+        if (dealt > 0 && effects.drainMagicByDamage) {
+            this.drainPlayerSkillByAmount(target, SkillId.Magic, dealt);
+        }
+
+        if (dealt > 0 && effects.drainCombatStatByDamage) {
+            this.drainPlayerCombatStatsByDamage(target, dealt);
+        }
+
+        if (tick > 0 && target.combat.isPrayerDisabled(tick)) {
+            // Ensure protection prayers stay off for the disable window.
+            const active = target.prayer.getActivePrayers();
+            const next = Array.from(active).filter((prayer) => !PROTECTION_PRAYERS.includes(prayer));
+            if (next.length !== active.size) {
+                target.prayer.setActivePrayers(next);
+            }
+        }
+    }
+
+    private drainPlayerSkillPercent(target: PlayerState, skillId: SkillId, percent: number): void {
+        const skill = target.skillSystem.getSkill(skillId);
+        const current = Math.max(1, skill.baseLevel + skill.boost);
+        const drain = Math.max(1, Math.floor(current * percent));
+        target.skillSystem.setSkillBoost(skillId, Math.max(1, current - drain));
+    }
+
+    private drainPlayerSkillByAmount(
+        target: PlayerState,
+        skillId: SkillId,
+        amount: number,
+        onlyIfNotDrained?: boolean,
+    ): void {
+        if (amount <= 0) return;
+        const skill = target.skillSystem.getSkill(skillId);
+        const current = Math.max(1, skill.baseLevel + skill.boost);
+        if (onlyIfNotDrained && current < skill.baseLevel) return;
+        target.skillSystem.setSkillBoost(skillId, Math.max(1, current - amount));
+    }
+
+    private drainPlayerCombatStatsByDamage(target: PlayerState, damageDealt: number): void {
+        let remaining = Math.max(0, Math.trunc(damageDealt));
+        for (const skillId of PVP_COMBAT_SKILL_DRAIN_ORDER) {
+            if (remaining <= 0) break;
+            const skill = target.skillSystem.getSkill(skillId);
+            const current = Math.max(1, skill.baseLevel + skill.boost);
+            const drained = Math.min(remaining, Math.max(0, current - 1));
+            if (drained > 0) {
+                target.skillSystem.setSkillBoost(skillId, current - drained);
+                remaining -= drained;
+            }
+        }
+    }
+
+    private handlePvpAmmoEffects(
+        attacker: PlayerState,
+        target: PlayerState,
+        ammoEffect: CombatPlayerHitActionData["ammoEffect"],
+        damageDealt: number,
+        hitsplatTick: number,
+        effects: ActionEffect[],
+    ): void {
+        if (!ammoEffect) return;
+
+        if (typeof ammoEffect.graphicId === "number" && ammoEffect.graphicId > 0) {
+            this.services.enqueueSpotAnimation({
+                tick: hitsplatTick,
+                playerId: target.id,
+                spotId: ammoEffect.graphicId,
+                delay: 0,
+            });
+        }
+
+        const dealt = Math.max(0, damageDealt);
+        if (ammoEffect.poison && dealt > 0) {
+            target.skillSystem.inflictPoison(5, hitsplatTick);
+        }
+        if (ammoEffect.leechPercent && dealt > 0) {
+            const heal = Math.floor(dealt * Math.max(0, ammoEffect.leechPercent));
+            if (heal > 0) {
+                attacker.skillSystem.applyHitpointsHeal(heal);
+            }
+        }
+        if (ammoEffect.selfDamage && ammoEffect.selfDamage > 0) {
+            attacker.skillSystem.applyHitpointsDamage(Math.max(0, ammoEffect.selfDamage));
+        }
+        if (ammoEffect.effectType === BoltEffectType.MagicDrain && dealt > 0) {
+            this.drainPlayerSkillByAmount(target, SkillId.Magic, 1);
+        }
+        if (ammoEffect.effectType === BoltEffectType.Heal && dealt > 0) {
+            const targetPrayer = target.skillSystem.getSkill(SkillId.Prayer);
+            const attackerPrayer = attacker.skillSystem.getSkill(SkillId.Prayer);
+            const targetCurrent = Math.max(1, targetPrayer.baseLevel + targetPrayer.boost);
+            const drain = Math.max(1, Math.floor(targetCurrent * 0.2));
+            target.skillSystem.setSkillBoost(
+                SkillId.Prayer,
+                Math.max(1, targetCurrent - drain),
+            );
+            const attackerCurrent = Math.max(1, attackerPrayer.baseLevel + attackerPrayer.boost);
+            const attackerBase = attackerPrayer.baseLevel;
+            attacker.skillSystem.setSkillBoost(
+                SkillId.Prayer,
+                Math.min(attackerBase, attackerCurrent + drain),
+            );
+        }
+    }
+
+    private queueSkillSync(player: PlayerState): void {
+        const sync = player.skillSystem.takeSkillSync();
+        if (sync) {
+            this.services.queueSkillSnapshot(player.id, sync);
         }
     }
 
@@ -363,6 +711,8 @@ export class PvpCombatHandler {
         if (spell?.poisonDamage && landed && dealt > 0) {
             target.skillSystem.inflictPoison(spell.poisonDamage, hitsplatTick);
         }
+
+        applyPoweredStaffHitEffects(player, weaponId, dealt, landed);
     }
 
     // ========================================================================

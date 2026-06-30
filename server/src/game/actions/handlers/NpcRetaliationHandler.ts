@@ -1,5 +1,7 @@
 import { canNpcAttackPlayerFromCurrentPosition } from "../../combat/CombatAction";
+import { rollDharokDamnedRecoilDamage } from "../../combat/BarrowsDamnedEffects";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
+import { ensureEquipArrayOn } from "../../equipment";
 import type { NpcState } from "../../npc";
 import type { PlayerState } from "../../player";
 import type { CombatNpcRetaliateActionData } from "../actionPayloads";
@@ -64,6 +66,7 @@ export class NpcRetaliationHandler {
             Math.max(0, rawDamage),
             attackType,
             "npc",
+            tick,
         );
         const type2 = Number.isFinite(rawType2) ? rawType2 : undefined;
         const damage2 = Number.isFinite(rawDamage2) ? rawDamage2 : undefined;
@@ -79,6 +82,37 @@ export class NpcRetaliationHandler {
         this.services.closeInterruptibleInterfaces(player);
         // Being attacked interrupts weak queue tasks (e.g. Home Teleport)
         player.interruptWeakQueues();
+
+        if (playerHitsplat.amount > 0) {
+            const recoil = rollDharokDamnedRecoilDamage(
+                ensureEquipArrayOn(player.appearance),
+                playerHitsplat.amount,
+            );
+            if (recoil > 0) {
+                const npcRecoil = this.services.applyNpcHitsplat(
+                    npc,
+                    HITMARK_DAMAGE,
+                    recoil,
+                    tick,
+                    recoil,
+                );
+                if (npcRecoil.amount > 0) {
+                    effects.push({
+                        type: "hitsplat",
+                        playerId: player.id,
+                        targetType: "npc",
+                        targetId: npc.id,
+                        damage: npcRecoil.amount,
+                        style: npcRecoil.style,
+                        sourceType: "player",
+                        sourcePlayerId: player.id,
+                        tick,
+                        hpCurrent: npcRecoil.hpCurrent,
+                        hpMax: npcRecoil.hpMax,
+                    });
+                }
+            }
+        }
 
         npc.engageCombat(player.id, tick);
 

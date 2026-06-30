@@ -6,6 +6,7 @@ import {
     BoltEffectType,
     doesBoltEffectActivate,
     getEnchantedBoltEffect,
+    type EnchantedBoltEffect,
 } from "../../combat/AmmoSystem";
 import { AttackType } from "../../combat/AttackType";
 import * as CombatFormulas from "../../combat/CombatFormulaProvider";
@@ -20,6 +21,8 @@ import {
     calculateEquipmentBonuses,
 } from "../../combat/EquipmentBonusProvider";
 import { HITMARK_BLOCK, HITMARK_DAMAGE } from "../../combat/HitEffects";
+import { scaleDefenceLevelForToragDamned } from "../../combat/BarrowsDamnedEffects";
+import { tryKarilDamnedSecondaryHit } from "../../combat/KarilsCrossbowEffects";
 import { XpMode } from "../../combat/WeaponDataProvider";
 import { getCombatStyle } from "../../combat/WeaponDataProvider";
 import {
@@ -150,6 +153,8 @@ export interface PlayerAttackPlan {
     ammoEffect?: AmmoEffectPlan;
     /** Additional hits for multi-hit weapons like dark bow. Reference: docs/projectiles-hitdelay.md */
     additionalHits?: AdditionalHit[];
+    /** Same-tick secondary hitsplat (e.g. Karil's + Amulet of the Damned). */
+    secondaryHit?: AdditionalHit;
 }
 
 export interface RangedProjectilePlan {
@@ -208,7 +213,8 @@ const MAGIC_DAMAGE_INDEX = 12;
 const MAGIC_WEAPON_CATEGORIES = new Set<number>([18, 24, 29]);
 // Powered staff categories always use magic attacks (built-in spell, no autocast needed)
 const POWERED_STAFF_CATEGORIES = new Set<number>([24]); // POWERED_STAFF (includes Tumeken's Shadow)
-const RANGED_WEAPON_CATEGORIES = new Set<number>([3, 5, 6, 7, 8, 19]);
+const SALAMANDER_WEAPON_CATEGORY = 6;
+const RANGED_WEAPON_CATEGORIES = new Set<number>([3, 5, 7, 8, 19]);
 const MAGIC_DART_SPELL_ID = 4176;
 const MELEE_STYLE_BY_SLOT: MeleeStyleMode[] = [
     MeleeStyle.Accurate,
@@ -358,34 +364,137 @@ export class CombatEngine {
                 Math.max(0, equipmentEffects.damageMultiplier),
         );
 
-        // Defender profile (magic defence)
-        const defBonuses = this.aggregatePlayerBonuses(defender);
-        const defStyle = this.resolveAttackStyle(defender, defBonuses);
-        const defStance = this.resolveStanceBonuses(defender, defStyle);
-        const prayedDefence = Math.floor(
-            this.getBoostedLevel(defender, SkillId.Defence) *
-                this.getPrayerMultiplier(defender, "defence"),
-        );
-        const prayedMagic = Math.floor(
-            this.getBoostedLevel(defender, SkillId.Magic) *
-                this.getPrayerMultiplier(defender, "magic"),
-        );
-        const effMagicDef = this.computeMagicDefenceEffectiveLevel(
-            Math.max(1, prayedDefence + (defStance.defence ?? 0)),
-            Math.max(1, prayedMagic),
-        );
-        const magicDefBonusIndex = DEFENCE_BONUS_INDEX[AttackBonusIndex.Magic];
-        const defBonus = defBonuses[magicDefBonusIndex] ?? 0;
-        const defenceRoll = CombatFormulas.defenceRoll({
-            effectiveLevel: effMagicDef,
-            bonus: this.clampEquipmentBonus(defBonus),
-        });
+        const defenceRoll = this.computePlayerDefenceRoll(defender, atkStyle);
 
         const hitChance = this.computeHitChance(attackRoll, defenceRoll);
         const landed = this.rng.next() < hitChance;
-        const damage = landed ? this.rollDamage(Math.max(0, maxHit)) : 0;
+        let damage = landed ? this.rollDamage(Math.max(0, maxHit)) : 0;
+        if (landed && damage > 0 && equipmentEffects.damageProcs?.length) {
+            for (const proc of equipmentEffects.damageProcs) {
+                const chance = Math.max(0, Math.min(1, proc.chance));
+                if (chance > 0 && this.rng.next() < chance) {
+                    damage = Math.max(0, Math.floor(damage * Math.max(0, proc.multiplier)));
+                }
+            }
+        }
         return { hitLanded: landed, maxHit, damage };
     }
+
+    /**
+     * Roll a player-vs-player hit for melee, ranged, or magic.
+     * Melee uses the attacker's active style (stab/slash/crush) for defender bonus selection.
+     */
+    planPlayerVsPlayer(
+        attacker: PlayerState,
+        defender: PlayerState,
+        modifiers?: PlayerAttackModifiers,
+    ): {
+        hitLanded: boolean;
+        maxHit: number;
+        damage: number;
+        secondaryHit?: { damage: number; style: number };
+        ammoEffect?: AmmoEffectPlan;
+    } {
+        const atkBonuses = this.aggregatePlayerBonuses(attacker);
+        const atkStyle = this.resolveAttackStyle(attacker, atkBonuses);
+        if (atkStyle.kind === AttackType.Magic) {
+            return this.planPlayerVsPlayerMagic(attacker, defender);
+        }
+
+        const equipment = this.getPlayerEquipment(attacker);
+        const hp = this.getPlayerHitpoints(attacker);
+        const targetInfo: TargetInfo = {
+            species: [],
+            magicLevel: this.getBoostedLevel(defender, SkillId.Magic),
+            isUndead: false,
+            isDemon: false,
+            isDragon: false,
+            isKalphite: false,
+        };
+        const equipmentEffects = calculateEquipmentBonuses(
+            equipment,
+            atkStyle.kind,
+            targetInfo,
+            { onTask: false },
+            hp.current,
+            hp.max,
+            this.getBoostedLevel(attacker, SkillId.Magic),
+            undefined,
+        );
+        const baseProfile = this.computePlayerAttackProfile(
+            { player: attacker, npc: defender as unknown as NpcState, attackSpeed: 4 },
+            equipmentEffects,
+        );
+
+        const accuracyMultiplierRaw = modifiers?.accuracyMultiplier;
+        const accuracyMultiplier = Number.isFinite(accuracyMultiplierRaw)
+            ? accuracyMultiplierRaw
+            : 1;
+        const maxHitMultiplierRaw = modifiers?.maxHitMultiplier;
+        const maxHitMultiplier = Number.isFinite(maxHitMultiplierRaw) ? maxHitMultiplierRaw : 1;
+        const forceHit = !!modifiers?.forceHit;
+
+        let attackRoll = Math.floor(
+            Math.max(0, baseProfile.attackRoll) * Math.max(0, equipmentEffects.accuracyMultiplier),
+        );
+        let maxHit = Math.floor(
+            Math.max(0, baseProfile.maxHit + equipmentEffects.maxHitBonus) *
+                Math.max(0, equipmentEffects.damageMultiplier),
+        );
+        attackRoll = Math.floor(
+            attackRoll *
+                Math.max(0, typeof accuracyMultiplier === "number" ? accuracyMultiplier : 1),
+        );
+        maxHit = Math.floor(
+            maxHit * Math.max(0, typeof maxHitMultiplier === "number" ? maxHitMultiplier : 1),
+        );
+
+        const ammoId =
+            atkStyle.kind === AttackType.Ranged ? this.getEquippedAmmoId(attacker) : -1;
+        const { effectiveDefenceRoll, preRolledBoltEffect } = this.resolveBoltDefenceBypass(
+            ammoId,
+            this.computePlayerDefenceRoll(defender, baseProfile.style),
+        );
+        const hitChance = forceHit ? 1 : this.computeHitChance(attackRoll, effectiveDefenceRoll);
+        const landed = forceHit ? true : this.rng.next() < hitChance;
+        let damage = landed ? this.rollDamage(Math.max(0, maxHit)) : 0;
+        if (landed && damage > 0 && equipmentEffects.damageProcs?.length) {
+            for (const proc of equipmentEffects.damageProcs) {
+                const chance = Math.max(0, Math.min(1, proc.chance));
+                if (chance > 0 && this.rng.next() < chance) {
+                    damage = Math.max(0, Math.floor(damage * Math.max(0, proc.multiplier)));
+                }
+            }
+        }
+
+        let ammoEffect: AmmoEffectPlan | undefined;
+        if (landed && atkStyle.kind === AttackType.Ranged) {
+            const boltResult = this.applyEnchantedBoltOnRangedHit({
+                ammoId,
+                attacker,
+                attackerHpCurrent: hp.current,
+                targetHpCurrent: Math.max(0, defender.skillSystem.getHitpointsCurrent()),
+                damage,
+                preRolledBoltEffect,
+            });
+            damage = boltResult.damage;
+            ammoEffect = boltResult.ammoEffect;
+        }
+
+        const karilFollowUp = tryKarilDamnedSecondaryHit(
+            equipment,
+            attacker.combat.weaponItemId ?? -1,
+            damage,
+            () => this.rng.next(),
+        );
+        const secondaryHit =
+            landed && karilFollowUp
+                ? { damage: karilFollowUp.damage, style: karilFollowUp.style }
+                : undefined;
+
+        return { hitLanded: landed, maxHit, damage, secondaryHit, ammoEffect };
+    }
+
     planPlayerAttack(
         context: PlayerAttackContext,
         modifiers?: PlayerAttackModifiers,
@@ -435,21 +544,16 @@ export class CombatEngine {
         maxHit = Math.floor(
             maxHit * Math.max(0, typeof maxHitMultiplier === "number" ? maxHitMultiplier : 1),
         );
-        const attackProfile = { ...baseProfile, attackRoll, maxHit };
-        const defenceRoll = this.computeNpcDefenceRoll(context, attackProfile);
         const forceHit = !!modifiers?.forceHit;
+        const attackProfile = { ...baseProfile, attackRoll, maxHit };
         const ammoId =
             attackProfile.style.kind === AttackType.Ranged
                 ? this.getEquippedAmmoId(context.player)
                 : -1;
-        const boltEffect = ammoId > 0 ? getEnchantedBoltEffect(ammoId) : undefined;
-        const preRolledBoltEffect =
-            boltEffect?.effectType === BoltEffectType.DefenseDrain &&
-            doesBoltEffectActivate(ammoId, false, () => this.rng.next())
-                ? boltEffect
-                : undefined;
-        const effectiveDefenceRoll =
-            preRolledBoltEffect?.effectType === BoltEffectType.DefenseDrain ? 0 : defenceRoll;
+        const { effectiveDefenceRoll, preRolledBoltEffect } = this.resolveBoltDefenceBypass(
+            ammoId,
+            this.computeNpcDefenceRoll(context, attackProfile),
+        );
         const hitChance = forceHit
             ? 1
             : this.computeHitChance(attackProfile.attackRoll, effectiveDefenceRoll);
@@ -469,71 +573,16 @@ export class CombatEngine {
         }
         let ammoEffect: AmmoEffectPlan | undefined;
         if (hitLanded && attackProfile.style.kind === AttackType.Ranged) {
-            const activatedBoltEffect =
-                preRolledBoltEffect ??
-                (boltEffect &&
-                boltEffect.effectType !== BoltEffectType.DefenseDrain &&
-                doesBoltEffectActivate(ammoId, false, () => this.rng.next())
-                    ? boltEffect
-                    : undefined);
-            if (activatedBoltEffect) {
-                ammoEffect = {
-                    effectType: activatedBoltEffect.effectType,
-                    graphicId: activatedBoltEffect.graphicId,
-                };
-                switch (activatedBoltEffect.effectType) {
-                    case BoltEffectType.HpDrain: {
-                        const targetHp = Math.max(0, context.npc.getHitpoints());
-                        const percent = activatedBoltEffect.damageMultiplier ?? 0;
-                        let drained = Math.floor(targetHp * Math.max(0, percent));
-                        if (percent > 0.2) {
-                            drained = Math.min(drained, 110);
-                        } else {
-                            drained = Math.min(drained, 100);
-                        }
-                        damage = Math.max(0, drained);
-                        if (activatedBoltEffect.selfDamagePercent) {
-                            const selfDamage = Math.floor(
-                                hp.current * Math.max(0, activatedBoltEffect.selfDamagePercent),
-                            );
-                            ammoEffect.selfDamage = Math.max(0, selfDamage);
-                        }
-                        break;
-                    }
-                    case BoltEffectType.LifeLeech: {
-                        if (activatedBoltEffect.damageMultiplier && damage > 0) {
-                            damage = Math.floor(damage * activatedBoltEffect.damageMultiplier);
-                        }
-                        if (activatedBoltEffect.leechPercent) {
-                            ammoEffect.leechPercent = Math.max(0, activatedBoltEffect.leechPercent);
-                        }
-                        break;
-                    }
-                    case BoltEffectType.Lightning: {
-                        const rangedLevel = this.getBoostedLevel(context.player, SkillId.Ranged);
-                        const bonus = Math.floor(Math.max(0, rangedLevel) * 0.1);
-                        if (bonus > 0) {
-                            damage += bonus;
-                        }
-                        break;
-                    }
-                    case BoltEffectType.DamageBoost:
-                    case BoltEffectType.DefenseDrain: {
-                        if (activatedBoltEffect.damageMultiplier && damage > 0) {
-                            damage = Math.floor(damage * activatedBoltEffect.damageMultiplier);
-                        }
-                        break;
-                    }
-                    case BoltEffectType.Poison: {
-                        ammoEffect.poison = true;
-                        break;
-                    }
-                    case BoltEffectType.Heal:
-                    case BoltEffectType.MagicDrain:
-                    default:
-                        break;
-                }
-            }
+            const boltResult = this.applyEnchantedBoltOnRangedHit({
+                ammoId,
+                attacker: context.player,
+                attackerHpCurrent: hp.current,
+                targetHpCurrent: Math.max(0, context.npc.getHitpoints()),
+                damage,
+                preRolledBoltEffect,
+            });
+            damage = boltResult.damage;
+            ammoEffect = boltResult.ammoEffect;
         }
         const hitsplatStyle = hitLanded ? HITMARK_DAMAGE : HITMARK_BLOCK;
         const attackStyle = attackProfile.style;
@@ -590,6 +639,22 @@ export class CombatEngine {
             ];
         }
 
+        let secondaryHit: AdditionalHit | undefined;
+        const karilFollowUp = tryKarilDamnedSecondaryHit(
+            equipment,
+            weaponId ?? -1,
+            damage,
+            () => this.rng.next(),
+        );
+        if (karilFollowUp && hitLanded) {
+            secondaryHit = {
+                damage: karilFollowUp.damage,
+                hitDelay,
+                hitsplatStyle: karilFollowUp.style,
+                hitLanded: true,
+            };
+        }
+
         return {
             attackDelay: attackSpeed,
             hitDelay,
@@ -604,6 +669,7 @@ export class CombatEngine {
             projectile: projectilePlan,
             ammoEffect,
             additionalHits,
+            secondaryHit,
         };
     }
 
@@ -961,6 +1027,113 @@ export class CombatEngine {
         return player.appearance?.equip ?? [];
     }
 
+    private resolveBoltDefenceBypass(
+        ammoId: number,
+        defenceRoll: number,
+    ): { effectiveDefenceRoll: number; preRolledBoltEffect?: EnchantedBoltEffect } {
+        if (!(ammoId > 0)) {
+            return { effectiveDefenceRoll: defenceRoll };
+        }
+        const boltEffect = getEnchantedBoltEffect(ammoId);
+        const preRolledBoltEffect =
+            boltEffect?.effectType === BoltEffectType.DefenseDrain &&
+            doesBoltEffectActivate(ammoId, false, () => this.rng.next())
+                ? boltEffect
+                : undefined;
+        return {
+            effectiveDefenceRoll:
+                preRolledBoltEffect?.effectType === BoltEffectType.DefenseDrain ? 0 : defenceRoll,
+            preRolledBoltEffect,
+        };
+    }
+
+    private applyEnchantedBoltOnRangedHit(options: {
+        ammoId: number;
+        attacker: PlayerState;
+        attackerHpCurrent: number;
+        targetHpCurrent: number;
+        damage: number;
+        preRolledBoltEffect?: EnchantedBoltEffect;
+    }): { damage: number; ammoEffect?: AmmoEffectPlan } {
+        const { ammoId, attacker, attackerHpCurrent, targetHpCurrent, preRolledBoltEffect } =
+            options;
+        let damage = options.damage;
+        if (!(ammoId > 0)) {
+            return { damage };
+        }
+
+        const boltEffect = getEnchantedBoltEffect(ammoId);
+        const activatedBoltEffect =
+            preRolledBoltEffect ??
+            (boltEffect &&
+            boltEffect.effectType !== BoltEffectType.DefenseDrain &&
+            doesBoltEffectActivate(ammoId, false, () => this.rng.next())
+                ? boltEffect
+                : undefined);
+        if (!activatedBoltEffect) {
+            return { damage };
+        }
+
+        const ammoEffect: AmmoEffectPlan = {
+            effectType: activatedBoltEffect.effectType,
+            graphicId: activatedBoltEffect.graphicId,
+        };
+
+        switch (activatedBoltEffect.effectType) {
+            case BoltEffectType.HpDrain: {
+                const percent = activatedBoltEffect.damageMultiplier ?? 0;
+                let drained = Math.floor(targetHpCurrent * Math.max(0, percent));
+                if (percent > 0.2) {
+                    drained = Math.min(drained, 110);
+                } else {
+                    drained = Math.min(drained, 100);
+                }
+                damage = Math.max(0, drained);
+                if (activatedBoltEffect.selfDamagePercent) {
+                    const selfDamage = Math.floor(
+                        attackerHpCurrent * Math.max(0, activatedBoltEffect.selfDamagePercent),
+                    );
+                    ammoEffect.selfDamage = Math.max(0, selfDamage);
+                }
+                break;
+            }
+            case BoltEffectType.LifeLeech: {
+                if (activatedBoltEffect.damageMultiplier && damage > 0) {
+                    damage = Math.floor(damage * activatedBoltEffect.damageMultiplier);
+                }
+                if (activatedBoltEffect.leechPercent) {
+                    ammoEffect.leechPercent = Math.max(0, activatedBoltEffect.leechPercent);
+                }
+                break;
+            }
+            case BoltEffectType.Lightning: {
+                const rangedLevel = this.getBoostedLevel(attacker, SkillId.Ranged);
+                const bonus = Math.floor(Math.max(0, rangedLevel) * 0.1);
+                if (bonus > 0) {
+                    damage += bonus;
+                }
+                break;
+            }
+            case BoltEffectType.DamageBoost:
+            case BoltEffectType.DefenseDrain: {
+                if (activatedBoltEffect.damageMultiplier && damage > 0) {
+                    damage = Math.floor(damage * activatedBoltEffect.damageMultiplier);
+                }
+                break;
+            }
+            case BoltEffectType.Poison: {
+                ammoEffect.poison = true;
+                break;
+            }
+            case BoltEffectType.Heal:
+            case BoltEffectType.MagicDrain:
+            default:
+                break;
+        }
+
+        return { damage, ammoEffect };
+    }
+
     private getEquippedAmmoId(player: PlayerState): number {
         const equip = this.getPlayerEquipment(player);
         return equip.length > 0 ? equip[EquipmentSlot.AMMO] : -1;
@@ -1241,16 +1414,16 @@ export class CombatEngine {
             }
             case AttackType.Ranged: {
                 // OSRS ranged stance bonuses:
-                // Accurate: +3 ranged (used for BOTH attack roll AND max hit)
+                // Accurate: +3 ranged accuracy only
                 // Rapid: no bonus (speed bonus handled elsewhere)
-                // Longrange: +1 ranged, +3 defence (and +2 attack range)
+                // Longrange: +1 ranged accuracy, +3 defence (and +2 attack range)
                 switch (style.mode) {
                     case RangedStyle.Accurate:
-                        return { ranged: 3, rangedStrength: 3 };
+                        return { ranged: 3 };
                     case RangedStyle.Rapid:
                         return {}; // No stat bonus, speed bonus handled in pickAttackSpeed
                     case RangedStyle.Longrange:
-                        return { ranged: 1, rangedStrength: 1, defence: 3 };
+                        return { ranged: 1, defence: 3 };
                     default:
                         return {};
                 }
@@ -1337,6 +1510,27 @@ export class CombatEngine {
                 return { kind: AttackType.Magic, mode, bonusIndex: AttackBonusIndex.Magic };
             }
             // Autocast disabled or no spell selected - fall through to melee (e.g., "pound" style)
+        }
+        if (category === SALAMANDER_WEAPON_CATEGORY) {
+            if (styleSlot === 0) {
+                return {
+                    kind: AttackType.Melee,
+                    mode: MeleeStyle.Aggressive,
+                    bonusIndex: AttackBonusIndex.Slash,
+                };
+            }
+            if (styleSlot === 1) {
+                return {
+                    kind: AttackType.Ranged,
+                    mode: RangedStyle.Accurate,
+                    bonusIndex: AttackBonusIndex.Ranged,
+                };
+            }
+            return {
+                kind: AttackType.Magic,
+                mode: MagicStyle.Accurate,
+                bonusIndex: AttackBonusIndex.Magic,
+            };
         }
         if (RANGED_WEAPON_CATEGORIES.has(category)) {
             const mode =
@@ -1461,9 +1655,11 @@ export class CombatEngine {
     ): number {
         const profile = npc.combat;
         const attackType = attackTypeOverride ?? profile.attackType;
+        const meleeStyle =
+            attackType === AttackType.Melee ? profile.meleeAttackStyle : undefined;
         const result = CombatFormulas.calculateNpcVsPlayer(
             profile,
-            this.buildPlayerDefenceProfile(player, attackType),
+            this.buildPlayerDefenceProfile(player, attackType, meleeStyle),
             attackType,
         );
         if (this.rng.next() >= result.hitChance) {
@@ -1481,14 +1677,18 @@ export class CombatEngine {
     buildPlayerDefenceProfile(
         player: PlayerState,
         attackType: AttackType,
+        meleeStyle?: "stab" | "slash" | "crush",
     ): CombatFormulas.PlayerDefenceProfile {
         const bonuses = this.aggregatePlayerBonuses(player);
         const style = this.resolveAttackStyle(player, bonuses);
         const stance = this.resolveStanceBonuses(player, style);
         return {
-            defenceLevel: this.getBoostedLevel(player, SkillId.Defence),
+            defenceLevel: scaleDefenceLevelForToragDamned(
+                player,
+                this.getBoostedLevel(player, SkillId.Defence),
+            ),
             magicLevel: this.getBoostedLevel(player, SkillId.Magic),
-            defenceBonus: this.getPlayerDefenceBonus(player, attackType),
+            defenceBonus: this.getPlayerDefenceBonus(player, attackType, meleeStyle),
             defencePrayerMultiplier: this.getPrayerMultiplier(player, "defence"),
             magicPrayerMultiplier: this.getPrayerMultiplier(player, "magic"),
             defenceStanceBonus: stance.defence ?? 0,
@@ -1541,6 +1741,80 @@ export class CombatEngine {
         return CombatFormulas.effectiveMagicDefence(magicLevel, defenceLevel);
     }
 
+    private bonusIndexToMeleeStyle(
+        index: AttackBonusIndex.Stab | AttackBonusIndex.Slash | AttackBonusIndex.Crush,
+    ): "stab" | "slash" | "crush" {
+        switch (index) {
+            case AttackBonusIndex.Stab:
+                return "stab";
+            case AttackBonusIndex.Crush:
+                return "crush";
+            case AttackBonusIndex.Slash:
+            default:
+                return "slash";
+        }
+    }
+
+    /** Defender roll for player-vs-player hits using the incoming attack style. */
+    private computePlayerDefenceRoll(defender: PlayerState, attackStyle: AttackStyle): number {
+        const defBonuses = this.aggregatePlayerBonuses(defender);
+        const defStyle = this.resolveAttackStyle(defender, defBonuses);
+        const defStance = this.resolveStanceBonuses(defender, defStyle);
+        const meleeStyle =
+            attackStyle.kind === AttackType.Melee
+                ? this.bonusIndexToMeleeStyle(
+                      attackStyle.bonusIndex as
+                          | AttackBonusIndex.Stab
+                          | AttackBonusIndex.Slash
+                          | AttackBonusIndex.Crush,
+                  )
+                : undefined;
+        const defenceBonus = this.getPlayerDefenceBonus(
+            defender,
+            attackStyle.kind,
+            meleeStyle ?? "slash",
+        );
+        const clampedBonus = this.clampEquipmentBonus(defenceBonus);
+
+        switch (attackStyle.kind) {
+            case AttackType.Magic: {
+                const prayedDefence = Math.floor(
+                    scaleDefenceLevelForToragDamned(
+                        defender,
+                        this.getBoostedLevel(defender, SkillId.Defence),
+                    ) * this.getPrayerMultiplier(defender, "defence"),
+                );
+                const prayedMagic = Math.floor(
+                    this.getBoostedLevel(defender, SkillId.Magic) *
+                        this.getPrayerMultiplier(defender, "magic"),
+                );
+                const effMagicDef = this.computeMagicDefenceEffectiveLevel(
+                    Math.max(1, prayedDefence + (defStance.defence ?? 0)),
+                    Math.max(1, prayedMagic),
+                );
+                return CombatFormulas.defenceRoll({
+                    effectiveLevel: effMagicDef,
+                    bonus: clampedBonus,
+                });
+            }
+            case AttackType.Ranged:
+            case AttackType.Melee: {
+                const effDef = this.computeEffectiveLevel(
+                    scaleDefenceLevelForToragDamned(
+                        defender,
+                        this.getBoostedLevel(defender, SkillId.Defence),
+                    ),
+                    this.getPrayerMultiplier(defender, "defence"),
+                    defStance.defence ?? 0,
+                );
+                return CombatFormulas.defenceRoll({
+                    effectiveLevel: effDef,
+                    bonus: clampedBonus,
+                });
+            }
+        }
+    }
+
     private resolveNpcDefenceBonus(
         profile: NpcCombatProfileResolved,
         index: AttackBonusIndex,
@@ -1565,7 +1839,11 @@ export class CombatEngine {
      * Get player's defence bonus against a specific attack type.
      */
     /** Get player's defence bonus vs attack type. Public for use by PlayerCombatManager. */
-    getPlayerDefenceBonus(player: PlayerState, attackType: AttackType): number {
+    getPlayerDefenceBonus(
+        player: PlayerState,
+        attackType: AttackType,
+        meleeStyle: "stab" | "slash" | "crush" = "slash",
+    ): number {
         const bonuses = this.aggregatePlayerBonuses(player);
         let defenceIndex: number;
         switch (attackType) {
@@ -1576,10 +1854,16 @@ export class CombatEngine {
                 defenceIndex = DEFENCE_BONUS_INDEX[AttackBonusIndex.Ranged];
                 break;
             case AttackType.Melee:
-            default:
-                // For melee, use slash defence as default (most common)
-                defenceIndex = DEFENCE_BONUS_INDEX[AttackBonusIndex.Slash];
+            default: {
+                const styleIndex =
+                    meleeStyle === "stab"
+                        ? AttackBonusIndex.Stab
+                        : meleeStyle === "crush"
+                          ? AttackBonusIndex.Crush
+                          : AttackBonusIndex.Slash;
+                defenceIndex = DEFENCE_BONUS_INDEX[styleIndex];
                 break;
+            }
         }
         return bonuses[defenceIndex] ?? 0;
     }

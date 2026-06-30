@@ -193,7 +193,7 @@ class SpecialAttackRegistryImpl implements SpecialAttackProvider {
             damageMultiplier: 1.21,
             hitCount: 1,
             effects: {
-                drainDefenceByDamage: 1.0,
+                drainAllCombatByDamage: true,
             },
             animationId: 7642,
             graphicId: 1212,
@@ -659,13 +659,14 @@ class SpecialAttackRegistryImpl implements SpecialAttackProvider {
 
         this.register({
             name: "Backstab",
-            weaponIds: [8872],
+            weaponIds: [8872, 8874, 8876, 8878],
             energyCost: 75,
             accuracyMultiplier: 1.0,
             damageMultiplier: 1.0,
             hitCount: 1,
             effects: {
-                drainDefence: 1.0,
+                drainDefenceByDamage: 1.0,
+                drainDefenceOnlyIfNotDrained: true,
             },
             animationId: 4198,
             graphicId: 704,

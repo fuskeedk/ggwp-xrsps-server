@@ -1,6 +1,7 @@
 import type { WebSocket } from "ws";
 
 import type { ServerServices } from "../../src/game/ServerServices";
+import { setPlayerMembershipState } from "../../src/game/membership";
 import type { PlayerState } from "../../src/game/player";
 import { encodeMessage } from "../../src/network/messages";
 import { logger } from "../../src/utils/logger";
@@ -21,6 +22,71 @@ export type GgwpCharacterRecord = {
     membershipExpiresAt: number;
 };
 
+type GgwpCharacterRow = {
+    id: number;
+    members: boolean | number | string | null;
+    membership_expires_at?: string | number | Date | null;
+};
+
+function normalizeDbBoolean(value: boolean | number | string | null | undefined): boolean {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return value !== 0;
+    const text = String(value ?? "").trim().toLowerCase();
+    return text === "1" || text === "true" || text === "t" || text === "yes" || text === "on";
+}
+
+function normalizeMembershipExpiresAt(
+    value: string | number | Date | null | undefined,
+    members: boolean,
+): number {
+    if (value === undefined || value === null || value === "") {
+        return members ? LIFETIME_EXPIRES : 0;
+    }
+    if (typeof value === "number" && Number.isFinite(value)) {
+        return Math.floor(value);
+    }
+    if (value instanceof Date) {
+        const ms = value.getTime();
+        return Number.isFinite(ms) ? Math.floor(ms / 1000) : members ? LIFETIME_EXPIRES : 0;
+    }
+
+    const text = String(value).trim();
+    const numeric = Number(text);
+    if (Number.isFinite(numeric)) {
+        return Math.floor(numeric);
+    }
+
+    const parsedMs = Date.parse(text);
+    if (Number.isFinite(parsedMs)) {
+        return Math.floor(parsedMs / 1000);
+    }
+
+    return members ? LIFETIME_EXPIRES : 0;
+}
+
+async function queryGgwpCharacter(
+    name: string,
+    includeExpiresAt: boolean,
+    joinAccounts: boolean,
+): Promise<GgwpCharacterRow | null> {
+    const expiresSelect = includeExpiresAt ? ", c.membership_expires_at" : "";
+    const join = joinAccounts ? "LEFT JOIN accounts a ON a.id = c.account_id" : "";
+    const accountPredicate = joinAccounts ? " OR lower(a.account_name) = lower($1)" : "";
+    const displayOrder = joinAccounts
+        ? "CASE WHEN lower(c.display_name) = lower($1) THEN 0 ELSE 1 END,"
+        : "";
+    const result = await getGgwpGamePool().query<GgwpCharacterRow>(
+        `SELECT c.id, c.members${expiresSelect}
+         FROM account_characters c
+         ${join}
+         WHERE lower(c.display_name) = lower($1)${accountPredicate}
+         ORDER BY ${displayOrder} c.id ASC
+         LIMIT 1`,
+        [name],
+    );
+    return result.rows[0] ?? null;
+}
+
 export async function lookupGgwpCharacter(displayName: string): Promise<GgwpCharacterRecord | null> {
     const name = displayName.trim();
     if (!name) {
@@ -28,25 +94,28 @@ export async function lookupGgwpCharacter(displayName: string): Promise<GgwpChar
     }
 
     try {
-        const result = await getGgwpGamePool().query<{
-            id: number;
-            members: boolean;
-            membership_expires_at: string | number | null;
-        }>(
-            `SELECT id, members, membership_expires_at
-             FROM account_characters
-             WHERE lower(display_name) = lower($1)
-             LIMIT 1`,
-            [name],
-        );
-        const row = result.rows[0];
+        let row: GgwpCharacterRow | null = null;
+        try {
+            row = await queryGgwpCharacter(name, true, true);
+        } catch (err) {
+            logger.warn(
+                "[ggwp-membership] membership_expires_at lookup failed; falling back to members boolean",
+                err,
+            );
+            try {
+                row = await queryGgwpCharacter(name, false, true);
+            } catch {
+                row = await queryGgwpCharacter(name, false, false);
+            }
+        }
         if (!row) {
             return null;
         }
+        const members = normalizeDbBoolean(row.members);
         return {
             characterId: row.id | 0,
-            members: row.members === true,
-            membershipExpiresAt: Number(row.membership_expires_at ?? 0) | 0,
+            members,
+            membershipExpiresAt: normalizeMembershipExpiresAt(row.membership_expires_at, members),
         };
     } catch (err) {
         logger.warn("[ggwp-membership] character lookup failed", err);
@@ -80,7 +149,10 @@ export function isGgwpMember(record: GgwpCharacterRecord): boolean {
 
 export function storeGgwpCharacterState(player: PlayerState, record: GgwpCharacterRecord): void {
     player.gamemodeState.set(GGWP_CHARACTER_ID_KEY, record.characterId);
-    player.gamemodeState.set(GGWP_MEMBERS_KEY, isGgwpMember(record));
+    const member = isGgwpMember(record);
+    const days = membershipDaysRemaining(record);
+    player.gamemodeState.set(GGWP_MEMBERS_KEY, member);
+    setPlayerMembershipState(player, member, days, record.characterId);
 }
 
 export function getGgwpCharacterId(player: PlayerState): number {
@@ -137,6 +209,7 @@ export async function refreshGgwpMembershipForPlayer(
     const record = await lookupGgwpCharacter(name);
     if (!record) {
         logger.info(`[ggwp-membership] no character row for ${name}`);
+        setPlayerMembershipState(player, false, 0);
         syncMembershipClientState(svc, ws, player, false, 0);
         return;
     }
