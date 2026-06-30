@@ -207,6 +207,9 @@ export interface Cs2Context {
     /** Staff moderator level for CS2 command scripts (0 = player, 1+ = staff). */
     getStaffModLevel?: () => number;
 
+    /** Whether this world is a members world (map_members CS2 opcode). */
+    isMembersWorld?: () => boolean;
+
     /** Optional hook for RuneLite runelite_callback scripts. */
     onRuneliteCallback?: (eventName: string) => void;
 
@@ -345,6 +348,30 @@ export interface Cs2Context {
     removeTileHighlight: (coordPacked: number, slot: number, group: number) => void;
     clearTileHighlights: (slot: number) => void;
     hasTileHighlight: (coordPacked: number, slot: number, group: number) => boolean;
+
+    // Entity type highlight overlays (highlight_npctype_* / highlight_loctype_* opcodes)
+    configureNpcTypeHighlight: (
+        slot: number,
+        colorRgb: number | undefined,
+        thickness: number,
+        alphaPercent: number,
+        flags: number,
+    ) => void;
+    setNpcTypeHighlight: (npcTypeId: number, slot: number) => void;
+    removeNpcTypeHighlight: (npcTypeId: number, slot: number) => void;
+    clearNpcTypeHighlights: (slot: number) => void;
+    hasNpcTypeHighlight: (npcTypeId: number, slot: number) => boolean;
+    configureLocTypeHighlight: (
+        slot: number,
+        colorRgb: number | undefined,
+        thickness: number,
+        alphaPercent: number,
+        flags: number,
+    ) => void;
+    setLocTypeHighlight: (locTypeId: number, slot: number) => void;
+    removeLocTypeHighlight: (locTypeId: number, slot: number) => void;
+    clearLocTypeHighlights: (slot: number) => void;
+    hasLocTypeHighlight: (locTypeId: number, slot: number) => boolean;
 
     // Callback when a sub-interface is opened via IF_OPENSUB
     onSubInterfaceOpened?: (groupId: number) => void;
@@ -872,6 +899,7 @@ export class Cs2Vm {
             // Run energy (0-10000 internal units)
             getRunEnergy: vm.context.getRunEnergy,
             getStaffModLevel: vm.context.getStaffModLevel,
+            isMembersWorld: vm.context.isMembersWorld,
             onRuneliteCallback: vm.context.onRuneliteCallback,
 
             // Idle timer (ms remaining until AFK logout)
@@ -1127,6 +1155,36 @@ export class Cs2Vm {
             },
             get hasTileHighlight() {
                 return vm.context.hasTileHighlight;
+            },
+            get configureNpcTypeHighlight() {
+                return vm.context.configureNpcTypeHighlight;
+            },
+            get setNpcTypeHighlight() {
+                return vm.context.setNpcTypeHighlight;
+            },
+            get removeNpcTypeHighlight() {
+                return vm.context.removeNpcTypeHighlight;
+            },
+            get clearNpcTypeHighlights() {
+                return vm.context.clearNpcTypeHighlights;
+            },
+            get hasNpcTypeHighlight() {
+                return vm.context.hasNpcTypeHighlight;
+            },
+            get configureLocTypeHighlight() {
+                return vm.context.configureLocTypeHighlight;
+            },
+            get setLocTypeHighlight() {
+                return vm.context.setLocTypeHighlight;
+            },
+            get removeLocTypeHighlight() {
+                return vm.context.removeLocTypeHighlight;
+            },
+            get clearLocTypeHighlights() {
+                return vm.context.clearLocTypeHighlights;
+            },
+            get hasLocTypeHighlight() {
+                return vm.context.hasLocTypeHighlight;
             },
 
             // Callback when a sub-interface is opened via IF_OPENSUB

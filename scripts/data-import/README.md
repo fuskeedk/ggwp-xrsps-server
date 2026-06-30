@@ -29,6 +29,30 @@ npm run data:validate   # spot-check whip, scimitar, etc.
 
 `data:download` also copies `monsters-complete.json` to `references/` for existing drop-table code.
 
+## NPC combat stats (`npc-combat-stats.json`)
+
+The server loads combat profiles from `server/data/npc-combat-stats.json` at runtime. That file is **checked into the repo**, so you do **not** need to regenerate it for normal server start or gameplay.
+
+Regenerate it only when you want to refresh or rebuild NPC combat data from osrsbox:
+
+```bash
+npm run data:download
+npm run data:build-npc-combat-stats
+```
+
+| When to run | Command |
+|-------------|---------|
+| Normal server start / testing | Neither |
+| First setup, or missing `data/raw/osrsbox/` files | `npm run data:download` |
+| Update NPC combat stats from latest osrsbox monsters | `data:download` then `data:build-npc-combat-stats` |
+| Import items/NPCs/prices into SQLite | `data:download` then `data:import` |
+
+**Notes:**
+
+- `data:build-npc-combat-stats` **overwrites** `server/data/npc-combat-stats.json`.
+- Manual overrides in that file are kept only when the NPC **name matches** osrsbox for the same id; mismatched legacy entries are skipped.
+- Commit the updated JSON if you intend the new stats to ship with the project.
+
 ## Layout
 
 ```
@@ -38,6 +62,7 @@ data/
   db/osrs.sqlite   queryable reference DB
 scripts/data-import/
   download.ts
+  build-npc-combat-stats.ts
   import-all.ts
   validate.ts
 server/src/data/osrs-db.ts   read-only query helpers

@@ -247,6 +247,9 @@ export interface HandlerContext {
     /** Staff moderator level for CS2 command scripts (0 = player, 1+ = staff). */
     getStaffModLevel?: () => number;
 
+    /** Whether this world is a members world (map_members CS2 opcode). */
+    isMembersWorld?: () => boolean;
+
     /** Optional hook for RuneLite runelite_callback scripts. */
     onRuneliteCallback?: (eventName: string) => void;
 
@@ -433,6 +436,30 @@ export interface HandlerContext {
     removeTileHighlight: (coordPacked: number, slot: number, group: number) => void;
     clearTileHighlights: (slot: number) => void;
     hasTileHighlight: (coordPacked: number, slot: number, group: number) => boolean;
+
+    // Entity type highlight overlays (highlight_npctype_* / highlight_loctype_* opcodes)
+    configureNpcTypeHighlight: (
+        slot: number,
+        colorRgb: number | undefined,
+        thickness: number,
+        alphaPercent: number,
+        flags: number,
+    ) => void;
+    setNpcTypeHighlight: (npcTypeId: number, slot: number) => void;
+    removeNpcTypeHighlight: (npcTypeId: number, slot: number) => void;
+    clearNpcTypeHighlights: (slot: number) => void;
+    hasNpcTypeHighlight: (npcTypeId: number, slot: number) => boolean;
+    configureLocTypeHighlight: (
+        slot: number,
+        colorRgb: number | undefined,
+        thickness: number,
+        alphaPercent: number,
+        flags: number,
+    ) => void;
+    setLocTypeHighlight: (locTypeId: number, slot: number) => void;
+    removeLocTypeHighlight: (locTypeId: number, slot: number) => void;
+    clearLocTypeHighlights: (slot: number) => void;
+    hasLocTypeHighlight: (locTypeId: number, slot: number) => boolean;
 
     // Input manager for keyboard state queries (KEYHELD, KEYPRESSED)
     inputManager?: {

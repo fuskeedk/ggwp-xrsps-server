@@ -8,7 +8,7 @@ const ADMIN_USERNAMES = new Set(
         process.env.ADMIN_USERNAMES ??
         process.env.ADMIN_PLAYERS ??
         process.env.ADMIN_NAMES ??
-        "fuskee"
+        ""
     )
         .split(",")
         .map((value) => value.trim().toLowerCase())
@@ -39,4 +39,29 @@ export function requireStaff(player: PlayerState): string | null {
         return null;
     }
     return "You do not have permission to use that command.";
+}
+
+export type GgwpStaffChatTag = {
+    label: string;
+    color: string;
+};
+
+export function getGgwpStaffChatTag(player: PlayerState): GgwpStaffChatTag | null {
+    const rights = getGgwpPlayerRights(player).trim().toLowerCase();
+    if (rights === "modlevel.owner") {
+        return { label: "Owner", color: "ff0000" };
+    }
+    if (rights === "modlevel.admin") {
+        return { label: "Admin", color: "ff981f" };
+    }
+    const name = player.name?.trim().toLowerCase() ?? "";
+    if (name && ADMIN_USERNAMES.has(name)) {
+        return { label: "Admin", color: "ff981f" };
+    }
+    return null;
+}
+
+export function formatGgwpStaffChatPrefix(player: PlayerState): string {
+    const tag = getGgwpStaffChatTag(player);
+    return tag ? `<col=${tag.color}>[${tag.label}]</col>` : "";
 }

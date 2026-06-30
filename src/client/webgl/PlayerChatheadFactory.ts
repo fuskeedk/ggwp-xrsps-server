@@ -1,6 +1,12 @@
 import type { IdkTypeLoader } from "../../rs/config/idktype/IdkTypeLoader";
 import type { ObjTypeLoader } from "../../rs/config/objtype/ObjTypeLoader";
 import { Gender, PlayerAppearance } from "../../rs/config/player/PlayerAppearance";
+import {
+    PLAYER_BODY_RECOLOR_FROM_1,
+    PLAYER_BODY_RECOLOR_FROM_2,
+    PLAYER_BODY_RECOLOR_TO_1,
+    PLAYER_BODY_RECOLOR_TO_2,
+} from "../../rs/config/player/PlayerDesignColors";
 import { Model } from "../../rs/model/Model";
 import { ModelData } from "../../rs/model/ModelData";
 import type { ModelLoader } from "../../rs/model/ModelLoader";
@@ -23,7 +29,6 @@ export class PlayerChatheadFactory {
 
     get(appearance: PlayerAppearance | undefined): Model | undefined {
         if (!appearance) {
-            console.log("[PlayerChatheadFactory] No appearance provided");
             return undefined;
         }
         const keyBase = appearance.getCacheKey?.() ?? JSON.stringify(appearance);
@@ -76,14 +81,6 @@ export class PlayerChatheadFactory {
 
         const preloaded = new Set<number>();
 
-        const pushModels = (ids: number[]) => {
-            for (const mid of ids) {
-                if (typeof mid === "number" && mid >= 0) {
-                    modelIds.push(mid | 0);
-                }
-            }
-        };
-
         const pushItemModelDatas = (ids: number[], item: any) => {
             for (const mid of ids) {
                 if (!(typeof mid === "number" && mid >= 0)) continue;
@@ -99,6 +96,7 @@ export class PlayerChatheadFactory {
                         md.retexture(item.retextureFrom[r], item.retextureTo?.[r]);
                     }
                 }
+                this.applyBodyRecolors(md, appearance);
                 parts.push(md);
                 preloaded.add(mid | 0);
                 modelIds.push(mid | 0);
@@ -110,14 +108,30 @@ export class PlayerChatheadFactory {
             const kit = this.idkLoader.load(kitId);
             if (!kit) return;
 
-            // Use ifModelIds (chathead models) if available and valid; otherwise fallback to body models
             let sourceIds = kit.ifModelIds;
             if (!sourceIds || !sourceIds.some((id) => id >= 0)) {
                 sourceIds = kit.modelIds;
             }
 
-            if (Array.isArray(sourceIds)) {
-                pushModels(sourceIds);
+            if (!Array.isArray(sourceIds)) return;
+            for (const mid of sourceIds) {
+                if (!(typeof mid === "number" && mid >= 0)) continue;
+                const md = this.modelLoader.getModel(mid);
+                if (!md) continue;
+                if (kit.recolorFrom) {
+                    for (let r = 0; r < kit.recolorFrom.length; r++) {
+                        md.recolor(kit.recolorFrom[r], kit.recolorTo[r]);
+                    }
+                }
+                if (kit.retextureFrom) {
+                    for (let r = 0; r < kit.retextureFrom.length; r++) {
+                        md.retexture(kit.retextureFrom[r], kit.retextureTo[r]);
+                    }
+                }
+                this.applyBodyRecolors(md, appearance);
+                parts.push(md);
+                preloaded.add(mid | 0);
+                modelIds.push(mid | 0);
             }
         };
 
@@ -128,7 +142,6 @@ export class PlayerChatheadFactory {
             if (rawHead >= 256 && rawHead < 512) {
                 // 256-511 encodes a kit (id = val - 256)
                 const kitId = rawHead - 256;
-                console.log("[PlayerChatheadFactory] Head slot encoded as kit", { rawHead, kitId });
                 pushKitModels(kitId);
                 headCoveredByItem = true;
             } else if (rawHead >= 0 && this.objTypeLoader) {
@@ -153,10 +166,6 @@ export class PlayerChatheadFactory {
                 for (const cand of candidates) {
                     try {
                         if (typeof objCount === "number" && cand >= objCount) {
-                            console.warn("[PlayerChatheadFactory] candidate beyond obj count", {
-                                cand,
-                                objCount,
-                            });
                             continue;
                         }
                         const it = this.objTypeLoader.load(cand);
@@ -179,9 +188,7 @@ export class PlayerChatheadFactory {
                             if (headPresent) headPreferred.push({ item: it, id: cand });
                             anyValid.push({ item: it, id: cand });
                         }
-                    } catch (e) {
-                        console.warn("[PlayerChatheadFactory] candidate load failed", { cand, e });
-                    }
+                    } catch {}
                 }
 
                 let foundItem: any;
@@ -200,10 +207,6 @@ export class PlayerChatheadFactory {
                         if (foundItem.noteTemplate !== -1 && foundItem.unnotedId >= 0) {
                             const base = this.objTypeLoader.load(foundItem.unnotedId);
                             if (base) {
-                                console.log("[PlayerChatheadFactory] Unnoting head item", {
-                                    resolvedItemId,
-                                    unnotedId: foundItem.unnotedId,
-                                });
                                 if (isValidItem(base)) {
                                     foundItem = base;
                                     resolvedItemId =
@@ -214,10 +217,6 @@ export class PlayerChatheadFactory {
                         if (foundItem.placeholderTemplate !== -1 && foundItem.placeholder !== -1) {
                             const base = this.objTypeLoader.load(foundItem.placeholder);
                             if (base) {
-                                console.log("[PlayerChatheadFactory] Unplaceholder head item", {
-                                    resolvedItemId,
-                                    placeholderId: foundItem.placeholder,
-                                });
                                 if (isValidItem(base)) {
                                     foundItem = base;
                                     resolvedItemId =
@@ -227,16 +226,6 @@ export class PlayerChatheadFactory {
                         }
                     } catch {}
 
-                    console.log("[PlayerChatheadFactory] Using head item", {
-                        rawHeadItemId: rawHead,
-                        resolvedItemId,
-                        candidates,
-                        name: (foundItem as any).name,
-                        m1: foundItem.maleHeadModel,
-                        m2: foundItem.maleHeadModel2,
-                        f1: foundItem.femaleHeadModel,
-                        f2: foundItem.femaleHeadModel2,
-                    });
                     const isFemale = appearance.gender === Gender.FEMALE;
                     const primary = isFemale ? foundItem.femaleHeadModel : foundItem.maleHeadModel;
                     const secondary = isFemale
@@ -258,29 +247,17 @@ export class PlayerChatheadFactory {
                         if (b2 >= 0) bodyModels.push(b2);
                         if (b3 >= 0) bodyModels.push(b3);
                         if (bodyModels.length) {
-                            console.log(
-                                "[PlayerChatheadFactory] Using wearable body models as head fallback",
-                                bodyModels,
-                            );
                             pushItemModelDatas(bodyModels, foundItem);
                             headCoveredByItem = true;
                         }
                     }
                 } else {
-                    const objCount = (this.objTypeLoader as any)?.getCount?.();
-                    console.warn("[PlayerChatheadFactory] Head item not found in candidates", {
-                        rawHeadItemId: rawHead,
-                        candidates,
-                        objCount,
-                    });
                     for (const cand of candidates) {
                         const md = this.modelLoader.getModel(cand);
                         if (md) {
-                            console.log(
-                                "[PlayerChatheadFactory] Treating candidate as direct model id",
-                                cand,
-                            );
+                            this.applyBodyRecolors(md, appearance);
                             parts.push(md);
+                            preloaded.add(cand | 0);
                             modelIds.push(cand | 0);
                             headCoveredByItem = true;
                             break;
@@ -294,23 +271,15 @@ export class PlayerChatheadFactory {
         // If head kit is missing, try to find a fallback from IDK
         let effectiveHeadKitId = headKitId;
         if (effectiveHeadKitId === -1) {
-            console.warn("[PlayerChatheadFactory] Head kit missing. Scanning IDKs...");
             for (let id = 0; id < idkCount; id++) {
                 try {
                     const kit = this.idkLoader.load(id);
                     if (!kit) continue;
-                    const part = kit.bodyPartyId;
-                    // Check for Head (0) and ensure it matches gender if possible
-                    // (Simple heuristic: usually first heads are male, later female, but we check valid models)
-                    if (part === 0) {
-                        // Just pick the first available head for now as fallback
-                        console.log("[PlayerChatheadFactory] Found fallback head kit", id);
+                    if (kit.bodyPartyId === 0) {
                         effectiveHeadKitId = id;
                         break;
                     }
-                } catch (e) {
-                    console.warn("Error checking kit", id, e);
-                }
+                } catch {}
             }
         }
 
@@ -318,16 +287,7 @@ export class PlayerChatheadFactory {
         if (!headCoveredByItem) pushKitModels(effectiveHeadKitId);
         pushKitModels(jawKitId);
 
-        if (modelIds.length === 0) {
-            console.warn(
-                "[PlayerChatheadFactory] No head/jaw models collected from kits or item. Returning.",
-            );
-        }
-
-        console.log("[PlayerChatheadFactory] Final model IDs:", modelIds);
-
         if (!modelIds.length) {
-            console.warn("[PlayerChatheadFactory] No model IDs found for chathead");
             return undefined;
         }
 
@@ -335,23 +295,34 @@ export class PlayerChatheadFactory {
             const md = this.modelLoader.getModel(mid);
             if (md) {
                 if (!preloaded.has(mid | 0)) parts.push(md);
-            } else console.warn("[PlayerChatheadFactory] Failed to load model data", mid);
+            }
         }
         if (!parts.length) {
-            console.warn("[PlayerChatheadFactory] No valid model parts loaded");
             return undefined;
         }
 
         const merged = ModelData.merge(parts, parts.length);
-
-        // TODO: Apply player recolor based on appearance.colors palette when palettes are wired.
-
-        let model = merged.light(this.textureLoader, 64 + 64, 850, -30, -50, -30);
+        const model = merged.light(this.textureLoader, 64 + 64, 850, -30, -50, -30);
         this.cache.set(key, model);
         return model;
     }
 
     clear(): void {
         this.cache.clear();
+    }
+
+    private applyBodyRecolors(md: ModelData, appearance: PlayerAppearance): void {
+        const colors = Array.isArray(appearance.colors) ? appearance.colors : [];
+        for (let c = 0; c < 5; c++) {
+            const idx = (colors[c] ?? 0) | 0;
+            const pal1 = PLAYER_BODY_RECOLOR_TO_1[c] ?? [];
+            if (idx >= 0 && idx < pal1.length) {
+                md.recolor(PLAYER_BODY_RECOLOR_FROM_1[c] | 0, pal1[idx] | 0);
+            }
+            const pal2 = PLAYER_BODY_RECOLOR_TO_2[c] ?? [];
+            if (idx >= 0 && idx < pal2.length) {
+                md.recolor(PLAYER_BODY_RECOLOR_FROM_2[c] | 0, pal2[idx] | 0);
+            }
+        }
     }
 }

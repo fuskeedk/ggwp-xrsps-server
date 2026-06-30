@@ -7,6 +7,8 @@ import { getItemDefinition } from "../../data/items";
 import { logger } from "../../utils/logger";
 import type { ServerServices } from "../ServerServices";
 import { clearAutocastState } from "../combat/AutocastState";
+import { getVeracDamnedPrayerBonus } from "../combat/BarrowsDamnedEffects";
+import { tryGrantGraniteMaulCombo } from "../combat/GraniteMaulCombo";
 import { getCategoryForWeaponInterface } from "../combat/WeaponInterfaces";
 import {
     ensureEquipArrayOn,
@@ -138,6 +140,10 @@ export class EquipmentService {
             p.setCombatCategoryMeleeBonusIndices(undefined);
         }
 
+        if (weaponItemChanged && normalizedWeaponId > 0 && p.specEnergy.isActivated()) {
+            tryGrantGraniteMaulCombo(p, normalizedWeaponId, this.services.ticker.currentTick());
+        }
+
         return { categoryChanged, weaponItemChanged };
     }
 
@@ -164,6 +170,7 @@ export class EquipmentService {
                 totals[i] = (totals[i] ?? 0) + bonus;
             }
         }
+        totals[13] = (totals[13] ?? 0) + getVeracDamnedPrayerBonus(equip);
         return totals;
     }
 

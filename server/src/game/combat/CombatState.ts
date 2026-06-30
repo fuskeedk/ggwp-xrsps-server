@@ -330,6 +330,12 @@ export interface SpecialAttackEffects {
     siphonRunEnergyPercent?: number;
     /** Disable protection prayers for N ticks (PvP only) */
     prayerDisableTicks?: number;
+    /** Drain Defence by a percentage of the current level */
+    drainDefencePercent?: number;
+    /** Drain Defence by damage dealt times this multiplier */
+    drainDefenceByDamage?: number;
+    /** Only apply Defence drain if Defence is not already below base */
+    drainDefenceOnlyIfNotDrained?: boolean;
     /** Drain target magic level by damage dealt */
     drainMagicByDamage?: boolean;
     /** Drain random combat stat by damage dealt */

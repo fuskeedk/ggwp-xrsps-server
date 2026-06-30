@@ -164,7 +164,10 @@ const lostCityQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 1160, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 1160, npcName: "Wizard" };
             if (getQuestStage(player, lostCityQuest) < lostCityQuest.startedValue) return;
-            if (getQuestStage(player, lostCityQuest) >= lostCityQuest.completionValue) return;
+            if (getQuestStage(player, lostCityQuest) >= lostCityQuest.completionValue) {
+                startConversation(ctx, [{ npc: ["Zanaris awaits through the shed in the swamp."] }]);
+                return;
+            }
             if (hasItem(player, services, DRAMEN_STAFF)) {
                 startConversation(ctx, [{ npc: ["Equip the staff and enter the shed in the swamp centre."] }]);
                 return;
@@ -262,8 +265,10 @@ const treeGnomeVillageQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 4963, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 4963, npcName: "King Bolren" };
             const stage = getQuestStage(player, treeGnomeVillageQuest);
+            if (stage < treeGnomeVillageQuest.startedValue) {
+                return;
+            }
             if (stage >= treeGnomeVillageQuest.completionValue) {
-                startConversation(ctx, [{ npc: ["The village is safe once more. Thank you!"] }]);
                 return;
             }
             if (hasItem(player, services, ORB_OF_PROTECTION, 2)) {
@@ -509,6 +514,10 @@ const shiloVillageQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 4625, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 4625, npcName: "Trufitus" };
             if (getQuestStage(player, shiloVillageQuest) < shiloVillageQuest.startedValue) return;
+            if (getQuestStage(player, shiloVillageQuest) >= shiloVillageQuest.completionValue) {
+                startConversation(ctx, [{ npc: ["Shilo Village is at peace again."] }]);
+                return;
+            }
             if (getQuestFlag(player, shiloVillageQuest.key, "has_beads")) {
                 startConversation(ctx, [{ npc: ["Take the beads to Mosol Rei."] }]);
                 return;

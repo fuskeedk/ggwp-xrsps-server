@@ -163,8 +163,12 @@ export class CombatEffectService {
         damage: number,
         attackType: AttackType,
         source: "npc" | "player",
+        tick?: number,
     ): number {
         if (!(damage > 0)) return 0;
+        if (tick !== undefined && target.combat.isPrayerDisabled(tick)) {
+            return damage;
+        }
         const prayer = PROTECTION_PRAYER_MAP[attackType];
         if (!prayer || !target.prayer.hasPrayerActive(prayer)) return damage;
         const reduction = source === "npc" ? NPC_PROTECTION_REDUCTION : PVP_PROTECTION_REDUCTION;

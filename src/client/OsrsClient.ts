@@ -267,6 +267,7 @@ import {
 import { NpcEcs } from "./ecs/NpcEcs";
 import { PlayerEcs } from "./ecs/PlayerEcs";
 import { TileHighlightManager } from "./highlights/TileHighlightManager";
+import { EntityTypeHighlightManager } from "./highlights/EntityTypeHighlightManager";
 import { PlayerInteractionSystem } from "./interactions/PlayerInteractionSystem";
 import {
     TRADE_CONFIRM_INTERFACE,
@@ -598,6 +599,8 @@ export class OsrsClient {
     readonly notesPlugin: NotesPlugin;
     readonly tileMarkersPlugin: TileMarkersPlugin;
     readonly tileHighlightManager: TileHighlightManager = new TileHighlightManager();
+    readonly npcTypeHighlightManager: EntityTypeHighlightManager = new EntityTypeHighlightManager();
+    readonly locTypeHighlightManager: EntityTypeHighlightManager = new EntityTypeHighlightManager();
     private sidebarPluginVisibility: Required<SidebarPluginVisibilityOptions> = {
         groundItemsEnabled: true,
         interactHighlightEnabled: true,
@@ -930,6 +933,9 @@ export class OsrsClient {
     tradeOtherInventory: Inventory = new Inventory(28);
     private tradeBridge!: TradeBridge;
     private inventorySeededFromServer: boolean = false;
+    isMembersWorld: boolean = true;
+    isMemberAccount: boolean = true;
+    membershipDaysRemaining: number = 0;
 
     // Track last layout dimensions to avoid re-running layout every frame
     private _lastLayoutWidth: number = 0;
@@ -995,6 +1001,18 @@ export class OsrsClient {
             this.renderer.invalidateRoofState();
             this.widgetManager?.invalidateAll();
         }
+    }
+
+    setMembershipState(member: boolean, membershipDays?: number): void {
+        this.isMemberAccount = member;
+        this.membershipDaysRemaining = Math.max(
+            0,
+            Math.min(
+                99_999,
+                Number.isFinite(membershipDays) ? Math.floor(membershipDays as number) : 0,
+            ),
+        );
+        this.widgetManager?.invalidateAll();
     }
 
     private unsubscribeWidgetEvents?: () => void;
@@ -1218,14 +1236,14 @@ export class OsrsClient {
             osrsRenderer?: GameRenderer;
             osrsClient?: OsrsClient;
         };
-        // Always enable projectile debug flags unless explicitly disabled by user.
+        // Projectile debug is opt-in; do not flood production consoles by default.
         try {
-            if (globalState.DEBUG_PROJECTILES === undefined) globalState.DEBUG_PROJECTILES = true;
+            if (globalState.DEBUG_PROJECTILES === undefined) globalState.DEBUG_PROJECTILES = false;
             if (globalState.DEBUG_PROJECTILES_VERBOSE === undefined) {
-                globalState.DEBUG_PROJECTILES_VERBOSE = true;
+                globalState.DEBUG_PROJECTILES_VERBOSE = false;
             }
             if (globalState.DEBUG_PROJECTILES_TRAJ === undefined) {
-                globalState.DEBUG_PROJECTILES_TRAJ = true;
+                globalState.DEBUG_PROJECTILES_TRAJ = false;
             }
         } catch {}
         this.renderer = createRenderer(rendererType, this);
@@ -1423,6 +1441,9 @@ export class OsrsClient {
             },
             getStaffModLevel: () => {
                 return self.localPlayerIsAdmin ? 2 : 0;
+            },
+            isMembersWorld: () => {
+                return self.isMembersWorld;
             },
             getIdleTimerRemainingMs: () => {
                 return self.inputManager.getIdleLogoutRemainingMs();
@@ -1786,6 +1807,60 @@ export class OsrsClient {
             },
             hasTileHighlight: (coordPacked: number, slot: number, group: number) => {
                 return self.tileHighlightManager.has(coordPacked, slot, group);
+            },
+            configureNpcTypeHighlight: (
+                slot: number,
+                colorRgb: number | undefined,
+                thickness: number,
+                alphaPercent: number,
+                flags: number,
+            ) => {
+                self.npcTypeHighlightManager.configure(
+                    slot,
+                    colorRgb,
+                    thickness,
+                    alphaPercent,
+                    flags,
+                );
+            },
+            setNpcTypeHighlight: (npcTypeId: number, slot: number) => {
+                self.npcTypeHighlightManager.addType(slot, npcTypeId);
+            },
+            removeNpcTypeHighlight: (npcTypeId: number, slot: number) => {
+                self.npcTypeHighlightManager.removeType(slot, npcTypeId);
+            },
+            clearNpcTypeHighlights: (slot: number) => {
+                self.npcTypeHighlightManager.clear(slot);
+            },
+            hasNpcTypeHighlight: (npcTypeId: number, slot: number) => {
+                return self.npcTypeHighlightManager.hasType(slot, npcTypeId);
+            },
+            configureLocTypeHighlight: (
+                slot: number,
+                colorRgb: number | undefined,
+                thickness: number,
+                alphaPercent: number,
+                flags: number,
+            ) => {
+                self.locTypeHighlightManager.configure(
+                    slot,
+                    colorRgb,
+                    thickness,
+                    alphaPercent,
+                    flags,
+                );
+            },
+            setLocTypeHighlight: (locTypeId: number, slot: number) => {
+                self.locTypeHighlightManager.addType(slot, locTypeId);
+            },
+            removeLocTypeHighlight: (locTypeId: number, slot: number) => {
+                self.locTypeHighlightManager.removeType(slot, locTypeId);
+            },
+            clearLocTypeHighlights: (slot: number) => {
+                self.locTypeHighlightManager.clear(slot);
+            },
+            hasLocTypeHighlight: (locTypeId: number, slot: number) => {
+                return self.locTypeHighlightManager.hasType(slot, locTypeId);
             },
             // === Game option get/set - controls audio volume and other settings ===
             // Audio option IDs are defined by CS2 constants in this revision:
@@ -8824,11 +8899,6 @@ export class OsrsClient {
     }
 
     setSelectedSpell(spell: SelectedSpellInfo | null, sourceWidget?: any): void {
-        // DEBUG: Log setSelectedSpell call
-        console.log(
-            `[setSelectedSpell] Called with spell=${spell?.spellName}, sourceWidget=${sourceWidget?.uid}`,
-        );
-
         // Fire onTargetLeave on previous source widget if we're switching targets
         if (ClientState.selectedSpellSourceWidget) {
             this.fireOnTargetLeave(ClientState.selectedSpellSourceWidget);
@@ -8863,9 +8933,6 @@ export class OsrsClient {
         }
 
         // Fire onTargetEnter on the new source widget
-        console.log(
-            `[setSelectedSpell] After set: isSpellSelected=${ClientState.isSpellSelected}, sourceWidget=${ClientState.selectedSpellSourceWidget?.uid}`,
-        );
         if (ClientState.selectedSpellSourceWidget) {
             this.fireOnTargetEnter(ClientState.selectedSpellSourceWidget);
             try {
@@ -8874,8 +8941,6 @@ export class OsrsClient {
                     "spell-target-enter",
                 );
             } catch {}
-        } else {
-            console.log(`[setSelectedSpell] No sourceWidget to fire onTargetEnter`);
         }
     }
 
@@ -12655,10 +12720,16 @@ export class OsrsClient {
             console.warn("[OsrsClient] GfxManager clear error:", err);
         }
 
-        // Reset controlled player ID
+        // Clear controlled player ID
         this.controlledPlayerServerId = -1;
         this.lastPlayerSyncLocalIndex = -1;
         this.localPlayerIsAdmin = false;
+
+        try {
+            this.tradeBridge?.stop();
+        } catch (err) {
+            console.warn("[OsrsClient] TradeBridge stop error:", err);
+        }
 
         // Clear menus
         try {

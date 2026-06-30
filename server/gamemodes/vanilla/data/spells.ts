@@ -5,6 +5,8 @@ import type { CacheInfo } from "../../../../src/rs/cache/CacheInfo";
 import { CacheSystem } from "../../../../src/rs/cache/CacheSystem";
 import { CombatCategoryConst as CombatCategory } from "../../../src/game/combat/WeaponDataProvider";
 import { getWeaponData } from "../../../src/game/combat/WeaponDataProvider";
+import { isAhrimsStaff } from "../../../src/game/combat/BarrowsEquipment";
+import { hasAhrimsDamnedSet } from "../../../src/game/combat/EquipmentBonusProvider";
 import { applyProjectileDefaults } from "../../../src/game/data/ProjectileParamsProvider";
 import { VARP_DESERT_TREASURE } from "../../../../src/shared/vars";
 import {
@@ -976,7 +978,7 @@ const AUTOCAST_INDEX_TO_SPELL_ID: Record<number, number> = {
 };
 
 const ANCIENT_AUTOCAST_WEAPONS = new Set<number>([
-    4675, 4710, 6914, 8841, 11791, 12904, 21006, 22296, 24422, 24423, 24424, 24425,
+    4675, 6914, 8841, 11791, 12904, 21006, 22296, 24422, 24423, 24424, 24425,
 ]);
 
 const IBAN_BLAST_WEAPONS = new Set<number>([1409, 12658]);
@@ -1018,7 +1020,7 @@ const POWERED_STAFF_SPELL_DATA: PoweredStaffSpellData[] = [
         baseXp: 50,
     },
     {
-        weaponIds: [12899, 12900, 22292, 21276],
+        weaponIds: [12899, 22292, 21276],
         name: "Trident of the swamp",
         projectileId: 1040,
         castSpotAnim: 1042,
@@ -1046,7 +1048,7 @@ const POWERED_STAFF_SPELL_DATA: PoweredStaffSpellData[] = [
         },
     },
     {
-        weaponIds: [27275, 27277],
+        weaponIds: [27275],
         name: "Tumeken's shadow",
         projectileId: 2126,
         castSpotAnim: 2125,
@@ -1059,7 +1061,7 @@ const POWERED_STAFF_SPELL_DATA: PoweredStaffSpellData[] = [
         baseXp: 70,
     },
     {
-        weaponIds: [22552, 27676, 27785],
+        weaponIds: [22552, 27676],
         name: "Thammaron's sceptre",
         projectileId: 1278,
         castSpotAnim: 1279,
@@ -1071,7 +1073,7 @@ const POWERED_STAFF_SPELL_DATA: PoweredStaffSpellData[] = [
         baseXp: 50,
     },
     {
-        weaponIds: [27679, 27788],
+        weaponIds: [27679],
         name: "Accursed sceptre",
         projectileId: 2339,
         castSpotAnim: 2340,
@@ -1290,12 +1292,12 @@ export function createSpellDataProvider(): SpellDataProvider {
             return SPELL_ID_TO_AUTOCAST_INDEX.has(spellId);
         },
 
-        buildVisibleAutocastIndices(weaponItemId: number): number[] {
+        buildVisibleAutocastIndices(weaponItemId: number, equipment?: number[]): number[] {
             const result: number[] = [];
             for (let idx = 1; idx <= 58; idx++) {
                 const spellId = AUTOCAST_INDEX_TO_SPELL_ID[idx];
                 if (spellId === undefined || spellId <= 0) continue;
-                const compat = provider.canWeaponAutocastSpell(weaponItemId, spellId);
+                const compat = provider.canWeaponAutocastSpell(weaponItemId, spellId, equipment);
                 if (compat.compatible) {
                     result.push(idx);
                 }
@@ -1303,7 +1305,11 @@ export function createSpellDataProvider(): SpellDataProvider {
             return result;
         },
 
-        canWeaponAutocastSpell(weaponItemId: number, spellId: number): AutocastCompatibilityResult {
+        canWeaponAutocastSpell(
+            weaponItemId: number,
+            spellId: number,
+            equipment?: number[],
+        ): AutocastCompatibilityResult {
             const weapon = weaponItemId;
             const spell = spellId;
 
@@ -1325,6 +1331,12 @@ export function createSpellDataProvider(): SpellDataProvider {
             }
 
             if (ANCIENT_SPELL_IDS.has(spell)) {
+                if (isAhrimsStaff(weapon)) {
+                    if (!equipment || !hasAhrimsDamnedSet(equipment)) {
+                        return { compatible: false, reason: "weapon_specific_spell" };
+                    }
+                    return { compatible: true };
+                }
                 if (!ANCIENT_AUTOCAST_WEAPONS.has(weapon)) {
                     return { compatible: false, reason: "wrong_spellbook" };
                 }

@@ -74,11 +74,8 @@ export const CRYSTAL_BOW_CONFIG: DegradableItemConfig = {
     transformOnFirstUse: true, // New (4212) → Full (4214) on first shot
 };
 
-/** Modern crystal bow (post-Song of the Elves) item IDs */
+/** @deprecated Use ModernChargeWeaponSystem exports instead. */
 export const MODERN_CRYSTAL_BOW_IDS = [23983, 24123];
-
-/** Modern crystal bow varbit for charge tracking */
-export const CRYSTAL_BOW_CHARGE_VARBIT = 4212; // TODO: Find correct varbit ID
 
 // =============================================================================
 // Crystal Shield Configuration

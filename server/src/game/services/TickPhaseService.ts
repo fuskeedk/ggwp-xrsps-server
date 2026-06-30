@@ -668,7 +668,10 @@ export class TickPhaseService {
             tick: frame.tick,
             npcLookup: (npcId) => npcManager?.getById(npcId),
             pathService: this.svc.pathService!,
-            pickAttackSpeed: (player) => this.svc.playerCombatService!.pickAttackSpeed(player),
+            pickAttackSpeed: (player, targetType) =>
+                this.svc.playerCombatService!.pickAttackSpeed(player, targetType),
+            pickHitDelay: (player) => this.svc.playerCombatService!.pickHitDelay(player),
+            pickAttackSequence: (player) => this.svc.playerCombatService!.pickAttackSequence(player),
             pickNpcHitDelay: (npc, player, attackSpeed) =>
                 this.svc.combatEffectService.pickNpcHitDelay(npc, player, attackSpeed),
             getWeaponSpecialCostPercent: (weaponItemId) =>
@@ -677,6 +680,21 @@ export class TickPhaseService {
             queueSpotAnimation: (event) => {
                 this.svc.broadcastService.enqueueSpotAnimation(event);
             },
+            consumeRangedAmmo: (player, target, weaponItemId, hitCount, tick) =>
+                !!this.svc.combatActionHandler?.consumeRangedAmmoForPlayerTarget(
+                    player,
+                    target,
+                    weaponItemId,
+                    hitCount,
+                    tick,
+                ).ok,
+            consumePoweredStaffCharge: (player, weaponItemId, hitCount) =>
+                !!this.svc.combatActionHandler?.consumePoweredStaffChargeForPlayerTarget(
+                    player,
+                    weaponItemId,
+                    hitCount,
+                ).ok,
+            queueCombatState: (player) => this.svc.queueCombatState(player),
             onMagicAttack: ({ player, npc, plan, tick }) =>
                 this.svc.spellActionHandler!.handleAutocastMagicAttack({
                     player,
@@ -742,7 +760,10 @@ export class TickPhaseService {
                     }
                 }
                 this.svc.varpSyncService.syncCombatTargetPlayerVarp(player);
-                player.combat.attackDelay = this.svc.playerCombatService!.pickAttackSpeed(player);
+                player.combat.attackDelay = this.svc.playerCombatService!.pickAttackSpeed(
+                    player,
+                    "npc",
+                );
             });
             this.svc.players.forEachBot((bot) => {
                 const seqData = bot.popPendingSeq() as { seqId: number; delay: number } | undefined;

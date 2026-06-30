@@ -321,7 +321,10 @@ export class TradeBridge {
         if (typeof parsed !== "number" || parsed <= 0) {
             return true;
         }
-        const quantity = Math.max(1, Math.min(MAX_TRADE_QUANTITY, Math.floor(parsed)));
+        const quantity = Math.max(
+            1,
+            Math.min(entry.quantity, MAX_TRADE_QUANTITY, Math.floor(parsed)),
+        );
         sendTradeOffer(slot, entry.itemId, quantity);
         return true;
     }
