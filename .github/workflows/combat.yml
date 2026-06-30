@@ -1,0 +1,39 @@
+name: Combat Tests
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - "server/src/game/combat/**"
+            - "server/src/game/actions/handlers/PvpCombatHandler.ts"
+            - "server/src/game/actions/handlers/NpcHitHandler.ts"
+            - "server/src/game/systems/combat/**"
+            - "tests/jade-bolt-knockdown.test.ts"
+            - "package.json"
+            - "package-lock.json"
+    pull_request:
+        paths:
+            - "server/src/game/combat/**"
+            - "server/src/game/actions/handlers/PvpCombatHandler.ts"
+            - "server/src/game/actions/handlers/NpcHitHandler.ts"
+            - "server/src/game/systems/combat/**"
+            - "tests/jade-bolt-knockdown.test.ts"
+            - "package.json"
+            - "package-lock.json"
+
+jobs:
+    combat-tests:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - run: npm ci --legacy-peer-deps
+
+            - run: npm run server:build
+
+            - run: npm run test:combat
