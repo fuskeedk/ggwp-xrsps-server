@@ -5,8 +5,9 @@ import { ScriptRegistry } from "../../../src/game/scripts/ScriptRegistry";
 import type { NpcInteractionEvent, ScriptServices } from "../../../src/game/scripts/types";
 import type { PlayerState } from "../../../src/game/player";
 import { PlayerVarpState } from "../../../src/game/state/PlayerVarpState";
+import { SkillId } from "../../../../src/rs/skill/skills";
 import { F2P_QUEST_NAMES } from "./questCatalog";
-import { setQuestFlag } from "./QuestFlags";
+import { getQuestFlag, setQuestFlag } from "./QuestFlags";
 import { getQuestDefinitionList, registerQuestHandlers } from "./index";
 import { getQuestStage, setQuestStage } from "./QuestService";
 import { REGISTERED_KEY_ALIASES } from "./questRegistrationParity";
@@ -395,7 +396,7 @@ function resolveReferenceQuest(
 // Simulation
 // =============================================================================
 
-function createMatrixTestPlayer(): PlayerState {
+function createMatrixTestPlayer(skillLevels: Partial<Record<number, number>> = {}): PlayerState {
     return {
         id: 1,
         name: "Matrix Tester",
@@ -404,6 +405,11 @@ function createMatrixTestPlayer(): PlayerState {
         displayMode: 1,
         gamemode: {
             getQuestListGroups: () => [],
+        },
+        skillSystem: {
+            getSkill(skillId: number) {
+                return { baseLevel: skillLevels[skillId] ?? 1 };
+            },
         },
     } as PlayerState;
 }
@@ -483,7 +489,16 @@ function createMatrixTestServices(itemRequirements: Array<{ itemId: number; quan
                 inventory.splice(index, 1);
                 return true;
             },
-            addItemToInventory: () => ({ added: 1 }),
+            addItemToInventory: (_player: PlayerState, itemId: number, quantity = 1) => {
+                const existing = inventory.find((entry) => entry.itemId === itemId);
+                if (existing) {
+                    existing.quantity += quantity;
+                } else {
+                    const nextSlot = inventory.reduce((max, entry) => Math.max(max, entry.slot), -1) + 1;
+                    inventory.push({ slot: nextSlot, itemId, quantity });
+                }
+                return { added: quantity };
+            },
             snapshotInventory: () => {},
             hasItem: (_player: PlayerState, itemId: number) =>
                 inventory.some((entry) => entry.itemId === itemId),
@@ -621,6 +636,52 @@ function classifyOsrsMechanics(
     return "wiring-broken";
 }
 
+function invokeLoc(
+    registry: ScriptRegistry,
+    player: PlayerState,
+    services: ScriptServices,
+    locId: number,
+    action = "search",
+): boolean {
+    const handler = registry.findLocInteraction(locId, action);
+    if (!handler) return false;
+    handler({
+        player,
+        services,
+        locId,
+        tile: { x: 0, y: 0 },
+        level: 0,
+        action,
+    });
+    return true;
+}
+
+const GARDEN_OF_DEATH_TENT_LOC_ID = 46324;
+const GARDEN_OF_DEATH_CAMP_LOC_ID = 46325;
+
+function simulateGardenOfDeathQuest(
+    registry: ScriptRegistry,
+    quest: QuestDefinition,
+): { start: QuestPlayabilityPhase; mid: QuestPlayabilityPhase; complete: QuestPlayabilityPhase; notes: string[] } {
+    const notes = ["loc-based quest — tent and camping equipment search"];
+    const { services } = createMatrixTestServices();
+    const player = createMatrixTestPlayer({ [SkillId.Farming]: 99 });
+
+    const tentStarted = invokeLoc(registry, player, services, GARDEN_OF_DEATH_TENT_LOC_ID);
+    const start =
+        tentStarted && getQuestStage(player, quest) >= quest.startedValue ? "pass" : "fail";
+
+    const campInvoked = invokeLoc(registry, player, services, GARDEN_OF_DEATH_CAMP_LOC_ID);
+    const mid =
+        campInvoked && getQuestFlag(player, quest.key, "found_gear") ? "pass" : "fail";
+
+    invokeLoc(registry, player, services, GARDEN_OF_DEATH_TENT_LOC_ID);
+    const complete =
+        getQuestStage(player, quest) >= quest.completionValue ? "pass" : "fail";
+
+    return { start, mid, complete, notes };
+}
+
 function simulateBespokeQuest(
     registry: ScriptRegistry,
     quest: QuestDefinition,
@@ -635,12 +696,7 @@ function simulateBespokeQuest(
     );
 
     if (quest.key === "garden_of_death") {
-        return {
-            start: "manual",
-            mid: "manual",
-            complete: "manual",
-            notes: [...notes, "loc-based start via tent search (npc 46324)"],
-        };
+        return simulateGardenOfDeathQuest(registry, quest);
     }
 
     if (candidateNpcIds.length === 0) {

@@ -18,6 +18,7 @@ import {
 } from "../helpers";
 import type { QuestDefinition, QuestItemRequirement } from "../types";
 import { addItemIfMissing } from "./questUtils";
+import { AUTO_QUEST_START_YIELD_WHEN } from "../questAutoQuestOverrides";
 import {
     openSkillMasterDialogForPlayer,
     skillMasterForNpc,
@@ -167,8 +168,12 @@ function registerFactoryQuestHandlers(registry: IScriptRegistry, opts: FactoryQu
             if (handleCompletedQuestNpcTalk(player, services, q, opts.startNpc.id)) {
                 return;
             }
-            if (stage < q.startedValue && opts.startYieldWhen?.(player)) {
-                return;
+            if (stage < q.startedValue) {
+                const yieldStart =
+                    opts.startYieldWhen?.(player) ?? AUTO_QUEST_START_YIELD_WHEN[opts.key]?.(player);
+                if (yieldStart) {
+                    return;
+                }
             }
             if (opts.prereq && !opts.prereq(player)) {
                 startConversation(ctx, [{ npc: [opts.prereqText ?? "You're not ready for this yet."] }]);

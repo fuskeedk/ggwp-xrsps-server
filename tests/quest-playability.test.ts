@@ -96,6 +96,15 @@ describe("quest playability matrix", () => {
         }
     });
 
+    it("simulates loc-based Garden of Death start through finish", () => {
+        const matrix = buildQuestPlayabilityMatrix();
+        const entry = matrix.entries.find((quest) => quest.key === "garden_of_death");
+        assert(!!entry, "garden of death entry");
+        assertEqual(entry?.start, "pass", "garden of death tent start");
+        assertEqual(entry?.mid, "pass", "garden of death camp mid");
+        assertEqual(entry?.complete, "pass", "garden of death tent complete");
+    });
+
     it("writes playability-matrix.json artifact with phase columns", () => {
         const matrix = buildQuestPlayabilityMatrix();
         const outputPath = path.join(

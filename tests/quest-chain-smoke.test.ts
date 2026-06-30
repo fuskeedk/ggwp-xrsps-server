@@ -235,6 +235,79 @@ describe("Quest chain smoke", () => {
             "family pest completed via Dimintheis",
         );
     });
+
+    it("Jorral completes The Slug Menace when Making History is not started", () => {
+        resetQuestDialog(dialog);
+        player.varps.setVarpValue(604, 0);
+        const quest = prepareQuestFinish(player, services, "the_slug_menace", [
+            "step_1",
+            "step_2",
+            "step_3",
+        ]);
+        services.inventory.getInventoryItems = () => [
+            { slot: 0, itemId: 6635, quantity: 1 },
+            { slot: 1, itemId: 1941, quantity: 1 },
+            { slot: 2, itemId: 9683, quantity: 1 },
+            { slot: 3, itemId: 1755, quantity: 1 },
+            { slot: 4, itemId: 5516, quantity: 1 },
+            { slot: 5, itemId: 1448, quantity: 1 },
+        ];
+        services.inventory.hasItem = (_player, itemId) =>
+            [6635, 1941, 9683, 1755, 5516, 1448].includes(itemId);
+        services.inventory.findInventorySlotWithItem = (_player, itemId) =>
+            [6635, 1941, 9683, 1755, 5516, 1448].indexOf(itemId);
+        services.inventory.consumeItem = () => true;
+
+        const handler = registry.findNpcInteractionDirect(3490);
+        handler?.(makeNpcEvent(player, services, 3490, "Jorral"));
+
+        assert(
+            getQuestStage(player, quest) >= quest.completionValue,
+            "the slug menace completed via Jorral",
+        );
+    });
+
+    it("Sir Tiffy completes Wanted when The Slug Menace is not started", () => {
+        resetQuestDialog(dialog);
+        player.varps.setVarpValue(874, 0);
+        const quest = prepareQuestFinish(player, services, "wanted", [
+            "step_1",
+            "step_2",
+            "step_3",
+        ]);
+        services.inventory.getInventoryItems = () => [
+            { slot: 0, itemId: 617, quantity: 10000 },
+            { slot: 1, itemId: 563, quantity: 1 },
+            { slot: 2, itemId: 4155, quantity: 1 },
+            { slot: 3, itemId: 1775, quantity: 1 },
+        ];
+        services.inventory.hasItem = (_player, itemId) =>
+            [617, 563, 4155, 1775].includes(itemId);
+        services.inventory.findInventorySlotWithItem = (_player, itemId) =>
+            [617, 563, 4155, 1775].indexOf(itemId);
+        services.inventory.consumeItem = (_player, slot) => {
+            const items = services.inventory.getInventoryItems(player);
+            const entry = items.find((item) => item.slot === slot);
+            if (!entry) return false;
+            if (entry.quantity > 1) {
+                entry.quantity -= 1;
+                return true;
+            }
+            items.splice(
+                items.findIndex((item) => item.slot === slot),
+                1,
+            );
+            return true;
+        };
+
+        const handler = registry.findNpcInteractionDirect(4687);
+        handler?.(makeNpcEvent(player, services, 4687, "Sir Tiffy Cashien"));
+
+        assert(
+            getQuestStage(player, quest) >= quest.completionValue,
+            "wanted completed via Sir Tiffy",
+        );
+    });
 });
 
 console.log("\n" + "=".repeat(60));
