@@ -1,4 +1,5 @@
-import type { IScriptRegistry } from "../../../../../src/game/scripts/types";
+import type { IScriptRegistry, ScriptServices } from "../../../../../src/game/scripts/types";
+import type { PlayerState } from "../../../../../src/game/player";
 import { getQuestFlag, setQuestFlag } from "../QuestFlags";
 import {
     completeQuest,
@@ -27,6 +28,24 @@ function startOptionsForSkillMasterNpc(npcId: number, baseOptions: Array<{ text:
     const master = skillMasterForNpc(npcId);
     if (!master) return baseOptions;
     return [...baseOptions, ...skillMasterQuestOptions(master)];
+}
+
+/** Yield to later handlers on shared NPCs once a quest is already complete. */
+function handleCompletedQuestNpcTalk(
+    player: PlayerState,
+    services: ScriptServices,
+    quest: QuestDefinition,
+    npcId: number,
+): boolean {
+    if (getQuestStage(player, quest) < quest.completionValue) {
+        return false;
+    }
+    const master = skillMasterForNpc(npcId);
+    if (master) {
+        openSkillMasterDialogForPlayer(player, services, master);
+        return true;
+    }
+    return true;
 }
 
 export function simpleQuest(opts: {
@@ -90,13 +109,7 @@ export function simpleQuest(opts: {
                     npcName: opts.startNpc.name,
                 };
                 const stage = getQuestStage(player, q);
-                if (stage >= q.completionValue) {
-                    const master = skillMasterForNpc(opts.startNpc.id);
-                    if (master) {
-                        openSkillMasterDialogForPlayer(player, services, master);
-                        return;
-                    }
-                    startConversation(ctx, [{ npc: ["Thank you for your help."] }]);
+                if (handleCompletedQuestNpcTalk(player, services, q, opts.startNpc.id)) {
                     return;
                 }
                 if (opts.prereq && !opts.prereq(player)) {
@@ -148,10 +161,7 @@ export function simpleQuest(opts: {
                         npcName: step.npc.name,
                     };
                     if (getQuestStage(player, q) < q.startedValue) return;
-                    if (getQuestStage(player, q) >= q.completionValue) {
-                        startConversation(ctx, [{ npc: ["That part of the quest is already done."] }]);
-                        return;
-                    }
+                    if (getQuestStage(player, q) >= q.completionValue) return;
                     if (getQuestFlag(player, q.key, step.flag)) {
                         startConversation(ctx, [{ npc: ["You already did that part."] }]);
                         return;
@@ -184,13 +194,7 @@ export function simpleQuest(opts: {
                     npcName: opts.finishNpc.name,
                 };
                 if (getQuestStage(player, q) < q.startedValue) return;
-                if (getQuestStage(player, q) >= q.completionValue) {
-                    const master = skillMasterForNpc(opts.finishNpc.id);
-                    if (master) {
-                        openSkillMasterDialogForPlayer(player, services, master);
-                        return;
-                    }
-                    startConversation(ctx, [{ npc: ["All done!"] }]);
+                if (handleCompletedQuestNpcTalk(player, services, q, opts.finishNpc.id)) {
                     return;
                 }
                 const ready =
@@ -261,13 +265,7 @@ export function autoQuest(
                     npcName: opts.startNpc.name,
                 };
                 const stage = getQuestStage(player, q);
-                if (stage >= q.completionValue) {
-                    const master = skillMasterForNpc(opts.startNpc.id);
-                    if (master) {
-                        openSkillMasterDialogForPlayer(player, services, master);
-                        return;
-                    }
-                    startConversation(ctx, [{ npc: ["Thank you for your help."] }]);
+                if (handleCompletedQuestNpcTalk(player, services, q, opts.startNpc.id)) {
                     return;
                 }
                 if (opts.prereq && !opts.prereq(player)) {
@@ -331,10 +329,7 @@ export function autoQuest(
                         npcName: step.npc.name,
                     };
                     if (getQuestStage(player, q) < q.startedValue) return;
-                    if (getQuestStage(player, q) >= q.completionValue) {
-                        startConversation(ctx, [{ npc: ["That part of the quest is already done."] }]);
-                        return;
-                    }
+                    if (getQuestStage(player, q) >= q.completionValue) return;
                     if (getQuestFlag(player, q.key, step.flag)) {
                         startConversation(ctx, [{ npc: ["You already did that part."] }]);
                         return;
@@ -367,13 +362,7 @@ export function autoQuest(
                     npcName: opts.finishNpc.name,
                 };
                 if (getQuestStage(player, q) < q.startedValue) return;
-                if (getQuestStage(player, q) >= q.completionValue) {
-                    const master = skillMasterForNpc(opts.finishNpc.id);
-                    if (master) {
-                        openSkillMasterDialogForPlayer(player, services, master);
-                        return;
-                    }
-                    startConversation(ctx, [{ npc: ["All done!"] }]);
+                if (handleCompletedQuestNpcTalk(player, services, q, opts.finishNpc.id)) {
                     return;
                 }
                 const ready =
