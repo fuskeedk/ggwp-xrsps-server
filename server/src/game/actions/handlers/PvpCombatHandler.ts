@@ -11,6 +11,7 @@ import { logger } from "../../../utils/logger";
 import { RUN_ENERGY_MAX } from "../../actor";
 import { AttackType } from "../../combat/AttackType";
 import { processBarrowsWeaponExposure } from "../../combat/BarrowsDegradationSystem";
+import { rollDharokDamnedRecoilDamage } from "../../combat/BarrowsDamnedEffects";
 import { hasBarrowsSet } from "../../combat/BarrowsEquipment";
 import { applyBarrowsSetOnPlayerHit } from "../../combat/BarrowsSetEffects";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
@@ -220,6 +221,34 @@ export class PvpCombatHandler {
         this.services.tryActivateRedemption(target);
         if (totalDamageDealt > 0) {
             processBarrowsWeaponExposure(player);
+            const recoil = rollDharokDamnedRecoilDamage(
+                this.services.getEquipArray(target),
+                totalDamageDealt,
+            );
+            if (recoil > 0) {
+                const attackerRecoil = this.services.applyPlayerHitsplat(
+                    player,
+                    HITMARK_DAMAGE,
+                    recoil,
+                    tick,
+                    recoil,
+                );
+                if (attackerRecoil.amount > 0) {
+                    effects.push({
+                        type: "hitsplat",
+                        playerId: player.id,
+                        targetType: "player",
+                        targetId: player.id,
+                        damage: attackerRecoil.amount,
+                        style: attackerRecoil.style,
+                        sourceType: "player",
+                        sourcePlayerId: target.id,
+                        tick,
+                        hpCurrent: attackerRecoil.hpCurrent,
+                        hpMax: attackerRecoil.hpMax,
+                    });
+                }
+            }
         }
         this.services.closeInterruptibleInterfaces(target);
         // Being attacked interrupts weak queue tasks (e.g. Home Teleport)

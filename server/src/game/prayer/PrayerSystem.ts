@@ -6,6 +6,8 @@ import {
 } from "../../../../src/rs/prayer/prayers";
 import { SkillId } from "../../../../src/rs/skill/skills";
 import { getItemDefinition } from "../../data/items";
+import { getVeracDamnedPrayerBonus } from "../combat/BarrowsDamnedEffects";
+import { ensureEquipArrayOn } from "../equipment";
 import { PlayerState } from "../player";
 import type { PrayerSystemProvider, PrayerTickResult } from "./PrayerSystemProvider";
 
@@ -205,8 +207,7 @@ export class PrayerSystem implements PrayerSystemProvider {
     }
 
     private computePrayerBonus(player: PlayerState): number {
-        const equip = player.appearance?.equip;
-        if (!equip) return 0;
+        const equip = ensureEquipArrayOn(player.appearance);
         let total = 0;
         for (const itemId of equip) {
             if (!(itemId > 0)) continue;
@@ -216,6 +217,6 @@ export class PrayerSystem implements PrayerSystemProvider {
             const prayerBonus = bonuses[13] ?? 0;
             total += prayerBonus;
         }
-        return total;
+        return total + getVeracDamnedPrayerBonus(equip);
     }
 }

@@ -20,6 +20,7 @@ import {
     calculateEquipmentBonuses,
 } from "../../combat/EquipmentBonusProvider";
 import { HITMARK_BLOCK, HITMARK_DAMAGE } from "../../combat/HitEffects";
+import { scaleDefenceLevelForToragDamned } from "../../combat/BarrowsDamnedEffects";
 import { tryKarilDamnedSecondaryHit } from "../../combat/KarilsCrossbowEffects";
 import { XpMode } from "../../combat/WeaponDataProvider";
 import { getCombatStyle } from "../../combat/WeaponDataProvider";
@@ -1614,7 +1615,10 @@ export class CombatEngine {
         const style = this.resolveAttackStyle(player, bonuses);
         const stance = this.resolveStanceBonuses(player, style);
         return {
-            defenceLevel: this.getBoostedLevel(player, SkillId.Defence),
+            defenceLevel: scaleDefenceLevelForToragDamned(
+                player,
+                this.getBoostedLevel(player, SkillId.Defence),
+            ),
             magicLevel: this.getBoostedLevel(player, SkillId.Magic),
             defenceBonus: this.getPlayerDefenceBonus(player, attackType, meleeStyle),
             defencePrayerMultiplier: this.getPrayerMultiplier(player, "defence"),
@@ -1707,8 +1711,10 @@ export class CombatEngine {
         switch (attackStyle.kind) {
             case AttackType.Magic: {
                 const prayedDefence = Math.floor(
-                    this.getBoostedLevel(defender, SkillId.Defence) *
-                        this.getPrayerMultiplier(defender, "defence"),
+                    scaleDefenceLevelForToragDamned(
+                        defender,
+                        this.getBoostedLevel(defender, SkillId.Defence),
+                    ) * this.getPrayerMultiplier(defender, "defence"),
                 );
                 const prayedMagic = Math.floor(
                     this.getBoostedLevel(defender, SkillId.Magic) *
@@ -1726,7 +1732,10 @@ export class CombatEngine {
             case AttackType.Ranged:
             case AttackType.Melee: {
                 const effDef = this.computeEffectiveLevel(
-                    this.getBoostedLevel(defender, SkillId.Defence),
+                    scaleDefenceLevelForToragDamned(
+                        defender,
+                        this.getBoostedLevel(defender, SkillId.Defence),
+                    ),
                     this.getPrayerMultiplier(defender, "defence"),
                     defStance.defence ?? 0,
                 );

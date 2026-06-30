@@ -108,11 +108,6 @@ const MYSTIC_SMOKE_STAFF = 12000;
 const CHAOS_GAUNTLETS = 777;
 const CHAOS_BOLT_SPELL_IDS = new Set<number>([3281, 3285, 3288, 3291]);
 
-const DHAROKS_HELM = 4716;
-const DHAROKS_PLATEBODY = 4720;
-const DHAROKS_PLATELEGS = 4722;
-const DHAROKS_GREATAXE = 4718;
-
 const AMULET_OF_DAMNED = 12851;
 const AMULET_OF_DAMNED_FULL = 12853;
 
@@ -329,18 +324,7 @@ function applyDharokBonus(
     playerMaxHp: number,
     result: EquipmentBonusResult,
 ): void {
-    const helm = equipment[EquipmentSlot.HEAD];
-    const body = equipment[EquipmentSlot.BODY];
-    const legs = equipment[EquipmentSlot.LEGS];
-    const weapon = equipment[EquipmentSlot.WEAPON];
-
-    const hasFull =
-        helm === DHAROKS_HELM &&
-        body === DHAROKS_PLATEBODY &&
-        legs === DHAROKS_PLATELEGS &&
-        weapon === DHAROKS_GREATAXE;
-
-    if (!hasFull) return;
+    if (!hasBarrowsSet(equipment, "dharok")) return;
 
     const missingHp = Math.max(0, playerMaxHp - playerHp);
     const bonus = (missingHp * playerMaxHp) / 10000;

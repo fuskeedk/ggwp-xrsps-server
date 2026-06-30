@@ -7,6 +7,7 @@ import { getItemDefinition } from "../../data/items";
 import { logger } from "../../utils/logger";
 import type { ServerServices } from "../ServerServices";
 import { clearAutocastState } from "../combat/AutocastState";
+import { getVeracDamnedPrayerBonus } from "../combat/BarrowsDamnedEffects";
 import { tryGrantGraniteMaulCombo } from "../combat/GraniteMaulCombo";
 import { getCategoryForWeaponInterface } from "../combat/WeaponInterfaces";
 import {
@@ -169,6 +170,7 @@ export class EquipmentService {
                 totals[i] = (totals[i] ?? 0) + bonus;
             }
         }
+        totals[13] = (totals[13] ?? 0) + getVeracDamnedPrayerBonus(equip);
         return totals;
     }
 
