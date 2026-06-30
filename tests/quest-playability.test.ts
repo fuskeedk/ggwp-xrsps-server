@@ -105,14 +105,46 @@ describe("quest playability matrix", () => {
         assertEqual(entry?.complete, "pass", "garden of death tent complete");
     });
 
-    it("writes playability-matrix.json artifact with phase columns", () => {
-        const matrix = buildQuestPlayabilityMatrix();
+    it("committed playability-matrix.json matches live matrix", () => {
+        const live = buildQuestPlayabilityMatrix();
         const outputPath = path.join(
             __dirname,
             "../server/data/quest-reference/playability-matrix.json",
         );
-        fs.writeFileSync(outputPath, `${JSON.stringify(matrix, null, 2)}\n`, "utf8");
-        assert(fs.existsSync(outputPath), "artifact exists");
+        assert(fs.existsSync(outputPath), "committed playability-matrix.json exists");
+        const committed = JSON.parse(fs.readFileSync(outputPath, "utf8")) as {
+            totalQuests: number;
+            summary: typeof live.summary;
+            entries: Array<{
+                key: string;
+                start: string;
+                mid: string;
+                complete: string;
+                tier: string;
+                osrsMechanics: string;
+            }>;
+        };
+
+        assertEqual(committed.totalQuests, live.totalQuests, "artifact quest count");
+        assertEqual(committed.summary.broken, live.summary.broken, "broken summary");
+        assertEqual(committed.summary.osrsWiringBroken, live.summary.osrsWiringBroken, "wiring summary");
+
+        for (const entry of live.entries) {
+            const saved = committed.entries.find((candidate) => candidate.key === entry.key);
+            assert(!!saved, `committed entry for ${entry.key}`);
+            assertEqual(saved?.start, entry.start, `${entry.key} start phase`);
+            assertEqual(saved?.mid, entry.mid, `${entry.key} mid phase`);
+            assertEqual(saved?.complete, entry.complete, `${entry.key} complete phase`);
+            assertEqual(saved?.tier, entry.tier, `${entry.key} tier`);
+            assertEqual(saved?.osrsMechanics, entry.osrsMechanics, `${entry.key} osrs mechanics`);
+        }
+    });
+
+    it("playability-matrix.json has phase columns", () => {
+        const outputPath = path.join(
+            __dirname,
+            "../server/data/quest-reference/playability-matrix.json",
+        );
         const parsed = JSON.parse(fs.readFileSync(outputPath, "utf8")) as {
             totalQuests: number;
             entries: Array<{ start: string; mid: string; complete: string; osrsMechanics: string }>;

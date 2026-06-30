@@ -1,0 +1,43 @@
+name: Quest Tests
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - "server/gamemodes/vanilla/quests/**"
+            - "server/data/quest-reference/**"
+            - "tests/quest*.test.ts"
+            - "tests/questTestHarness.ts"
+            - "scripts/validate-quest-registration.ts"
+            - "scripts/build-quest-playability-matrix.ts"
+            - "scripts/data-import/generate-auto-quests.ts"
+            - "package.json"
+            - "package-lock.json"
+    pull_request:
+        paths:
+            - "server/gamemodes/vanilla/quests/**"
+            - "server/data/quest-reference/**"
+            - "tests/quest*.test.ts"
+            - "tests/questTestHarness.ts"
+            - "scripts/validate-quest-registration.ts"
+            - "scripts/build-quest-playability-matrix.ts"
+            - "scripts/data-import/generate-auto-quests.ts"
+            - "package.json"
+            - "package-lock.json"
+
+jobs:
+    quest-tests:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - run: npm ci
+
+            - run: npm run server:build
+
+            - run: npm run test:quests

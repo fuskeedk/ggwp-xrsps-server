@@ -308,6 +308,50 @@ describe("Quest chain smoke", () => {
             "wanted completed via Sir Tiffy",
         );
     });
+
+    it("Commander Veldaban completes The Giant Dwarf when Forgettable Tale is not started", () => {
+        resetQuestDialog(dialog);
+        player.varps.setVarpValue(521, 0);
+        const quest = prepareQuestFinish(player, services, "the_giant_dwarf", [
+            "step_1",
+            "step_2",
+            "step_3",
+        ]);
+        services.inventory.getInventoryItems = () => [
+            { slot: 0, itemId: 617, quantity: 200 },
+            { slot: 1, itemId: 1511, quantity: 1 },
+            { slot: 2, itemId: 590, quantity: 1 },
+            { slot: 3, itemId: 453, quantity: 1 },
+            { slot: 4, itemId: 2351, quantity: 1 },
+            { slot: 5, itemId: 2325, quantity: 1 },
+        ];
+        services.inventory.hasItem = (_player, itemId) =>
+            [617, 1511, 590, 453, 2351, 2325].includes(itemId);
+        services.inventory.findInventorySlotWithItem = (_player, itemId) =>
+            [617, 1511, 590, 453, 2351, 2325].indexOf(itemId);
+        services.inventory.consumeItem = (_player, slot) => {
+            const items = services.inventory.getInventoryItems(player);
+            const entry = items.find((item) => item.slot === slot);
+            if (!entry) return false;
+            if (entry.quantity > 1) {
+                entry.quantity -= 1;
+                return true;
+            }
+            items.splice(
+                items.findIndex((item) => item.slot === slot),
+                1,
+            );
+            return true;
+        };
+
+        const handler = registry.findNpcInteractionDirect(6045);
+        handler?.(makeNpcEvent(player, services, 6045, "Commander Veldaban"));
+
+        assert(
+            getQuestStage(player, quest) >= quest.completionValue,
+            "the giant dwarf completed via Commander Veldaban",
+        );
+    });
 });
 
 console.log("\n" + "=".repeat(60));
