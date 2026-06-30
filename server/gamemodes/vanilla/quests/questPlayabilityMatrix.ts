@@ -257,6 +257,68 @@ function extractBespokeKeys(filePath: string): string[] {
     return [...keys];
 }
 
+function readConstantsFromDirectory(dir: string): Map<string, string | number> {
+    const constants = new Map<string, string | number>();
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (!entry.isFile() || !entry.name.endsWith(".ts")) continue;
+        const source = fs.readFileSync(path.join(dir, entry.name), "utf8");
+        for (const match of source.matchAll(/(?:export\s+)?const\s+([A-Z_][A-Z0-9_]*)\s*=\s*"([^"]+)"/g)) {
+            constants.set(match[1], match[2]);
+        }
+        for (const match of source.matchAll(/(?:export\s+)?const\s+([A-Z_][A-Z0-9_]*)\s*=\s*(\d+)/g)) {
+            constants.set(match[1], Number(match[2]));
+        }
+    }
+    return constants;
+}
+
+function extractBespokeKeysFromDirectory(dir: string): string[] {
+    const constants = readConstantsFromDirectory(dir);
+    const keys = new Set<string>();
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (!entry.isFile() || !entry.name.endsWith(".ts")) continue;
+        const source = fs.readFileSync(path.join(dir, entry.name), "utf8");
+        for (const match of source.matchAll(/key:\s*"([^"]+)"/g)) {
+            keys.add(match[1]);
+        }
+        for (const match of source.matchAll(/key:\s*([A-Z_][A-Z0-9_]*)/g)) {
+            const resolved = constants.get(match[1]);
+            if (typeof resolved === "string") keys.add(resolved);
+        }
+    }
+    return [...keys];
+}
+
+function extractBespokeNpcIdsFromDirectory(dir: string): number[] {
+    const constants = readConstantsFromDirectory(dir);
+    const ids = new Set<number>();
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (!entry.isFile() || !entry.name.endsWith(".ts")) continue;
+        const source = fs.readFileSync(path.join(dir, entry.name), "utf8");
+        for (const match of source.matchAll(/registerQuestNpcTalk\(registry,\s*(\d+)/g)) {
+            ids.add(Number(match[1]));
+        }
+        for (const match of source.matchAll(/registerQuestNpcTalk\(registry,\s*([A-Z_][A-Z0-9_]*)/g)) {
+            const resolved = constants.get(match[1]);
+            if (typeof resolved === "number") ids.add(resolved);
+        }
+    }
+    return [...ids];
+}
+
+function listQuestModuleDirectories(dir = DEFINITIONS_DIR): string[] {
+    const dirs: string[] = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (!entry.isDirectory()) continue;
+        if (fs.existsSync(path.join(full, "index.ts"))) {
+            dirs.push(full);
+        }
+        dirs.push(...listQuestModuleDirectories(full));
+    }
+    return dirs;
+}
+
 export function buildQuestChainCatalog(): Map<string, QuestChainMeta> {
     const catalog = new Map<string, QuestChainMeta>();
     for (const filePath of listDefinitionFiles()) {
@@ -282,6 +344,24 @@ export function buildQuestChainCatalog(): Map<string, QuestChainMeta> {
                 key,
                 implementation: "bespoke",
                 sourceFile: relative,
+                steps: [],
+                stepFlags: [],
+                itemRequirementCount: 0,
+                itemRequirements: [],
+                startNpc: npcIds[0] ? { id: npcIds[0], name: "start" } : undefined,
+            });
+        }
+    }
+    for (const dir of listQuestModuleDirectories()) {
+        const relative = path.relative(path.join(__dirname, "..", "..", ".."), dir);
+        const bespokeKeys = extractBespokeKeysFromDirectory(dir);
+        const npcIds = extractBespokeNpcIdsFromDirectory(dir);
+        for (const key of bespokeKeys) {
+            if (catalog.has(key)) continue;
+            catalog.set(key, {
+                key,
+                implementation: "bespoke",
+                sourceFile: `${relative}/index.ts`,
                 steps: [],
                 stepFlags: [],
                 itemRequirementCount: 0,
@@ -535,7 +615,7 @@ function classifyOsrsMechanics(
     tier: QuestPlayabilityTier,
 ): QuestOsrsMechanics {
     if (tier === "broken") return "wiring-broken";
-    if (implementation === "bespoke") return "custom";
+    if (implementation === "bespoke" || tier === "bespoke-handcrafted") return "custom";
     if (implementation === "factory-auto") return "dialog-shell";
     if (implementation === "factory-simple") return "dialog-chain";
     return "wiring-broken";

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-30T04:04:36.802Z",
+  "generatedAt": "2026-06-30T04:18:29.009Z",
   "totalQuests": 209,
   "summary": {
     "fullDialog": 21,
@@ -8,10 +8,10 @@
     "broken": 0,
     "f2pCatalog": 18,
     "members": 166,
-    "osrsCustom": 45,
+    "osrsCustom": 51,
     "osrsDialogChain": 21,
     "osrsDialogShell": 137,
-    "osrsWiringBroken": 6
+    "osrsWiringBroken": 0
   },
   "entries": [
     {
@@ -613,9 +613,9 @@
       "members": false,
       "f2pCatalog": true,
       "miniquest": false,
-      "implementation": "unknown",
-      "sourceFile": "unknown",
-      "startNpcId": 4626,
+      "implementation": "bespoke",
+      "sourceFile": "gamemodes/vanilla/quests/definitions/cooksAssistant/index.ts",
+      "startNpcId": 2896,
       "stepNpcIds": [],
       "finishNpcId": null,
       "itemRequirementCount": 0,
@@ -623,7 +623,7 @@
       "mid": "manual",
       "complete": "manual",
       "tier": "bespoke-handcrafted",
-      "osrsMechanics": "wiring-broken",
+      "osrsMechanics": "custom",
       "notes": [
         "bespoke quest — mid/complete require manual gameplay"
       ]
@@ -941,8 +941,8 @@
       "members": false,
       "f2pCatalog": true,
       "miniquest": false,
-      "implementation": "unknown",
-      "sourceFile": "unknown",
+      "implementation": "bespoke",
+      "sourceFile": "gamemodes/vanilla/quests/definitions/dorics/index.ts",
       "startNpcId": 3893,
       "stepNpcIds": [],
       "finishNpcId": null,
@@ -951,7 +951,7 @@
       "mid": "manual",
       "complete": "manual",
       "tier": "bespoke-handcrafted",
-      "osrsMechanics": "wiring-broken",
+      "osrsMechanics": "custom",
       "notes": [
         "bespoke quest — mid/complete require manual gameplay"
       ]
@@ -963,8 +963,8 @@
       "members": false,
       "f2pCatalog": true,
       "miniquest": false,
-      "implementation": "unknown",
-      "sourceFile": "unknown",
+      "implementation": "bespoke",
+      "sourceFile": "gamemodes/vanilla/quests/definitions/dragonSlayerI/index.ts",
       "startNpcId": 814,
       "stepNpcIds": [],
       "finishNpcId": null,
@@ -973,7 +973,7 @@
       "mid": "manual",
       "complete": "manual",
       "tier": "bespoke-handcrafted",
-      "osrsMechanics": "wiring-broken",
+      "osrsMechanics": "custom",
       "notes": [
         "bespoke quest — mid/complete require manual gameplay"
       ]
@@ -3325,8 +3325,8 @@
       "members": false,
       "f2pCatalog": true,
       "miniquest": false,
-      "implementation": "unknown",
-      "sourceFile": "unknown",
+      "implementation": "bespoke",
+      "sourceFile": "gamemodes/vanilla/quests/definitions/sheepShearer/index.ts",
       "startNpcId": 732,
       "stepNpcIds": [],
       "finishNpcId": null,
@@ -3335,7 +3335,7 @@
       "mid": "manual",
       "complete": "manual",
       "tier": "bespoke-handcrafted",
-      "osrsMechanics": "wiring-broken",
+      "osrsMechanics": "custom",
       "notes": [
         "bespoke quest — mid/complete require manual gameplay"
       ]
@@ -3984,8 +3984,8 @@
       "members": true,
       "f2pCatalog": false,
       "miniquest": false,
-      "implementation": "unknown",
-      "sourceFile": "unknown",
+      "implementation": "bespoke",
+      "sourceFile": "gamemodes/vanilla/quests/definitions/gardenOfDeath/index.ts",
       "startNpcId": null,
       "stepNpcIds": [],
       "finishNpcId": null,
@@ -3994,7 +3994,7 @@
       "mid": "manual",
       "complete": "manual",
       "tier": "bespoke-handcrafted",
-      "osrsMechanics": "wiring-broken",
+      "osrsMechanics": "custom",
       "notes": [
         "bespoke quest — mid/complete require manual gameplay",
         "loc-based start via tent search (npc 46324)"
@@ -4200,9 +4200,9 @@
       "members": false,
       "f2pCatalog": true,
       "miniquest": false,
-      "implementation": "unknown",
-      "sourceFile": "unknown",
-      "startNpcId": 4737,
+      "implementation": "bespoke",
+      "sourceFile": "gamemodes/vanilla/quests/definitions/knightsSword/index.ts",
+      "startNpcId": 1770,
       "stepNpcIds": [],
       "finishNpcId": null,
       "itemRequirementCount": 0,
@@ -4210,7 +4210,7 @@
       "mid": "manual",
       "complete": "manual",
       "tier": "bespoke-handcrafted",
-      "osrsMechanics": "wiring-broken",
+      "osrsMechanics": "custom",
       "notes": [
         "bespoke quest — mid/complete require manual gameplay"
       ]

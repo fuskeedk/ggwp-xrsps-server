@@ -14,6 +14,9 @@ export function createQuestTestPlayer(id = 1): PlayerState {
         name: "Test Player",
         varps: new PlayerVarpState(),
         gamemodeState: new Map<string, unknown>(),
+        gamemode: {
+            getQuestListGroups: () => [],
+        },
     } as PlayerState;
 }
 
@@ -31,13 +34,17 @@ export function createQuestTestServices(): {
         dialog: {
             openDialog(_player, request) {
                 dialog.modalOpen = true;
-                if (request.kind === "npc") {
+                if (request.kind === "npc" && request.lines) {
                     dialog.npcLines.push(...request.lines);
+                    request.onContinue?.();
                 }
             },
             openDialogOptions(_player, request) {
                 dialog.modalOpen = true;
                 dialog.optionTitles.push(request.title);
+                if (request.options?.length) {
+                    request.onSelect?.(0);
+                }
             },
             openSkillMulti() {},
             closeDialog() {
@@ -84,6 +91,9 @@ export function createQuestTestServices(): {
                 info: () => {},
                 warn: () => {},
             },
+        },
+        viewport: {
+            getMainmodalUid: () => 0,
         },
         data: {
             getDbRepository: () => undefined,

@@ -72,6 +72,30 @@ describe("quest playability matrix", () => {
         }
     });
 
+    it("has zero broken wiring across all quests", () => {
+        const matrix = buildQuestPlayabilityMatrix();
+        assertEqual(matrix.summary.broken, 0, "broken tier count");
+        assertEqual(matrix.summary.osrsWiringBroken, 0, "osrs wiring broken count");
+        const broken = matrix.entries.filter((entry) => entry.tier === "broken");
+        assert(broken.length === 0, `broken quests: ${broken.map((entry) => entry.key).join(", ")}`);
+    });
+
+    it("catalogs folder-based bespoke quests", () => {
+        const catalog = buildQuestChainCatalog();
+        for (const key of [
+            "cooks_assistant",
+            "dorics_quest",
+            "dragon_slayer_i",
+            "sheep_shearer",
+            "knights_sword",
+            "garden_of_death",
+        ]) {
+            const chain = catalog.get(key);
+            assert(!!chain, `${key} in catalog`);
+            assertEqual(chain?.implementation, "bespoke", `${key} implementation`);
+        }
+    });
+
     it("writes playability-matrix.json artifact with phase columns", () => {
         const matrix = buildQuestPlayabilityMatrix();
         const outputPath = path.join(
