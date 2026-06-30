@@ -546,9 +546,6 @@ const horrorFromTheDeepQuest: QuestDefinition = {
                 startConversation(ctx, [{ npc: ["The lighthouse is safe again."] }]);
                 return;
             }
-            if (stage < q.startedValue) {
-                return;
-            }
             if (getQuestFlag(player, q.key, "defeated_horror")) {
                 startConversation(ctx, [
                     { npc: ["You saved the lighthouse!"] },
