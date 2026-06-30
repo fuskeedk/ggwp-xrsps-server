@@ -186,6 +186,8 @@ export {
     AmmoSystem,
     getEnchantedBoltEffect,
     doesBoltEffectActivate,
+    getJadeBoltKnockdownEvasionChance,
+    doesJadeBoltKnockdownLand,
     type EnchantedBoltEffect,
 } from "./AmmoSystem";
 

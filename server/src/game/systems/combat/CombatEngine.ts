@@ -172,6 +172,7 @@ export interface AmmoEffectPlan {
     selfDamage?: number;
     leechPercent?: number;
     poison?: boolean;
+    stunTicks?: number;
 }
 
 export interface PlayerAttackContext {
@@ -1123,6 +1124,10 @@ export class CombatEngine {
             }
             case BoltEffectType.Poison: {
                 ammoEffect.poison = true;
+                break;
+            }
+            case BoltEffectType.Knockdown: {
+                ammoEffect.stunTicks = Math.max(1, activatedBoltEffect.stunTicks ?? 8);
                 break;
             }
             case BoltEffectType.Heal:
