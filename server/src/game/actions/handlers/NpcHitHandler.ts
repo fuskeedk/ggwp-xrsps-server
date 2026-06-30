@@ -144,6 +144,17 @@ export class NpcHitHandler {
             hitsplatTick,
             maxHit,
         );
+        let totalDamageDealt = npcHitsplat.amount;
+        if (damage2 !== undefined && damage2 > 0) {
+            const secondaryHitsplat = this.services.applyNpcHitsplat(
+                npc,
+                type2 ?? style,
+                damage2,
+                hitsplatTick,
+                maxHit,
+            );
+            totalDamageDealt += secondaryHitsplat.amount;
+        }
         if (npcHitsplat.hpCurrent > 0) {
             const npcCombatSeq = this.services.getNpcCombatSequences(npc.typeId);
             if (npcCombatSeq?.block !== undefined) {
@@ -166,7 +177,7 @@ export class NpcHitHandler {
             player.id,
             tick,
             npc,
-            Math.max(0, npcHitsplat.amount),
+            Math.max(0, totalDamageDealt),
             attackTypeHint,
             player,
         );
@@ -178,18 +189,18 @@ export class NpcHitHandler {
         const xpGrantedOnAttack =
             data.xpGrantedOnAttack === true || data.hit?.xpGrantedOnAttack === true;
         if (damage > 0 && hitLanded && !xpGrantedOnAttack) {
-            this.services.awardCombatXp(player, damage, data.hit ?? data, effects);
+            this.services.awardCombatXp(player, totalDamageDealt, data.hit ?? data, effects);
         }
 
         // Apply special attack effects
         this.handleSpecialAttackEffects(player, npc, data, hitLanded, npcHitsplat, tick);
 
-        if (hitLanded && npcHitsplat.amount > 0) {
+        if (hitLanded && totalDamageDealt > 0) {
             const skillsChanged = applyBarrowsSetOnNpcHit(
                 player,
                 npc,
                 attackTypeHint ?? AttackType.Melee,
-                npcHitsplat.amount,
+                totalDamageDealt,
             );
             if (skillsChanged) {
                 const sync = player.skillSystem.takeSkillSync();

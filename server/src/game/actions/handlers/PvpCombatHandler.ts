@@ -191,9 +191,34 @@ export class PvpCombatHandler {
             tick,
             maxHit,
         );
-        this.services.applySmite(player, target, targetHitsplat.amount);
+        let totalDamageDealt = targetHitsplat.amount;
+        if (damage2 !== undefined && damage2 > 0) {
+            const secondaryRaw = Math.min(damage2, target.skillSystem.getHitpointsCurrent?.() ?? 0);
+            const mitigatedSecondary =
+                special?.effects?.ignoreProtectionPrayer ||
+                (attackType === AttackType.Melee &&
+                    hasBarrowsSet(this.services.getEquipArray(player), "verac") &&
+                    Math.random() < 0.25)
+                    ? secondaryRaw
+                    : this.services.applyProtectionPrayers(
+                          target,
+                          secondaryRaw,
+                          attackType,
+                          "player",
+                          tick,
+                      );
+            const secondaryHitsplat = this.services.applyPlayerHitsplat(
+                target,
+                type2 ?? style,
+                mitigatedSecondary,
+                tick,
+                maxHit,
+            );
+            totalDamageDealt += secondaryHitsplat.amount;
+        }
+        this.services.applySmite(player, target, totalDamageDealt);
         this.services.tryActivateRedemption(target);
-        if (targetHitsplat.amount > 0) {
+        if (totalDamageDealt > 0) {
             processBarrowsWeaponExposure(player);
         }
         this.services.closeInterruptibleInterfaces(target);
@@ -202,7 +227,7 @@ export class PvpCombatHandler {
 
         this.services.log(
             "info",
-            `[combat] Player ${player.id} hit player ${targetId} for ${targetHitsplat.amount} damage (style=${style}, attackType=${attackType})`,
+            `[combat] Player ${player.id} hit player ${targetId} for ${totalDamageDealt} damage (style=${style}, attackType=${attackType})`,
         );
 
         // Stop one-shot spell interaction (keep for autocast)
@@ -277,12 +302,12 @@ export class PvpCombatHandler {
             );
         }
 
-        if (didLand && targetHitsplat.amount > 0) {
+        if (didLand && totalDamageDealt > 0) {
             const barrowsChanged = applyBarrowsSetOnPlayerHit(
                 player,
                 target,
                 attackType,
-                targetHitsplat.amount,
+                totalDamageDealt,
             );
             if (barrowsChanged) {
                 this.queueSkillSync(player);

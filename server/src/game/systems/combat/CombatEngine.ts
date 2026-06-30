@@ -20,6 +20,7 @@ import {
     calculateEquipmentBonuses,
 } from "../../combat/EquipmentBonusProvider";
 import { HITMARK_BLOCK, HITMARK_DAMAGE } from "../../combat/HitEffects";
+import { tryKarilDamnedSecondaryHit } from "../../combat/KarilsCrossbowEffects";
 import { XpMode } from "../../combat/WeaponDataProvider";
 import { getCombatStyle } from "../../combat/WeaponDataProvider";
 import {
@@ -150,6 +151,8 @@ export interface PlayerAttackPlan {
     ammoEffect?: AmmoEffectPlan;
     /** Additional hits for multi-hit weapons like dark bow. Reference: docs/projectiles-hitdelay.md */
     additionalHits?: AdditionalHit[];
+    /** Same-tick secondary hitsplat (e.g. Karil's + Amulet of the Damned). */
+    secondaryHit?: AdditionalHit;
 }
 
 export interface RangedProjectilePlan {
@@ -379,6 +382,7 @@ export class CombatEngine {
         hitLanded: boolean;
         maxHit: number;
         damage: number;
+        secondaryHit?: { damage: number; style: number };
     } {
         const atkBonuses = this.aggregatePlayerBonuses(attacker);
         const atkStyle = this.resolveAttackStyle(attacker, atkBonuses);
@@ -446,7 +450,19 @@ export class CombatEngine {
                 }
             }
         }
-        return { hitLanded: landed, maxHit, damage };
+
+        const karilFollowUp = tryKarilDamnedSecondaryHit(
+            equipment,
+            attacker.combat.weaponItemId ?? -1,
+            damage,
+            () => this.rng.next(),
+        );
+        const secondaryHit =
+            landed && karilFollowUp
+                ? { damage: karilFollowUp.damage, style: karilFollowUp.style }
+                : undefined;
+
+        return { hitLanded: landed, maxHit, damage, secondaryHit };
     }
 
     planPlayerAttack(
@@ -653,6 +669,22 @@ export class CombatEngine {
             ];
         }
 
+        let secondaryHit: AdditionalHit | undefined;
+        const karilFollowUp = tryKarilDamnedSecondaryHit(
+            equipment,
+            weaponId ?? -1,
+            damage,
+            () => this.rng.next(),
+        );
+        if (karilFollowUp && hitLanded) {
+            secondaryHit = {
+                damage: karilFollowUp.damage,
+                hitDelay,
+                hitsplatStyle: karilFollowUp.style,
+                hitLanded: true,
+            };
+        }
+
         return {
             attackDelay: attackSpeed,
             hitDelay,
@@ -667,6 +699,7 @@ export class CombatEngine {
             projectile: projectilePlan,
             ammoEffect,
             additionalHits,
+            secondaryHit,
         };
     }
 

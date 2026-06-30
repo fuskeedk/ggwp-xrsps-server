@@ -932,6 +932,8 @@ export class PlayerCombatManager {
             maxHit: number;
             damage: number;
             hitDelay: number;
+            type2?: number;
+            damage2?: number;
         };
         const plans: PvpHitPlan[] = [
             {
@@ -939,6 +941,8 @@ export class PlayerCombatManager {
                 maxHit: basePlan.maxHit,
                 damage: basePlan.damage,
                 hitDelay: baseHitDelay,
+                type2: basePlan.secondaryHit?.style,
+                damage2: basePlan.secondaryHit?.damage,
             },
         ];
 
@@ -1045,6 +1049,8 @@ export class PlayerCombatManager {
                         damage: plan.damage,
                         maxHit: plan.maxHit,
                         style,
+                        type2: plan.type2,
+                        damage2: plan.damage2,
                         attackDelay: attackSpeed,
                         hitDelay,
                         expectedHitTick,
@@ -1464,7 +1470,24 @@ export class PlayerCombatManager {
             spellDataForXp.category === "combat";
         const hits = plans.map((plan) => {
             const expectedHitTick = ctx.tick + Math.max(0, Math.round(plan.hitDelay));
-            return {
+            const hit: {
+                npcId: number;
+                damage: number;
+                maxHit: number;
+                style: number;
+                attackDelay: number;
+                hitDelay: number;
+                retaliationDelay: number;
+                expectedHitTick: number;
+                landed: boolean;
+                attackType: AttackType;
+                attackStyleMode: string;
+                spellId: number | undefined;
+                spellBaseXpAtCast: boolean;
+                ammoEffect: typeof plan.ammoEffect;
+                type2?: number;
+                damage2?: number;
+            } = {
                 npcId: npc.id,
                 damage: plan.damage,
                 maxHit: plan.maxHit,
@@ -1481,6 +1504,11 @@ export class PlayerCombatManager {
                 spellBaseXpAtCast,
                 ammoEffect: plan.ammoEffect,
             };
+            if (plan === basePlan && basePlan.secondaryHit && basePlan.secondaryHit.damage > 0) {
+                hit.type2 = basePlan.secondaryHit.hitsplatStyle;
+                hit.damage2 = basePlan.secondaryHit.damage;
+            }
+            return hit;
         });
 
         // OSRS: Dark bow fires 2 arrows - add additionalHits from basePlan
