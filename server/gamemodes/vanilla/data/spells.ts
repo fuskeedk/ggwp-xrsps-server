@@ -1018,7 +1018,7 @@ const POWERED_STAFF_SPELL_DATA: PoweredStaffSpellData[] = [
         baseXp: 50,
     },
     {
-        weaponIds: [12899, 12900, 22292, 21276],
+        weaponIds: [12899, 22292, 21276],
         name: "Trident of the swamp",
         projectileId: 1040,
         castSpotAnim: 1042,
@@ -1046,7 +1046,7 @@ const POWERED_STAFF_SPELL_DATA: PoweredStaffSpellData[] = [
         },
     },
     {
-        weaponIds: [27275, 27277],
+        weaponIds: [27275],
         name: "Tumeken's shadow",
         projectileId: 2126,
         castSpotAnim: 2125,
@@ -1059,7 +1059,7 @@ const POWERED_STAFF_SPELL_DATA: PoweredStaffSpellData[] = [
         baseXp: 70,
     },
     {
-        weaponIds: [22552, 27676, 27785],
+        weaponIds: [22552, 27676],
         name: "Thammaron's sceptre",
         projectileId: 1278,
         castSpotAnim: 1279,
@@ -1071,7 +1071,7 @@ const POWERED_STAFF_SPELL_DATA: PoweredStaffSpellData[] = [
         baseXp: 50,
     },
     {
-        weaponIds: [27679, 27788],
+        weaponIds: [27679],
         name: "Accursed sceptre",
         projectileId: 2339,
         castSpotAnim: 2340,

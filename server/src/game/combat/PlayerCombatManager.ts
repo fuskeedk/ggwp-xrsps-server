@@ -20,7 +20,7 @@ import type { CombatAttackActionData } from "../actions/actionPayloads";
 import type { ActionEffect } from "../actions/types";
 import { NpcState } from "../npc";
 import { type PlayerManager, PlayerState } from "../player";
-import { getPoweredStaffSpellData, getSpellData } from "../spells/SpellDataProvider";
+import { getPoweredStaffSpellData, getSpellData, hasPoweredStaffSpellData } from "../spells/SpellDataProvider";
 import { CombatEngine, type PlayerAttackPlan } from "../systems/combat/CombatEngine";
 import { AttackType, normalizeAttackType } from "./AttackType";
 import {
@@ -32,6 +32,7 @@ import {
 } from "./CombatAction";
 import { CombatEffectApplicator } from "./CombatEffectApplicator";
 import { CombatEngagementRegistry } from "./CombatEngagementRegistry";
+import { isUnchargedPoweredStaff } from "./PoweredStaffChargeSystem";
 import { resolvePlayerAttackReach, resolvePlayerAttackType } from "./CombatRules";
 import {
     CombatPhase,
@@ -170,6 +171,12 @@ export interface PlayerCombatManagerContext {
         weaponItemId: number,
         hitCount: number,
         tick: number,
+    ) => boolean;
+    /** Consume powered staff charges when attacking another player. */
+    consumePoweredStaffCharge?: (
+        player: PlayerState,
+        weaponItemId: number,
+        hitCount: number,
     ) => boolean;
     /** Callback when magic attack is scheduled (for rune consumption, etc.) */
     onMagicAttack?: (event: {
@@ -856,13 +863,24 @@ export class PlayerCombatManager {
             | "pathService"
             | "queueSpotAnimation"
             | "consumeRangedAmmo"
+            | "consumePoweredStaffCharge"
             | "queueCombatState"
         >,
     ): boolean {
         if (!this.actionScheduler) return false;
 
         const attackType = resolvePlayerAttackType(player.combat);
-        if (attackType === AttackType.Magic) return false;
+        const weaponItemId = player.combat.weaponItemId ?? -1;
+        let poweredStaffMagic = false;
+        if (attackType === AttackType.Magic) {
+            if (weaponItemId > 0 && hasPoweredStaffSpellData(weaponItemId)) {
+                poweredStaffMagic = true;
+            } else if (weaponItemId > 0 && isUnchargedPoweredStaff(weaponItemId)) {
+                return false;
+            } else {
+                return false;
+            }
+        }
 
         const reach = ctx.getAttackReach?.(player) ?? resolvePlayerAttackReach(player.combat);
         if (!isWithinAttackRange(player, target, reach)) return false;
@@ -888,7 +906,6 @@ export class PlayerCombatManager {
 
         if (!player.combat.isAttackReady(tick)) return false;
 
-        const weaponItemId = player.combat.weaponItemId ?? -1;
         const built = buildPlayerSpecialAttack(
             player,
             weaponItemId,
@@ -904,6 +921,12 @@ export class PlayerCombatManager {
             const ammoOk =
                 ctx.consumeRangedAmmo?.(player, target, weaponItemId, hitCount, tick) ?? true;
             if (!ammoOk) return false;
+        }
+
+        if (poweredStaffMagic && weaponItemId > 0) {
+            const chargeOk =
+                ctx.consumePoweredStaffCharge?.(player, weaponItemId, hitCount) ?? true;
+            if (!chargeOk) return false;
         }
 
         let specialActivated = false;
@@ -1031,6 +1054,20 @@ export class PlayerCombatManager {
                 spotId: DEFAULT_RANGED_ATTACK_SPOT,
                 delay: 0,
             });
+        }
+
+        if (poweredStaffMagic) {
+            const poweredStaffData = getPoweredStaffSpellData(weaponItemId);
+            const castSpot = poweredStaffData?.castSpotAnim ?? DEFAULT_MAGIC_CAST_SPOT;
+            if (castSpot >= 0) {
+                ctx.queueSpotAnimation?.({
+                    tick,
+                    playerId: player.id,
+                    spotId: castSpot,
+                    delay: 0,
+                    height: 100,
+                });
+            }
         }
 
         let anyScheduled = false;

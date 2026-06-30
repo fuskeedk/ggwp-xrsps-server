@@ -43,6 +43,7 @@ import type { SpellDataEntry } from "../../spells/SpellDataProvider";
 import {
     canWeaponAutocastSpell,
     getAutocastCompatibilityMessage,
+    getPoweredStaffSpellData,
     getSpellData,
 } from "../../spells/SpellDataProvider";
 import type {
@@ -56,6 +57,7 @@ import type {
 import type { ActionEffect, ActionExecutionResult, ActionRequest, ScheduledAction } from "../types";
 import {
     handleAutocastRuneConsumption,
+    handlePoweredStaffChargeConsumption,
     handleRangedAmmoConsumption,
     handleRangedAmmoConsumptionAt,
 } from "./CombatHandlerUtils";
@@ -976,6 +978,24 @@ export class CombatActionHandler {
             }
         }
 
+        // Magic powered staff charge consumption
+        if (plannedAttackType === AttackType.Magic) {
+            const poweredStaffData = weaponItemId > 0 ? getPoweredStaffSpellData(weaponItemId) : undefined;
+            if (poweredStaffData) {
+                const result = handlePoweredStaffChargeConsumption(
+                    this.subServices,
+                    player,
+                    weaponItemId,
+                    hitPayloads.length,
+                    effects,
+                );
+                if (!result.ok) {
+                    this.svc.playerCombatManager?.stopAutoAttack(player.id);
+                    return result;
+                }
+            }
+        }
+
         // Magic autocast rune consumption
         // Skip if onMagicAttack already handled runes at schedule time (prevents double consumption)
         if (
@@ -1337,6 +1357,28 @@ export class CombatActionHandler {
             this.svc.effectDispatcher!.dispatchActionEffects(effects);
         }
         return { ok: true, cooldownTicks: attackDelay, groups: ["combat.attack"], effects };
+    }
+
+    /**
+     * Consume powered staff charges for a player-vs-player swing.
+     */
+    consumePoweredStaffChargeForPlayerTarget(
+        player: PlayerState,
+        weaponItemId: number,
+        hitCount: number,
+    ): ActionExecutionResult {
+        const effects: ActionEffect[] = [];
+        const result = handlePoweredStaffChargeConsumption(
+            this.subServices,
+            player,
+            weaponItemId,
+            hitCount,
+            effects,
+        );
+        if (!this.svc.activeFrame && effects.length > 0) {
+            this.svc.effectDispatcher?.dispatchActionEffects(effects);
+        }
+        return result;
     }
 
     /**

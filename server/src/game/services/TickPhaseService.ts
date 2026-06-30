@@ -688,6 +688,12 @@ export class TickPhaseService {
                     hitCount,
                     tick,
                 ).ok,
+            consumePoweredStaffCharge: (player, weaponItemId, hitCount) =>
+                !!this.svc.combatActionHandler?.consumePoweredStaffChargeForPlayerTarget(
+                    player,
+                    weaponItemId,
+                    hitCount,
+                ).ok,
             queueCombatState: (player) => this.svc.queueCombatState(player),
             onMagicAttack: ({ player, npc, plan, tick }) =>
                 this.svc.spellActionHandler!.handleAutocastMagicAttack({

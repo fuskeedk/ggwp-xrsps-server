@@ -10,6 +10,11 @@ import {
     consumeModernChargeWeaponShot,
     isModernChargeWeapon,
 } from "../../combat/ModernChargeWeaponSystem";
+import {
+    canFirePoweredStaff,
+    consumePoweredStaffCharge,
+    isChargeablePoweredStaff,
+} from "../../combat/PoweredStaffChargeSystem";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
 import type { NpcState } from "../../npc";
 import type { PlayerState } from "../../player";
@@ -253,6 +258,64 @@ export function handleRangedAmmoConsumptionAt(
                 privateTicks: inWilderness ? 0 : undefined,
             },
         );
+    }
+
+    return { ok: true };
+}
+
+export function handlePoweredStaffChargeConsumption(
+    services: CombatActionServices,
+    player: PlayerState,
+    weaponItemId: number,
+    hitCount: number,
+    effects: ActionEffect[],
+): ActionExecutionResult {
+    if (!isChargeablePoweredStaff(weaponItemId)) {
+        const readiness = canFirePoweredStaff(player, weaponItemId);
+        if (!readiness.ok) {
+            if (readiness.chatMessage) {
+                services.queueChatMessage({
+                    messageType: "game",
+                    text: readiness.chatMessage,
+                    targetPlayerIds: [player.id],
+                });
+            }
+            return { ok: false, reason: "staff_uncharged" };
+        }
+        return { ok: true };
+    }
+
+    const readiness = canFirePoweredStaff(player, weaponItemId);
+    if (!readiness.ok) {
+        if (readiness.chatMessage) {
+            services.queueChatMessage({
+                messageType: "game",
+                text: readiness.chatMessage,
+                targetPlayerIds: [player.id],
+            });
+        }
+        return { ok: false, reason: "staff_uncharged" };
+    }
+
+    const equip = services.getEquipArray(player);
+    const result = consumePoweredStaffCharge(player, weaponItemId, hitCount);
+    if (!result.ok) {
+        return { ok: false, reason: "staff_charge_error" };
+    }
+
+    if (result.newWeaponId !== weaponItemId) {
+        equip[EquipmentSlot.WEAPON] = result.newWeaponId;
+        services.markEquipmentDirty(player);
+        services.markAppearanceDirty(player);
+        effects.push({ type: "appearanceUpdate", playerId: player.id });
+    }
+
+    if (result.depleted && result.chatMessage) {
+        services.queueChatMessage({
+            messageType: "game",
+            text: result.chatMessage,
+            targetPlayerIds: [player.id],
+        });
     }
 
     return { ok: true };
