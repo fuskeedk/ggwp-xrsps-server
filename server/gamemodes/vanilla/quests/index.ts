@@ -71,6 +71,11 @@ export function registerQuestHandlers(registry: IScriptRegistry, services: Scrip
     services.system.logger.info?.(`[quests] Registered ${QUEST_DEFINITIONS.length} quest(s)`);
 }
 
+/** All quest definitions registered at server startup (for validation/tests). */
+export function getQuestDefinitionList(): readonly QuestDefinition[] {
+    return QUEST_DEFINITIONS;
+}
+
 export {
     getQuestDefinition,
     getQuestDefinitionByKey,

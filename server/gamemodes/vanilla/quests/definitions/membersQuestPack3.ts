@@ -797,69 +797,6 @@ const rovingElvesQuest = simpleQuest({
     journalDone: ["Glarial's tomb was violated.", "I helped restore it."],
 });
 
-const mageArenaQuest: QuestDefinition = {
-    key: "mage_arena",
-    name: "Mage Arena",
-    varpId: 267,
-    startedValue: 1,
-    completionValue: 8,
-    rewards: {
-        questPoints: 2,
-        other: ["God spells (Claws of Guthix, Flames of Zamorak, Saradomin Strike)"],
-    },
-    rewardItemId: 2416,
-    overviewStartText: "proving yourself in the <col=800000>Mage Arena</col>.",
-    buildJournal(player, _services) {
-        const q = mageArenaQuest;
-        const stage = getQuestStage(player, q);
-        if (stage < q.startedValue) return buildNotStartedJournal(q, "I can start with Kolodion in the Mage Arena.");
-        if (stage >= q.completionValue) {
-            return buildCompleteJournal(["Kolodion tested me.", "I earned the god spells."]);
-        }
-        return ["The Mage Arena demands a champion.", "", strikeIf(getQuestFlag(player, q.key, "won"), "Kolodion will test me.")];
-    },
-    register(registry: IScriptRegistry) {
-        registerQuestNpcTalk(registry, 1603, ({ player, services }) => {
-            const ctx: DialogueContext = { player, services, npcId: 1603, npcName: "Kolodion" };
-            const q = mageArenaQuest;
-            const stage = getQuestStage(player, q);
-            if (stage >= q.completionValue) {
-                startConversation(ctx, [{ npc: ["You are a champion."] }]);
-                return;
-            }
-            if (getQuestFlag(player, q.key, "won")) {
-                startConversation(ctx, [
-                    { npc: ["You earned the god spells!"] },
-                    { exec: (d) => completeQuest(d.player, d.services, q) },
-                ]);
-                return;
-            }
-            if (stage >= q.startedValue) {
-                startConversation(ctx, [
-                    { npc: ["Defeat the guardians!"] },
-                    { exec: (d) => setQuestFlag(d.player, q.key, "won", true) },
-                ]);
-                return;
-            }
-            startConversation(ctx, [
-                { npc: ["Prove yourself in the Mage Arena!"] },
-                {
-                    options: [
-                        {
-                            text: "I accept.",
-                            next: [
-                                { player: ["I accept."] },
-                                { exec: (d) => setQuestStage(d.player, q, d.services, q.startedValue) },
-                            ],
-                        },
-                        { text: "Not now.", next: [{ player: ["Not now."] }] },
-                    ],
-                },
-            ]);
-        });
-    },
-};
-
 const oneSmallFavourQuest = simpleQuest({
     key: "one_small_favour",
     name: "One Small Favour",

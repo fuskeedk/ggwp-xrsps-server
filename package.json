@@ -61,6 +61,7 @@
     "data:generate-quests": "tsx scripts/data-import/generate-auto-quests.ts",
     "data:quests": "npm run data:import:quests && npm run data:build-quest-varps && npm run data:build-quest-varbits && npm run data:generate-quests",
     "data:validate": "tsx scripts/data-import/validate.ts",
+    "data:validate-quests": "tsx scripts/validate-quest-registration.ts",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
