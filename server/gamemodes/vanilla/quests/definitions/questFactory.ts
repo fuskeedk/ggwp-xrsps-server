@@ -103,19 +103,20 @@ export function simpleQuest(opts: {
                     startConversation(ctx, [{ npc: [opts.prereqText ?? "You're not ready for this yet."] }]);
                     return;
                 }
+                const readyForSameNpcFinish =
+                    opts.finishNpc.id === opts.startNpc.id &&
+                    stage >= q.startedValue &&
+                    (getQuestFlag(player, q.key, "ready_finish") ||
+                        (opts.finishFlag ? getQuestFlag(player, q.key, opts.finishFlag) : false) ||
+                        opts.steps.every((s) => getQuestFlag(player, q.key, s.flag)));
+                if (readyForSameNpcFinish) {
+                    startConversation(ctx, [
+                        { npc: [opts.finishText] },
+                        { exec: (d) => completeQuest(d.player, d.services, q) },
+                    ]);
+                    return;
+                }
                 if (stage >= q.startedValue) {
-                    const readyForSameNpcFinish =
-                        opts.finishNpc.id === opts.startNpc.id &&
-                        (getQuestFlag(player, q.key, "ready_finish") ||
-                            (opts.finishFlag ? getQuestFlag(player, q.key, opts.finishFlag) : false) ||
-                            opts.steps.every((s) => getQuestFlag(player, q.key, s.flag)));
-                    if (readyForSameNpcFinish) {
-                        startConversation(ctx, [
-                            { npc: [opts.finishText] },
-                            { exec: (d) => completeQuest(d.player, d.services, q) },
-                        ]);
-                        return;
-                    }
                     startConversation(ctx, [{ npc: [opts.startNpcActive ?? "Keep following the trail I gave you."] }]);
                     return;
                 }
@@ -234,11 +235,11 @@ export function autoQuest(
             }
             if (itemRequirements.length > 0) {
                 return buildItemProgressJournal(
-                    opts.startText,
-                    itemRequirements,
                     player,
                     services,
-                    strikeIf(getQuestFlag(player, q.key, "ready_finish"), "I should return for my reward."),
+                    [opts.startText],
+                    itemRequirements,
+                    [strikeIf(getQuestFlag(player, q.key, "ready_finish"), "I should return for my reward.")],
                 );
             }
             return [
@@ -270,33 +271,34 @@ export function autoQuest(
                     startConversation(ctx, [{ npc: [opts.prereqText ?? "You're not ready for this yet."] }]);
                     return;
                 }
-                if (stage >= q.startedValue) {
-                    const readyForSameNpcFinish =
-                        opts.finishNpc.id === opts.startNpc.id &&
-                        (getQuestFlag(player, q.key, "ready_finish") ||
-                            (opts.finishFlag ? getQuestFlag(player, q.key, opts.finishFlag) : false) ||
-                            opts.steps.every((s) => getQuestFlag(player, q.key, s.flag)));
-                    if (readyForSameNpcFinish) {
-                        if (itemRequirements.length > 0 && !hasQuestItems(player, services, itemRequirements)) {
-                            startConversation(ctx, [{ npc: ["Bring me everything I asked for first."] }]);
-                            return;
-                        }
-                        startConversation(ctx, [
-                            { npc: [opts.finishText] },
-                            {
-                                exec: (d) => {
-                                    if (
-                                        itemRequirements.length > 0 &&
-                                        !takeQuestItems(d.player, d.services, itemRequirements)
-                                    ) {
-                                        return;
-                                    }
-                                    completeQuest(d.player, d.services, q);
-                                },
-                            },
-                        ]);
+                const readyForSameNpcFinish =
+                    opts.finishNpc.id === opts.startNpc.id &&
+                    stage >= q.startedValue &&
+                    (getQuestFlag(player, q.key, "ready_finish") ||
+                        (opts.finishFlag ? getQuestFlag(player, q.key, opts.finishFlag) : false) ||
+                        opts.steps.every((s) => getQuestFlag(player, q.key, s.flag)));
+                if (readyForSameNpcFinish) {
+                    if (itemRequirements.length > 0 && !hasQuestItems(player, services, itemRequirements)) {
+                        startConversation(ctx, [{ npc: ["Bring me everything I asked for first."] }]);
                         return;
                     }
+                    startConversation(ctx, [
+                        { npc: [opts.finishText] },
+                        {
+                            exec: (d) => {
+                                if (
+                                    itemRequirements.length > 0 &&
+                                    !takeQuestItems(d.player, d.services, itemRequirements)
+                                ) {
+                                    return;
+                                }
+                                completeQuest(d.player, d.services, q);
+                            },
+                        },
+                    ]);
+                    return;
+                }
+                if (stage >= q.startedValue) {
                     startConversation(ctx, [{ npc: [opts.startNpcActive ?? "Keep following the trail I gave you."] }]);
                     return;
                 }

@@ -6,6 +6,10 @@ import {
 } from "../../combat/BlowpipeSystem";
 import { AttackType } from "../../combat/AttackType";
 import { DegradationSystem, getChargesUsed, setChargesUsed } from "../../combat/DegradationSystem";
+import {
+    consumeModernChargeWeaponShot,
+    isModernChargeWeapon,
+} from "../../combat/ModernChargeWeaponSystem";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
 import type { NpcState } from "../../npc";
 import type { PlayerState } from "../../player";
@@ -75,6 +79,37 @@ export function handleRangedAmmoConsumptionAt(
         services.markEquipmentDirty(player);
         services.markAppearanceDirty(player);
         effects.push({ type: "appearanceUpdate", playerId: player.id });
+        return { ok: true };
+    }
+
+    // ========================================================================
+    // Modern Charge Weapons (Crystal bow / Bow of faerdhinen post-SOTE)
+    // ========================================================================
+    if (isModernChargeWeapon(weaponItemId)) {
+        const result = consumeModernChargeWeaponShot(player, weaponItemId, hitCount);
+        if (!result.ok) {
+            return { ok: false, reason: "charge_weapon_error" };
+        }
+
+        if (result.chargeVarbit !== undefined && result.remainingCharges !== undefined) {
+            player.varps.setVarbitValue(result.chargeVarbit, result.remainingCharges);
+        }
+
+        if (result.newWeaponId !== weaponItemId) {
+            equip[EquipmentSlot.WEAPON] = result.newWeaponId;
+            services.markEquipmentDirty(player);
+            services.markAppearanceDirty(player);
+            effects.push({ type: "appearanceUpdate", playerId: player.id });
+        }
+
+        if (result.depleted && result.chatMessage) {
+            services.queueChatMessage({
+                messageType: "game",
+                text: result.chatMessage,
+                targetPlayerIds: [player.id],
+            });
+        }
+
         return { ok: true };
     }
 

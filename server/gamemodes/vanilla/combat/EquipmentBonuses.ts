@@ -15,6 +15,10 @@ import type {
     SlayerTaskInfo,
     TargetInfo,
 } from "../../../src/game/combat/EquipmentBonusProvider";
+import {
+    BOW_OF_FAERDHINEN_CHARGED_IDS,
+    MODERN_CRYSTAL_BOW_CHARGED_IDS,
+} from "../../../src/game/combat/ModernChargeWeaponSystem";
 
 // =============================================================================
 // Item ID Constants
@@ -89,9 +93,10 @@ const CRYSTAL_HELM = 23971;
 const CRYSTAL_BODY = 23975;
 const CRYSTAL_LEGS = 23979;
 const CRYSTAL_BOW_IDS = new Set([
-    4212, 4214, 4215, 4216, 4217, 4218, 4219, 4220, 4221, 4222, 4223, 23983, 24123,
+    4212, 4214, 4215, 4216, 4217, 4218, 4219, 4220, 4221, 4222, 4223,
+    ...MODERN_CRYSTAL_BOW_CHARGED_IDS,
 ]);
-const BOW_OF_FAERDHINEN = 25862;
+const BOW_OF_FAERDHINEN_IDS = new Set(BOW_OF_FAERDHINEN_CHARGED_IDS);
 
 const TOME_OF_FIRE = 20714;
 const TOME_OF_FIRE_SPELL_IDS = new Set<number>([3279, 3291, 3307, 3321, 21879]);
@@ -413,7 +418,7 @@ function applyCrystalBonus(
     if (attackType !== AttackType.Ranged) return;
 
     const weapon = equipment[EquipmentSlot.WEAPON];
-    const isCrystalBow = CRYSTAL_BOW_IDS.has(weapon) || weapon === BOW_OF_FAERDHINEN;
+    const isCrystalBow = CRYSTAL_BOW_IDS.has(weapon) || BOW_OF_FAERDHINEN_IDS.has(weapon);
 
     if (!isCrystalBow) return;
 
