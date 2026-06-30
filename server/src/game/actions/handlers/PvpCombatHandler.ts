@@ -10,6 +10,8 @@
 import { logger } from "../../../utils/logger";
 import { RUN_ENERGY_MAX } from "../../actor";
 import { AttackType } from "../../combat/AttackType";
+import { processBarrowsWeaponExposure } from "../../combat/BarrowsDegradationSystem";
+import { hasBarrowsSet } from "../../combat/BarrowsEquipment";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
 import { applyPoweredStaffHitEffects } from "../../combat/PoweredStaffEffects";
 import type { PlayerState } from "../../player";
@@ -171,9 +173,13 @@ export class PvpCombatHandler {
         // Apply damage with protection prayers
         const currentHp = target.skillSystem.getHitpointsCurrent?.() ?? 0;
         const actualDamage = Math.min(damage, currentHp);
-        const mitigatedDamage = special?.effects?.ignoreProtectionPrayer
-            ? actualDamage
-            : this.services.applyProtectionPrayers(target, actualDamage, attackType, "player", tick);
+        const mitigatedDamage =
+            special?.effects?.ignoreProtectionPrayer ||
+            (attackType === AttackType.Melee &&
+                hasBarrowsSet(this.services.getEquipArray(player), "verac") &&
+                Math.random() < 0.25)
+                ? actualDamage
+                : this.services.applyProtectionPrayers(target, actualDamage, attackType, "player", tick);
         const landedFlag = landed === true ? true : landed === false ? false : undefined;
 
         // Apply damage
@@ -186,6 +192,9 @@ export class PvpCombatHandler {
         );
         this.services.applySmite(player, target, targetHitsplat.amount);
         this.services.tryActivateRedemption(target);
+        if (targetHitsplat.amount > 0) {
+            processBarrowsWeaponExposure(player);
+        }
         this.services.closeInterruptibleInterfaces(target);
         // Being attacked interrupts weak queue tasks (e.g. Home Teleport)
         target.interruptWeakQueues();

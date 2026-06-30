@@ -49,6 +49,7 @@ import {
     recordPlayerAttackSwing,
     tryGrantGraniteMaulCombo,
 } from "./GraniteMaulCombo";
+import { processBarrowsWeaponExposure } from "./BarrowsDegradationSystem";
 import { HITMARK_BLOCK, HITMARK_DAMAGE } from "./HitEffects";
 import { multiCombatSystem } from "./MultiCombatZones";
 import {
@@ -745,6 +746,7 @@ export class PlayerCombatManager {
             if (damage !== undefined && damage > 0) {
                 const damageType: DamageType = attackType ?? DamageType.Melee;
                 damageTracker.recordDamage(player, npc, damage, damageType, tick);
+                processBarrowsWeaponExposure(player);
             }
         }
 

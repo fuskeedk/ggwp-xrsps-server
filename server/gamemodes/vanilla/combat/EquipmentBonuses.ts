@@ -19,6 +19,7 @@ import {
     BOW_OF_FAERDHINEN_CHARGED_IDS,
     MODERN_CRYSTAL_BOW_CHARGED_IDS,
 } from "../../../src/game/combat/ModernChargeWeaponSystem";
+import { hasBarrowsSet } from "../../../src/game/combat/BarrowsEquipment";
 
 // =============================================================================
 // Item ID Constants
@@ -112,18 +113,8 @@ const DHAROKS_PLATEBODY = 4720;
 const DHAROKS_PLATELEGS = 4722;
 const DHAROKS_GREATAXE = 4718;
 
-const VERACS_HELM = 4753;
-const VERACS_BRASSARD = 4757;
-const VERACS_PLATESKIRT = 4759;
-const VERACS_FLAIL = 4755;
-
 const AMULET_OF_DAMNED = 12851;
 const AMULET_OF_DAMNED_FULL = 12853;
-
-const AHRIMS_HOOD = 4708;
-const AHRIMS_ROBETOP = 4712;
-const AHRIMS_ROBESKIRT = 4714;
-const AHRIMS_STAFF = 4710;
 
 const TUMEKENS_SHADOW = 27275;
 const TUMEKENS_SHADOW_UNCHARGED = 27277;
@@ -220,35 +211,13 @@ class EquipmentBonusProviderImpl implements EquipmentBonusProvider {
     }
 
     hasVeracSet(equipment: number[]): boolean {
-        const helm = equipment[EquipmentSlot.HEAD];
-        const body = equipment[EquipmentSlot.BODY];
-        const legs = equipment[EquipmentSlot.LEGS];
-        const weapon = equipment[EquipmentSlot.WEAPON];
-
-        return (
-            helm === VERACS_HELM &&
-            body === VERACS_BRASSARD &&
-            legs === VERACS_PLATESKIRT &&
-            weapon === VERACS_FLAIL
-        );
+        return hasBarrowsSet(equipment, "verac");
     }
 
     hasAhrimsDamnedSet(equipment: number[]): boolean {
-        const helm = equipment[EquipmentSlot.HEAD];
-        const body = equipment[EquipmentSlot.BODY];
-        const legs = equipment[EquipmentSlot.LEGS];
-        const weapon = equipment[EquipmentSlot.WEAPON];
+        if (!hasBarrowsSet(equipment, "ahrim")) return false;
         const neck = equipment[EquipmentSlot.AMULET];
-
-        const hasAhrims =
-            helm === AHRIMS_HOOD &&
-            body === AHRIMS_ROBETOP &&
-            legs === AHRIMS_ROBESKIRT &&
-            weapon === AHRIMS_STAFF;
-
-        const hasDamned = neck === AMULET_OF_DAMNED || neck === AMULET_OF_DAMNED_FULL;
-
-        return hasAhrims && hasDamned;
+        return neck === AMULET_OF_DAMNED || neck === AMULET_OF_DAMNED_FULL;
     }
 }
 

@@ -36,6 +36,7 @@ import {
     HitEffectType,
     resolveHitEffect,
 } from "./HitEffects";
+import { processBarrowsArmorExposure } from "./BarrowsDegradationSystem";
 import {
     OSRS_HITSPLAT_DAMAGE_MAX_ME,
     OSRS_HITSPLAT_DAMAGE_MAX_ME_CYAN,
@@ -372,6 +373,7 @@ export class CombatEffectApplicator {
                     };
                 }
                 const style = resolveDamageStyle(styleRaw, dealt, maxHitRaw);
+                processBarrowsArmorExposure(player);
                 return {
                     style,
                     amount: dealt,

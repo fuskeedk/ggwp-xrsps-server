@@ -90,6 +90,8 @@ export class PlayerCombatState {
     // Equipment degradation
     degradationCharges: ChargeTracker = createChargeTracker();
     degradationLastItemId: Map<number, number> = new Map();
+    /** Barrows combat exposure ticks keyed by slot*1e6+itemId. */
+    barrowsCombatTicks: Map<number, number> = new Map();
 
     // Freeze query methods
 
