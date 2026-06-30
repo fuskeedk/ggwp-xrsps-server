@@ -10,6 +10,7 @@
 import { logger } from "../../../utils/logger";
 import { RUN_ENERGY_MAX } from "../../actor";
 import { AttackType } from "../../combat/AttackType";
+import { BoltEffectType } from "../../combat/AmmoSystem";
 import { processBarrowsWeaponExposure } from "../../combat/BarrowsDegradationSystem";
 import { rollDharokDamnedRecoilDamage } from "../../combat/BarrowsDamnedEffects";
 import { hasBarrowsSet } from "../../combat/BarrowsEquipment";
@@ -151,6 +152,7 @@ export class PvpCombatHandler {
             spellId: explicitSpellIdRaw,
             attackType: rawAttackType,
             special,
+            ammoEffect,
         } = data;
         const damage = Math.max(0, rawDamage);
         const maxHit = Math.max(0, rawMaxHit);
@@ -299,6 +301,17 @@ export class PvpCombatHandler {
                 tick: hitsplatTick,
                 ...hpFields,
             });
+        }
+
+        if (totalDamageDealt > 0) {
+            this.handlePvpAmmoEffects(
+                player,
+                target,
+                ammoEffect,
+                totalDamageDealt,
+                hitsplatTick,
+                effects,
+            );
         }
 
         // Magic-specific effects
@@ -546,6 +559,59 @@ export class PvpCombatHandler {
                 target.skillSystem.setSkillBoost(skillId, current - drained);
                 remaining -= drained;
             }
+        }
+    }
+
+    private handlePvpAmmoEffects(
+        attacker: PlayerState,
+        target: PlayerState,
+        ammoEffect: CombatPlayerHitActionData["ammoEffect"],
+        damageDealt: number,
+        hitsplatTick: number,
+        effects: ActionEffect[],
+    ): void {
+        if (!ammoEffect) return;
+
+        if (typeof ammoEffect.graphicId === "number" && ammoEffect.graphicId > 0) {
+            this.services.enqueueSpotAnimation({
+                tick: hitsplatTick,
+                playerId: target.id,
+                spotId: ammoEffect.graphicId,
+                delay: 0,
+            });
+        }
+
+        const dealt = Math.max(0, damageDealt);
+        if (ammoEffect.poison && dealt > 0) {
+            target.skillSystem.inflictPoison(5, hitsplatTick);
+        }
+        if (ammoEffect.leechPercent && dealt > 0) {
+            const heal = Math.floor(dealt * Math.max(0, ammoEffect.leechPercent));
+            if (heal > 0) {
+                attacker.skillSystem.applyHitpointsHeal(heal);
+            }
+        }
+        if (ammoEffect.selfDamage && ammoEffect.selfDamage > 0) {
+            attacker.skillSystem.applyHitpointsDamage(Math.max(0, ammoEffect.selfDamage));
+        }
+        if (ammoEffect.effectType === BoltEffectType.MagicDrain && dealt > 0) {
+            this.drainPlayerSkillByAmount(target, SkillId.Magic, 1);
+        }
+        if (ammoEffect.effectType === BoltEffectType.Heal && dealt > 0) {
+            const targetPrayer = target.skillSystem.getSkill(SkillId.Prayer);
+            const attackerPrayer = attacker.skillSystem.getSkill(SkillId.Prayer);
+            const targetCurrent = Math.max(1, targetPrayer.baseLevel + targetPrayer.boost);
+            const drain = Math.max(1, Math.floor(targetCurrent * 0.2));
+            target.skillSystem.setSkillBoost(
+                SkillId.Prayer,
+                Math.max(1, targetCurrent - drain),
+            );
+            const attackerCurrent = Math.max(1, attackerPrayer.baseLevel + attackerPrayer.boost);
+            const attackerBase = attackerPrayer.baseLevel;
+            attacker.skillSystem.setSkillBoost(
+                SkillId.Prayer,
+                Math.min(attackerBase, attackerCurrent + drain),
+            );
         }
     }
 

@@ -515,8 +515,6 @@ export class CombatEffectApplicator {
         // Note: The following effects are tracked but not fully implemented:
         // - siphonRunEnergyPercent: PvP only (target must be player)
         // - prayerDisableTicks: PvP only
-        // - drainMagicByDamage: Requires NPC stat tracking
-        // - drainCombatStatByDamage: Requires NPC stat tracking
     }
 }
 

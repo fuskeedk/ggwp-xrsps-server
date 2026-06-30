@@ -6,6 +6,7 @@ import {
     BoltEffectType,
     doesBoltEffectActivate,
     getEnchantedBoltEffect,
+    type EnchantedBoltEffect,
 } from "../../combat/AmmoSystem";
 import { AttackType } from "../../combat/AttackType";
 import * as CombatFormulas from "../../combat/CombatFormulaProvider";
@@ -392,6 +393,7 @@ export class CombatEngine {
         maxHit: number;
         damage: number;
         secondaryHit?: { damage: number; style: number };
+        ammoEffect?: AmmoEffectPlan;
     } {
         const atkBonuses = this.aggregatePlayerBonuses(attacker);
         const atkStyle = this.resolveAttackStyle(attacker, atkBonuses);
@@ -447,8 +449,13 @@ export class CombatEngine {
             maxHit * Math.max(0, typeof maxHitMultiplier === "number" ? maxHitMultiplier : 1),
         );
 
-        const defenceRoll = this.computePlayerDefenceRoll(defender, baseProfile.style);
-        const hitChance = forceHit ? 1 : this.computeHitChance(attackRoll, defenceRoll);
+        const ammoId =
+            atkStyle.kind === AttackType.Ranged ? this.getEquippedAmmoId(attacker) : -1;
+        const { effectiveDefenceRoll, preRolledBoltEffect } = this.resolveBoltDefenceBypass(
+            ammoId,
+            this.computePlayerDefenceRoll(defender, baseProfile.style),
+        );
+        const hitChance = forceHit ? 1 : this.computeHitChance(attackRoll, effectiveDefenceRoll);
         const landed = forceHit ? true : this.rng.next() < hitChance;
         let damage = landed ? this.rollDamage(Math.max(0, maxHit)) : 0;
         if (landed && damage > 0 && equipmentEffects.damageProcs?.length) {
@@ -458,6 +465,20 @@ export class CombatEngine {
                     damage = Math.max(0, Math.floor(damage * Math.max(0, proc.multiplier)));
                 }
             }
+        }
+
+        let ammoEffect: AmmoEffectPlan | undefined;
+        if (landed && atkStyle.kind === AttackType.Ranged) {
+            const boltResult = this.applyEnchantedBoltOnRangedHit({
+                ammoId,
+                attacker,
+                attackerHpCurrent: hp.current,
+                targetHpCurrent: Math.max(0, defender.skillSystem.getHitpointsCurrent()),
+                damage,
+                preRolledBoltEffect,
+            });
+            damage = boltResult.damage;
+            ammoEffect = boltResult.ammoEffect;
         }
 
         const karilFollowUp = tryKarilDamnedSecondaryHit(
@@ -471,7 +492,7 @@ export class CombatEngine {
                 ? { damage: karilFollowUp.damage, style: karilFollowUp.style }
                 : undefined;
 
-        return { hitLanded: landed, maxHit, damage, secondaryHit };
+        return { hitLanded: landed, maxHit, damage, secondaryHit, ammoEffect };
     }
 
     planPlayerAttack(
@@ -523,21 +544,16 @@ export class CombatEngine {
         maxHit = Math.floor(
             maxHit * Math.max(0, typeof maxHitMultiplier === "number" ? maxHitMultiplier : 1),
         );
-        const attackProfile = { ...baseProfile, attackRoll, maxHit };
-        const defenceRoll = this.computeNpcDefenceRoll(context, attackProfile);
         const forceHit = !!modifiers?.forceHit;
+        const attackProfile = { ...baseProfile, attackRoll, maxHit };
         const ammoId =
             attackProfile.style.kind === AttackType.Ranged
                 ? this.getEquippedAmmoId(context.player)
                 : -1;
-        const boltEffect = ammoId > 0 ? getEnchantedBoltEffect(ammoId) : undefined;
-        const preRolledBoltEffect =
-            boltEffect?.effectType === BoltEffectType.DefenseDrain &&
-            doesBoltEffectActivate(ammoId, false, () => this.rng.next())
-                ? boltEffect
-                : undefined;
-        const effectiveDefenceRoll =
-            preRolledBoltEffect?.effectType === BoltEffectType.DefenseDrain ? 0 : defenceRoll;
+        const { effectiveDefenceRoll, preRolledBoltEffect } = this.resolveBoltDefenceBypass(
+            ammoId,
+            this.computeNpcDefenceRoll(context, attackProfile),
+        );
         const hitChance = forceHit
             ? 1
             : this.computeHitChance(attackProfile.attackRoll, effectiveDefenceRoll);
@@ -557,71 +573,16 @@ export class CombatEngine {
         }
         let ammoEffect: AmmoEffectPlan | undefined;
         if (hitLanded && attackProfile.style.kind === AttackType.Ranged) {
-            const activatedBoltEffect =
-                preRolledBoltEffect ??
-                (boltEffect &&
-                boltEffect.effectType !== BoltEffectType.DefenseDrain &&
-                doesBoltEffectActivate(ammoId, false, () => this.rng.next())
-                    ? boltEffect
-                    : undefined);
-            if (activatedBoltEffect) {
-                ammoEffect = {
-                    effectType: activatedBoltEffect.effectType,
-                    graphicId: activatedBoltEffect.graphicId,
-                };
-                switch (activatedBoltEffect.effectType) {
-                    case BoltEffectType.HpDrain: {
-                        const targetHp = Math.max(0, context.npc.getHitpoints());
-                        const percent = activatedBoltEffect.damageMultiplier ?? 0;
-                        let drained = Math.floor(targetHp * Math.max(0, percent));
-                        if (percent > 0.2) {
-                            drained = Math.min(drained, 110);
-                        } else {
-                            drained = Math.min(drained, 100);
-                        }
-                        damage = Math.max(0, drained);
-                        if (activatedBoltEffect.selfDamagePercent) {
-                            const selfDamage = Math.floor(
-                                hp.current * Math.max(0, activatedBoltEffect.selfDamagePercent),
-                            );
-                            ammoEffect.selfDamage = Math.max(0, selfDamage);
-                        }
-                        break;
-                    }
-                    case BoltEffectType.LifeLeech: {
-                        if (activatedBoltEffect.damageMultiplier && damage > 0) {
-                            damage = Math.floor(damage * activatedBoltEffect.damageMultiplier);
-                        }
-                        if (activatedBoltEffect.leechPercent) {
-                            ammoEffect.leechPercent = Math.max(0, activatedBoltEffect.leechPercent);
-                        }
-                        break;
-                    }
-                    case BoltEffectType.Lightning: {
-                        const rangedLevel = this.getBoostedLevel(context.player, SkillId.Ranged);
-                        const bonus = Math.floor(Math.max(0, rangedLevel) * 0.1);
-                        if (bonus > 0) {
-                            damage += bonus;
-                        }
-                        break;
-                    }
-                    case BoltEffectType.DamageBoost:
-                    case BoltEffectType.DefenseDrain: {
-                        if (activatedBoltEffect.damageMultiplier && damage > 0) {
-                            damage = Math.floor(damage * activatedBoltEffect.damageMultiplier);
-                        }
-                        break;
-                    }
-                    case BoltEffectType.Poison: {
-                        ammoEffect.poison = true;
-                        break;
-                    }
-                    case BoltEffectType.Heal:
-                    case BoltEffectType.MagicDrain:
-                    default:
-                        break;
-                }
-            }
+            const boltResult = this.applyEnchantedBoltOnRangedHit({
+                ammoId,
+                attacker: context.player,
+                attackerHpCurrent: hp.current,
+                targetHpCurrent: Math.max(0, context.npc.getHitpoints()),
+                damage,
+                preRolledBoltEffect,
+            });
+            damage = boltResult.damage;
+            ammoEffect = boltResult.ammoEffect;
         }
         const hitsplatStyle = hitLanded ? HITMARK_DAMAGE : HITMARK_BLOCK;
         const attackStyle = attackProfile.style;
@@ -1064,6 +1025,113 @@ export class CombatEngine {
 
     private getPlayerEquipment(player: PlayerState): number[] {
         return player.appearance?.equip ?? [];
+    }
+
+    private resolveBoltDefenceBypass(
+        ammoId: number,
+        defenceRoll: number,
+    ): { effectiveDefenceRoll: number; preRolledBoltEffect?: EnchantedBoltEffect } {
+        if (!(ammoId > 0)) {
+            return { effectiveDefenceRoll: defenceRoll };
+        }
+        const boltEffect = getEnchantedBoltEffect(ammoId);
+        const preRolledBoltEffect =
+            boltEffect?.effectType === BoltEffectType.DefenseDrain &&
+            doesBoltEffectActivate(ammoId, false, () => this.rng.next())
+                ? boltEffect
+                : undefined;
+        return {
+            effectiveDefenceRoll:
+                preRolledBoltEffect?.effectType === BoltEffectType.DefenseDrain ? 0 : defenceRoll,
+            preRolledBoltEffect,
+        };
+    }
+
+    private applyEnchantedBoltOnRangedHit(options: {
+        ammoId: number;
+        attacker: PlayerState;
+        attackerHpCurrent: number;
+        targetHpCurrent: number;
+        damage: number;
+        preRolledBoltEffect?: EnchantedBoltEffect;
+    }): { damage: number; ammoEffect?: AmmoEffectPlan } {
+        const { ammoId, attacker, attackerHpCurrent, targetHpCurrent, preRolledBoltEffect } =
+            options;
+        let damage = options.damage;
+        if (!(ammoId > 0)) {
+            return { damage };
+        }
+
+        const boltEffect = getEnchantedBoltEffect(ammoId);
+        const activatedBoltEffect =
+            preRolledBoltEffect ??
+            (boltEffect &&
+            boltEffect.effectType !== BoltEffectType.DefenseDrain &&
+            doesBoltEffectActivate(ammoId, false, () => this.rng.next())
+                ? boltEffect
+                : undefined);
+        if (!activatedBoltEffect) {
+            return { damage };
+        }
+
+        const ammoEffect: AmmoEffectPlan = {
+            effectType: activatedBoltEffect.effectType,
+            graphicId: activatedBoltEffect.graphicId,
+        };
+
+        switch (activatedBoltEffect.effectType) {
+            case BoltEffectType.HpDrain: {
+                const percent = activatedBoltEffect.damageMultiplier ?? 0;
+                let drained = Math.floor(targetHpCurrent * Math.max(0, percent));
+                if (percent > 0.2) {
+                    drained = Math.min(drained, 110);
+                } else {
+                    drained = Math.min(drained, 100);
+                }
+                damage = Math.max(0, drained);
+                if (activatedBoltEffect.selfDamagePercent) {
+                    const selfDamage = Math.floor(
+                        attackerHpCurrent * Math.max(0, activatedBoltEffect.selfDamagePercent),
+                    );
+                    ammoEffect.selfDamage = Math.max(0, selfDamage);
+                }
+                break;
+            }
+            case BoltEffectType.LifeLeech: {
+                if (activatedBoltEffect.damageMultiplier && damage > 0) {
+                    damage = Math.floor(damage * activatedBoltEffect.damageMultiplier);
+                }
+                if (activatedBoltEffect.leechPercent) {
+                    ammoEffect.leechPercent = Math.max(0, activatedBoltEffect.leechPercent);
+                }
+                break;
+            }
+            case BoltEffectType.Lightning: {
+                const rangedLevel = this.getBoostedLevel(attacker, SkillId.Ranged);
+                const bonus = Math.floor(Math.max(0, rangedLevel) * 0.1);
+                if (bonus > 0) {
+                    damage += bonus;
+                }
+                break;
+            }
+            case BoltEffectType.DamageBoost:
+            case BoltEffectType.DefenseDrain: {
+                if (activatedBoltEffect.damageMultiplier && damage > 0) {
+                    damage = Math.floor(damage * activatedBoltEffect.damageMultiplier);
+                }
+                break;
+            }
+            case BoltEffectType.Poison: {
+                ammoEffect.poison = true;
+                break;
+            }
+            case BoltEffectType.Heal:
+            case BoltEffectType.MagicDrain:
+            default:
+                break;
+        }
+
+        return { damage, ammoEffect };
     }
 
     private getEquippedAmmoId(player: PlayerState): number {

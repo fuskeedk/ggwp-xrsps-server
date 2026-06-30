@@ -957,6 +957,7 @@ export class PlayerCombatManager {
             hitDelay: number;
             type2?: number;
             damage2?: number;
+            ammoEffect?: typeof basePlan.ammoEffect;
         };
         const plans: PvpHitPlan[] = [
             {
@@ -966,6 +967,7 @@ export class PlayerCombatManager {
                 hitDelay: baseHitDelay,
                 type2: basePlan.secondaryHit?.style,
                 damage2: basePlan.secondaryHit?.damage,
+                ammoEffect: basePlan.ammoEffect,
             },
         ];
 
@@ -1094,6 +1096,7 @@ export class PlayerCombatManager {
                         landed: plan.hitLanded,
                         attackType,
                         special: specialActivated ? specialPayload : undefined,
+                        ammoEffect: hitIndex === 0 ? plan.ammoEffect : undefined,
                         hitIndex,
                     },
                     groups: ["combat.hit"],
