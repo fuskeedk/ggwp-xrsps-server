@@ -7,6 +7,7 @@ import { getItemDefinition } from "../../data/items";
 import { logger } from "../../utils/logger";
 import type { ServerServices } from "../ServerServices";
 import { clearAutocastState } from "../combat/AutocastState";
+import { tryGrantGraniteMaulCombo } from "../combat/GraniteMaulCombo";
 import { getCategoryForWeaponInterface } from "../combat/WeaponInterfaces";
 import {
     ensureEquipArrayOn,
@@ -136,6 +137,10 @@ export class EquipmentService {
         } else {
             p.setCombatCategoryAttackTypes(undefined);
             p.setCombatCategoryMeleeBonusIndices(undefined);
+        }
+
+        if (weaponItemChanged && normalizedWeaponId > 0 && p.specEnergy.isActivated()) {
+            tryGrantGraniteMaulCombo(p, normalizedWeaponId, this.services.ticker.currentTick());
         }
 
         return { categoryChanged, weaponItemChanged };

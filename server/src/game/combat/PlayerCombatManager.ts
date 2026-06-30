@@ -45,6 +45,10 @@ import {
 } from "./CombatState";
 import { createCombatStateMachine } from "./CombatStateMachine";
 import { DamageType, damageTracker } from "./DamageTracker";
+import {
+    recordPlayerAttackSwing,
+    tryGrantGraniteMaulCombo,
+} from "./GraniteMaulCombo";
 import { HITMARK_BLOCK, HITMARK_DAMAGE } from "./HitEffects";
 import { multiCombatSystem } from "./MultiCombatZones";
 import {
@@ -809,9 +813,11 @@ export class PlayerCombatManager {
      * Update attack timing after an attack is executed.
      */
     onAttackExecuted(playerId: number, tick: number, attackSpeed: number): void {
-        this.playerManager
-            ?.getPlayerById(playerId)
-            ?.combat.delayNextAttack(tick + attackSpeed);
+        const player = this.playerManager?.getPlayerById(playerId);
+        if (player) {
+            recordPlayerAttackSwing(player, tick);
+        }
+        player?.combat.delayNextAttack(tick + attackSpeed);
         const state = this.engagements.getState(playerId);
         if (state) {
             state.timing.nextAttackTick = tick + attackSpeed;

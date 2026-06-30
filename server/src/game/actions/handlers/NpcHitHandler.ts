@@ -12,6 +12,7 @@
 import { logger } from "../../../utils/logger";
 import { AttackType } from "../../combat/AttackType";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
+import { applyPoweredStaffHitEffects } from "../../combat/PoweredStaffEffects";
 import type { NpcCombatStat, NpcState } from "../../npc";
 import type { PlayerState } from "../../player";
 import { getPoweredStaffSpellData } from "../../spells/SpellDataProvider";
@@ -577,6 +578,8 @@ export class NpcHitHandler {
         if (spell?.poisonDamage && landed && npcHitsplat.amount > 0) {
             npc.inflictPoison(spell.poisonDamage, tick);
         }
+
+        applyPoweredStaffHitEffects(player, weaponId, npcHitsplat.amount, landed);
 
         if (spell?.maxTargets && spell.maxTargets > 1 && landed && npcHitsplat.amount > 0) {
             const multiResult = this.services.applyMultiTargetSpellDamage({

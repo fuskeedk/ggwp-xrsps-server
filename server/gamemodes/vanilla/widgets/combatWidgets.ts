@@ -26,6 +26,7 @@ import {
     markInstantUtilitySpecialHandledAtTick,
     wasInstantUtilitySpecialHandledAtTick,
 } from "../combat/RockKnockerSpecial";
+import { tryGrantGraniteMaulCombo } from "../../../src/game/combat/GraniteMaulCombo";
 
 /**
  * Combat widgets handlers for interface 593 (combat options tab) and 201 (autocast popup).
@@ -260,6 +261,10 @@ export function registerCombatWidgetHandlers(
 
         // Queue combat state update
         services.combat.queueCombatState(player);
+
+        if (player.specEnergy.isActivated()) {
+            tryGrantGraniteMaulCombo(player, weaponObjId, event.tick);
+        }
 
         services.system.logger.info?.(
             `[script:combat-widgets] Special attack toggled for player=${player.id} ` +

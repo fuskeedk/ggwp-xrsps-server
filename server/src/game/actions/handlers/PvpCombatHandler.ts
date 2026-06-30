@@ -11,6 +11,7 @@ import { logger } from "../../../utils/logger";
 import { RUN_ENERGY_MAX } from "../../actor";
 import { AttackType } from "../../combat/AttackType";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
+import { applyPoweredStaffHitEffects } from "../../combat/PoweredStaffEffects";
 import type { PlayerState } from "../../player";
 import { getPoweredStaffSpellData } from "../../spells/SpellDataProvider";
 import type { PoweredStaffSpellData } from "../../spells/SpellDataProvider";
@@ -567,6 +568,8 @@ export class PvpCombatHandler {
         if (spell?.poisonDamage && landed && dealt > 0) {
             target.skillSystem.inflictPoison(spell.poisonDamage, hitsplatTick);
         }
+
+        applyPoweredStaffHitEffects(player, weaponId, dealt, landed);
     }
 
     // ========================================================================
