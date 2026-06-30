@@ -72,6 +72,7 @@ export interface CombatAmmoEffectData {
     selfDamage?: number;
     leechPercent?: number;
     poison?: boolean;
+    stunTicks?: number;
 }
 
 export interface CombatSpecialEffectsData {
@@ -80,6 +81,9 @@ export interface CombatSpecialEffectsData {
     prayerFraction?: number;
     siphonRunEnergyPercent?: number;
     prayerDisableTicks?: number;
+    drainDefencePercent?: number;
+    drainDefenceByDamage?: number;
+    drainDefenceOnlyIfNotDrained?: boolean;
     drainMagicByDamage?: boolean;
     drainCombatStatByDamage?: boolean;
     ignoreProtectionPrayer?: boolean;

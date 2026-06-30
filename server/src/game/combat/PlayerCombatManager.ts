@@ -4,7 +4,9 @@
  * Owns player-vs-NPC combat state, attack scheduling, and combat timing.
  * NPC movement, chase, retreat, and retaliation authority remain in NpcManager.
  */
+import { VARP_SPECIAL_ATTACK } from "../../../../src/shared/vars";
 import type { PathService } from "../../pathfinding/PathService";
+import { faceAngleRs } from "../../../../src/rs/utils/rotation";
 import {
     CardinalAdjacentRouteStrategy,
     ExactRouteStrategy,
@@ -18,17 +20,19 @@ import type { CombatAttackActionData } from "../actions/actionPayloads";
 import type { ActionEffect } from "../actions/types";
 import { NpcState } from "../npc";
 import { type PlayerManager, PlayerState } from "../player";
-import { getPoweredStaffSpellData, getSpellData } from "../spells/SpellDataProvider";
+import { getPoweredStaffSpellData, getSpellData, hasPoweredStaffSpellData } from "../spells/SpellDataProvider";
 import { CombatEngine, type PlayerAttackPlan } from "../systems/combat/CombatEngine";
 import { AttackType, normalizeAttackType } from "./AttackType";
 import {
     hasDirectMeleePath,
     hasDirectMeleeReach,
     hasProjectileLineOfSightToNpc,
+    hasProjectileLineOfSightToRect,
     isWithinAttackRange,
 } from "./CombatAction";
 import { CombatEffectApplicator } from "./CombatEffectApplicator";
 import { CombatEngagementRegistry } from "./CombatEngagementRegistry";
+import { isUnchargedPoweredStaff } from "./PoweredStaffChargeSystem";
 import { resolvePlayerAttackReach, resolvePlayerAttackType } from "./CombatRules";
 import {
     CombatPhase,
@@ -42,21 +46,30 @@ import {
 } from "./CombatState";
 import { createCombatStateMachine } from "./CombatStateMachine";
 import { DamageType, damageTracker } from "./DamageTracker";
+import {
+    recordPlayerAttackSwing,
+    tryGrantGraniteMaulCombo,
+} from "./GraniteMaulCombo";
+import { processBarrowsWeaponExposure } from "./BarrowsDegradationSystem";
 import { HITMARK_BLOCK, HITMARK_DAMAGE } from "./HitEffects";
 import { multiCombatSystem } from "./MultiCombatZones";
 import {
-    SpecialAttackRegistry,
+    buildPlayerSpecialAttack,
+    type BuiltSpecialAttackPayload,
+} from "./SpecialAttackPayloadBuilder";
+import {
     applyDarkBowDamageModifiers,
     calculateDragonClawsHits,
     isDarkBow,
-    resolveAmmoModifiers,
 } from "./SpecialAttackProvider";
+import { pickSpecialAttackVisualOverride } from "./SpecialAttackVisualProvider";
 
 // =============================================================================
 // Constants (from CombatSystem)
 // =============================================================================
 
 const DEFAULT_MAGIC_CAST_SPOT = 90;
+const DEFAULT_RANGED_ATTACK_SPOT = 249;
 
 // =============================================================================
 // Helper Functions
@@ -84,36 +97,7 @@ function distanceToNpcBounds(player: PlayerState, npc: NpcState): number {
 /**
  * Special attack payload for combat scheduling.
  */
-type SpecialAttackPayload = {
-    weaponItemId: number;
-    costPercent: number;
-    accuracyMultiplier: number;
-    maxHitMultiplier: number;
-    hitCount: number;
-    forceHit?: boolean;
-    effects?: {
-        siphonRunEnergyPercent?: number;
-        healFraction?: number;
-        prayerFraction?: number;
-        freezeTicks?: number;
-        prayerDisableTicks?: number;
-        drainMagicByDamage?: boolean;
-        drainCombatStatByDamage?: boolean;
-        ignoreProtectionPrayer?: boolean;
-    };
-    /** Dark bow specific: minimum damage per hit */
-    minDamagePerHit?: number;
-    /** Dark bow specific: maximum damage per hit (dragon arrows = 48) */
-    maxDamagePerHit?: number;
-    /** Dark bow specific: graphic ID based on arrow type */
-    specGraphicId?: number;
-    /** Dark bow specific: projectile ID based on arrow type */
-    specProjectileId?: number;
-    /** Dark bow specific: sound ID based on arrow type */
-    specSoundId?: number;
-    /** Per-hit sounds for multi-hit specials (e.g., dragon claws) */
-    hitSounds?: number[];
-};
+type SpecialAttackPayload = BuiltSpecialAttackPayload;
 
 /**
  * Attack scheduling result.
@@ -137,7 +121,11 @@ export interface PlayerCombatManagerContext {
     /** Path service for routing and LoS checks */
     pathService?: PathService;
     /** Get player's attack speed based on weapon */
-    pickAttackSpeed: (player: PlayerState) => number;
+    pickAttackSpeed: (player: PlayerState, targetType?: "npc" | "player") => number;
+    /** Projectile/melee hit delay for player attacks */
+    pickHitDelay?: (player: PlayerState) => number;
+    /** Attack animation sequence for the equipped weapon */
+    pickAttackSequence?: (player: PlayerState) => number;
     /** Get NPC hit delay (projectile travel time) */
     pickNpcHitDelay?: (npc: NpcState, player: PlayerState, attackSpeed: number) => number;
     /** Get special attack energy cost for a weapon */
@@ -176,6 +164,20 @@ export interface PlayerCombatManagerContext {
         delay?: number;
         height?: number;
     }) => void;
+    /** Consume ranged ammo when attacking another player. */
+    consumeRangedAmmo?: (
+        player: PlayerState,
+        target: PlayerState,
+        weaponItemId: number,
+        hitCount: number,
+        tick: number,
+    ) => boolean;
+    /** Consume powered staff charges when attacking another player. */
+    consumePoweredStaffCharge?: (
+        player: PlayerState,
+        weaponItemId: number,
+        hitCount: number,
+    ) => boolean;
     /** Callback when magic attack is scheduled (for rune consumption, etc.) */
     onMagicAttack?: (event: {
         player: PlayerState;
@@ -185,6 +187,8 @@ export interface PlayerCombatManagerContext {
     }) => boolean | void;
     /** Logger for debugging */
     logger?: { warn: (...args: unknown[]) => void; debug?: (...args: unknown[]) => void };
+    /** Sync combat state (spec energy varp) after special consumption. */
+    queueCombatState?: (player: PlayerState) => void;
 }
 
 export interface PlayerCombatMovementContext {
@@ -502,39 +506,44 @@ export class PlayerCombatManager {
             }
         }
 
-        // Player vs Player autocast scheduling
+        // Player vs Player attack scheduling (magic autocast + melee/ranged)
         if (this.playerManager && this.actionScheduler) {
-            const schedulePlayerVsPlayerAutocast = (
+            const schedulePlayerVsPlayerAttack = (
                 player: PlayerState,
                 target: PlayerState,
                 attackDelay: number,
                 currentTick: number,
             ): boolean => {
                 const spellId = player.combat.spellId;
-                if (!(spellId > 0)) return false;
-                const modeRaw = player.combat.autocastMode;
-                const castMode =
-                    modeRaw === "defensive_autocast" ? "defensive_autocast" : ("autocast" as const);
-                const res = this.actionScheduler!.requestAction(
-                    player.id,
-                    {
-                        kind: "combat.autocast",
-                        data: {
-                            targetId: target.id,
-                            spellId: spellId,
-                            castMode,
+                if (player.combat.autocastEnabled && spellId > 0) {
+                    const modeRaw = player.combat.autocastMode;
+                    const castMode =
+                        modeRaw === "defensive_autocast"
+                            ? "defensive_autocast"
+                            : ("autocast" as const);
+                    const res = this.actionScheduler!.requestAction(
+                        player.id,
+                        {
+                            kind: "combat.autocast",
+                            data: {
+                                targetId: target.id,
+                                spellId: spellId,
+                                castMode,
+                            },
+                            groups: ["combat.attack"],
+                            cooldownTicks: Math.max(1, attackDelay),
+                            delayTicks: 0,
                         },
-                        groups: ["combat.attack"],
-                        cooldownTicks: Math.max(1, attackDelay),
-                        delayTicks: 0,
-                    },
-                    currentTick,
-                );
-                return !!res.ok;
+                        currentTick,
+                    );
+                    return !!res.ok;
+                }
+
+                return this.schedulePlayerVsPlayerMeleeRanged(player, target, currentTick, ctx);
             };
 
-            this.playerManager.updatePlayerAttacks(ctx.tick, schedulePlayerVsPlayerAutocast, {
-                pickPlayerAttackDelay: (player) => ctx.pickAttackSpeed(player),
+            this.playerManager.updatePlayerAttacks(ctx.tick, schedulePlayerVsPlayerAttack, {
+                pickPlayerAttackDelay: (player) => ctx.pickAttackSpeed(player, "player"),
             });
         }
 
@@ -657,7 +666,7 @@ export class PlayerCombatManager {
             case CombatPhase.Attacking:
                 // Attack is ready - schedule the attack
                 if (ctx.schedulePlayerAttack && state.engagement.playerAutoAttack) {
-                    const attackSpeed = ctx.pickAttackSpeed(player);
+                    const attackSpeed = ctx.pickAttackSpeed(player, "npc");
                     state.timing.attackSpeed = attackSpeed;
                     player.combat.attackDelay = attackSpeed;
 
@@ -744,6 +753,7 @@ export class PlayerCombatManager {
             if (damage !== undefined && damage > 0) {
                 const damageType: DamageType = attackType ?? DamageType.Melee;
                 damageTracker.recordDamage(player, npc, damage, damageType, tick);
+                processBarrowsWeaponExposure(player);
             }
         }
 
@@ -812,9 +822,11 @@ export class PlayerCombatManager {
      * Update attack timing after an attack is executed.
      */
     onAttackExecuted(playerId: number, tick: number, attackSpeed: number): void {
-        this.playerManager
-            ?.getPlayerById(playerId)
-            ?.combat.delayNextAttack(tick + attackSpeed);
+        const player = this.playerManager?.getPlayerById(playerId);
+        if (player) {
+            recordPlayerAttackSwing(player, tick);
+        }
+        player?.combat.delayNextAttack(tick + attackSpeed);
         const state = this.engagements.getState(playerId);
         if (state) {
             state.timing.nextAttackTick = tick + attackSpeed;
@@ -831,6 +843,278 @@ export class PlayerCombatManager {
         if (sm && sm.getState() === CombatPhase.Attacking) {
             sm.forceState(CombatPhase.Cooldown, tick, "attack_executed");
         }
+    }
+
+    /**
+     * Schedule a melee or ranged player-vs-player attack.
+     * Magic autocast uses the combat.autocast path instead.
+     */
+    schedulePlayerVsPlayerMeleeRanged(
+        player: PlayerState,
+        target: PlayerState,
+        tick: number,
+        ctx: Pick<
+            PlayerCombatManagerContext,
+            | "pickAttackSpeed"
+            | "pickHitDelay"
+            | "pickAttackSequence"
+            | "getAttackReach"
+            | "getWeaponSpecialCostPercent"
+            | "pathService"
+            | "queueSpotAnimation"
+            | "consumeRangedAmmo"
+            | "consumePoweredStaffCharge"
+            | "queueCombatState"
+        >,
+    ): boolean {
+        if (!this.actionScheduler) return false;
+
+        const attackType = resolvePlayerAttackType(player.combat);
+        const weaponItemId = player.combat.weaponItemId ?? -1;
+        let poweredStaffMagic = false;
+        if (attackType === AttackType.Magic) {
+            if (weaponItemId > 0 && hasPoweredStaffSpellData(weaponItemId)) {
+                poweredStaffMagic = true;
+            } else if (weaponItemId > 0 && isUnchargedPoweredStaff(weaponItemId)) {
+                return false;
+            } else {
+                return false;
+            }
+        }
+
+        const reach = ctx.getAttackReach?.(player) ?? resolvePlayerAttackReach(player.combat);
+        if (!isWithinAttackRange(player, target, reach)) return false;
+
+        const pathService = ctx.pathService;
+        if (reach <= 1) {
+            if (pathService && !hasDirectMeleeReach(player, target, pathService)) return false;
+        } else if (
+            pathService &&
+            !hasProjectileLineOfSightToRect(
+                player.tileX,
+                player.tileY,
+                player.level,
+                target.tileX,
+                target.tileY,
+                1,
+                1,
+                pathService,
+            )
+        ) {
+            return false;
+        }
+
+        if (!player.combat.isAttackReady(tick)) return false;
+
+        const built = buildPlayerSpecialAttack(
+            player,
+            weaponItemId,
+            ctx.getWeaponSpecialCostPercent,
+        );
+        let specialPayload = built?.special;
+        let specialModifiers = built?.modifiers;
+        let hitCount = built?.hitCount ?? 1;
+        const specialDef = built?.specialDef;
+        const forceFirstHit = built?.forceFirstHit ?? false;
+
+        if (attackType === AttackType.Ranged && weaponItemId > 0) {
+            const ammoOk =
+                ctx.consumeRangedAmmo?.(player, target, weaponItemId, hitCount, tick) ?? true;
+            if (!ammoOk) return false;
+        }
+
+        if (poweredStaffMagic && weaponItemId > 0) {
+            const chargeOk =
+                ctx.consumePoweredStaffCharge?.(player, weaponItemId, hitCount) ?? true;
+            if (!chargeOk) return false;
+        }
+
+        let specialActivated = false;
+        if (specialPayload?.costPercent !== undefined) {
+            const costPercent = Math.max(0, Math.min(100, specialPayload.costPercent));
+            if (costPercent > 0) {
+                const ok = player.specEnergy.consume(costPercent);
+                if (ok) {
+                    specialActivated = true;
+                    player.varps.setVarpValue(VARP_SPECIAL_ATTACK, 0);
+                    ctx.queueCombatState?.(player);
+                } else {
+                    specialPayload = undefined;
+                    specialModifiers = undefined;
+                    hitCount = 1;
+                }
+            }
+        }
+
+        const attackSpeed = Math.max(1, ctx.pickAttackSpeed(player, "player"));
+        const baseHitDelay = Math.max(0, ctx.pickHitDelay?.(player) ?? 0);
+
+        const basePlan = this.engine.planPlayerVsPlayer(player, target, specialModifiers);
+        type PvpHitPlan = {
+            hitLanded: boolean;
+            maxHit: number;
+            damage: number;
+            hitDelay: number;
+            type2?: number;
+            damage2?: number;
+            ammoEffect?: typeof basePlan.ammoEffect;
+        };
+        const plans: PvpHitPlan[] = [
+            {
+                hitLanded: basePlan.hitLanded,
+                maxHit: basePlan.maxHit,
+                damage: basePlan.damage,
+                hitDelay: baseHitDelay,
+                type2: basePlan.secondaryHit?.style,
+                damage2: basePlan.secondaryHit?.damage,
+                ammoEffect: basePlan.ammoEffect,
+            },
+        ];
+
+        if (specialPayload && hitCount > 1) {
+            const extraModifiers =
+                specialModifiers?.forceHit && forceFirstHit
+                    ? {
+                          accuracyMultiplier: specialModifiers.accuracyMultiplier,
+                          maxHitMultiplier: specialModifiers.maxHitMultiplier,
+                      }
+                    : specialModifiers;
+            for (let i = 1; i < hitCount; i++) {
+                const extra = this.engine.planPlayerVsPlayer(player, target, extraModifiers);
+                plans.push({
+                    hitLanded: extra.hitLanded,
+                    maxHit: extra.maxHit,
+                    damage: extra.damage,
+                    hitDelay: baseHitDelay,
+                });
+            }
+        }
+
+        if (specialDef?.effects?.quadHit && plans.length >= 4) {
+            const maxHit = Math.max(0, plans[0]?.maxHit ?? 0);
+            const rolls = plans.slice(0, 4).map((plan) => (plan.hitLanded ? plan.damage : 0));
+            const patterned = calculateDragonClawsHits(maxHit, rolls);
+            for (let i = 0; i < 4; i++) {
+                const dmg = Math.max(0, patterned[i]);
+                plans[i].damage = dmg;
+                plans[i].hitLanded = dmg > 0;
+                plans[i].hitDelay = baseHitDelay + (i >= 2 ? 1 : 0);
+            }
+        }
+
+        if (specialPayload && isDarkBow(weaponItemId) && specialPayload.minDamagePerHit !== undefined) {
+            for (const plan of plans) {
+                const adjustedDamage = applyDarkBowDamageModifiers(
+                    plan.damage,
+                    specialPayload.minDamagePerHit,
+                    specialPayload.maxDamagePerHit,
+                    plan.hitLanded,
+                );
+                plan.damage = adjustedDamage;
+                if (adjustedDamage > 0) {
+                    plan.hitLanded = true;
+                }
+            }
+        }
+
+        const targetX = (target.tileX << 7) + 64;
+        const targetY = (target.tileY << 7) + 64;
+        if (player.x !== targetX || player.y !== targetY) {
+            player.setForcedOrientation(faceAngleRs(player.x, player.y, targetX, targetY));
+            player._pendingFace = { x: targetX, y: targetY };
+            player.pendingFaceTile = { x: target.tileX, y: target.tileY };
+        }
+        player.markSent();
+
+        const specialVisual = specialActivated
+            ? pickSpecialAttackVisualOverride(weaponItemId)
+            : undefined;
+        const attackSeq =
+            specialVisual?.seqId ?? ctx.pickAttackSequence?.(player);
+        if (attackSeq !== undefined && attackSeq >= 0) {
+            player.queueOneShotSeq(attackSeq, 0);
+        }
+        if (
+            specialActivated &&
+            typeof specialVisual?.spotId === "number" &&
+            Number.isFinite(specialVisual.spotId) &&
+            specialVisual.spotId > 0
+        ) {
+            ctx.queueSpotAnimation?.({
+                tick,
+                playerId: player.id,
+                spotId: specialVisual.spotId,
+                delay: 0,
+                height: typeof specialVisual.spotHeight === "number" ? specialVisual.spotHeight : 0,
+            });
+        }
+
+        if (attackType === AttackType.Ranged) {
+            ctx.queueSpotAnimation?.({
+                tick,
+                playerId: player.id,
+                spotId: DEFAULT_RANGED_ATTACK_SPOT,
+                delay: 0,
+            });
+        }
+
+        if (poweredStaffMagic) {
+            const poweredStaffData = getPoweredStaffSpellData(weaponItemId);
+            const castSpot = poweredStaffData?.castSpotAnim ?? DEFAULT_MAGIC_CAST_SPOT;
+            if (castSpot >= 0) {
+                ctx.queueSpotAnimation?.({
+                    tick,
+                    playerId: player.id,
+                    spotId: castSpot,
+                    delay: 0,
+                    height: 100,
+                });
+            }
+        }
+
+        let anyScheduled = false;
+        for (let hitIndex = 0; hitIndex < plans.length; hitIndex++) {
+            const plan = plans[hitIndex];
+            const hitDelay = Math.max(0, plan.hitDelay);
+            const expectedHitTick = tick + hitDelay;
+            const style = plan.hitLanded ? HITMARK_DAMAGE : HITMARK_BLOCK;
+
+            const res = this.actionScheduler.requestAction(
+                player.id,
+                {
+                    kind: "combat.playerHit",
+                    data: {
+                        targetId: target.id,
+                        damage: plan.damage,
+                        maxHit: plan.maxHit,
+                        style,
+                        type2: plan.type2,
+                        damage2: plan.damage2,
+                        attackDelay: attackSpeed,
+                        hitDelay,
+                        expectedHitTick,
+                        landed: plan.hitLanded,
+                        attackType,
+                        special: specialActivated ? specialPayload : undefined,
+                        ammoEffect: hitIndex === 0 ? plan.ammoEffect : undefined,
+                        hitIndex,
+                    },
+                    groups: ["combat.hit"],
+                    cooldownTicks: 0,
+                    delayTicks: hitDelay,
+                },
+                tick,
+            );
+            if (res.ok) {
+                anyScheduled = true;
+            }
+        }
+
+        if (anyScheduled) {
+            player.combat.attackDelay = attackSpeed;
+            this.onAttackExecuted(player.id, tick, attackSpeed);
+        }
+        return anyScheduled;
     }
 
     /**
@@ -1078,107 +1362,19 @@ export class PlayerCombatManager {
             return { ok: false, hitDelay: 0 };
         }
 
-        const playerAttackSpeed = Math.max(1, ctx.pickAttackSpeed(player));
+        const playerAttackSpeed = Math.max(1, ctx.pickAttackSpeed(player, "npc"));
         player.combat.attackDelay = playerAttackSpeed;
         const weaponItemId = player.combat.weaponItemId ?? -1;
-        let special: SpecialAttackPayload | undefined;
-        let specialModifiers:
-            | { accuracyMultiplier?: number; maxHitMultiplier?: number; forceHit?: boolean }
-            | undefined;
-        let hitCount = 1;
-        const specialDef =
-            player.specEnergy.isActivated() && weaponItemId > 0
-                ? SpecialAttackRegistry.get(weaponItemId)
-                : undefined;
-        const forceFirstHit = !!specialDef?.effects?.guaranteedFirstHit;
-        if (specialDef) {
-            const costPercent =
-                ctx.getWeaponSpecialCostPercent?.(weaponItemId) ?? specialDef.energyCost;
-            if (costPercent !== undefined && costPercent > 0) {
-                hitCount = Math.max(1, Math.min(10, specialDef.hitCount || 1));
-                const forceHit = forceFirstHit ? true : undefined;
-                specialModifiers = {
-                    accuracyMultiplier: specialDef.accuracyMultiplier,
-                    maxHitMultiplier: specialDef.damageMultiplier,
-                    forceHit,
-                };
-                const effects: SpecialAttackPayload["effects"] = {};
-                if (specialDef.effects?.freezeTicks !== undefined) {
-                    effects.freezeTicks = specialDef.effects.freezeTicks;
-                }
-                if (specialDef.effects?.healFraction !== undefined) {
-                    effects.healFraction = specialDef.effects.healFraction;
-                }
-                if (specialDef.effects?.prayerFraction !== undefined) {
-                    effects.prayerFraction = specialDef.effects.prayerFraction;
-                }
-                if (specialDef.effects?.drainRunEnergy !== undefined) {
-                    effects.siphonRunEnergyPercent = specialDef.effects.drainRunEnergy;
-                }
-                const prayerDisableTicks = (
-                    specialDef.effects as { prayerDisableTicks?: number } | undefined
-                )?.prayerDisableTicks;
-                if (prayerDisableTicks !== undefined) {
-                    effects.prayerDisableTicks = prayerDisableTicks;
-                }
-                if (specialDef.effects?.drainMagicByDamage) {
-                    effects.drainMagicByDamage = true;
-                }
-                const drainCombatStatByDamage = (
-                    specialDef.effects as { drainCombatStatByDamage?: boolean } | undefined
-                )?.drainCombatStatByDamage;
-                if (drainCombatStatByDamage || specialDef.effects?.drainAllCombatByDamage) {
-                    effects.drainCombatStatByDamage = true;
-                }
-                if (specialDef.effects?.ignoreProtectionPrayer) {
-                    effects.ignoreProtectionPrayer = true;
-                }
-                const hasEffects = Object.values(effects).some((v) => v !== undefined);
-
-                // Dark bow: Resolve ammo-based modifiers
-                let damageMultiplier = specialDef.damageMultiplier;
-                let minDamagePerHit: number | undefined;
-                let maxDamagePerHit: number | undefined;
-                let specGraphicId: number | undefined;
-                let specProjectileId: number | undefined;
-                let specSoundId: number | undefined;
-
-                if (isDarkBow(weaponItemId) && specialDef.ammoModifiers) {
-                    // Get equipped ammo from player appearance
-                    const equip = player.appearance?.equip;
-                    const ammoId = Array.isArray(equip) ? equip[10] : 0; // AMMO slot = 10 (internal index)
-                    const ammoMods = resolveAmmoModifiers(specialDef, ammoId);
-                    damageMultiplier = ammoMods.damageMultiplier;
-                    minDamagePerHit = ammoMods.minDamagePerHit;
-                    maxDamagePerHit = ammoMods.maxDamagePerHit;
-                    specGraphicId = ammoMods.graphicId;
-                    specProjectileId = ammoMods.projectileId;
-                    specSoundId = ammoMods.soundId;
-
-                    // Update specialModifiers with correct damage multiplier
-                    specialModifiers = {
-                        ...specialModifiers,
-                        maxHitMultiplier: damageMultiplier,
-                    };
-                }
-
-                special = {
-                    weaponItemId,
-                    costPercent: Math.max(1, Math.min(100, costPercent)),
-                    accuracyMultiplier: specialDef.accuracyMultiplier,
-                    maxHitMultiplier: damageMultiplier,
-                    hitCount,
-                    forceHit,
-                    effects: hasEffects ? effects : undefined,
-                    minDamagePerHit,
-                    maxDamagePerHit,
-                    specGraphicId,
-                    specProjectileId,
-                    specSoundId,
-                    hitSounds: specialDef.hitSounds,
-                };
-            }
-        }
+        const built = buildPlayerSpecialAttack(
+            player,
+            weaponItemId,
+            ctx.getWeaponSpecialCostPercent,
+        );
+        let special: SpecialAttackPayload | undefined = built?.special;
+        let specialModifiers = built?.modifiers;
+        let hitCount = built?.hitCount ?? 1;
+        const specialDef = built?.specialDef;
+        const forceFirstHit = built?.forceFirstHit ?? false;
 
         const basePlan = this.engine.planPlayerAttack(
             {
@@ -1314,7 +1510,24 @@ export class PlayerCombatManager {
             spellDataForXp.category === "combat";
         const hits = plans.map((plan) => {
             const expectedHitTick = ctx.tick + Math.max(0, Math.round(plan.hitDelay));
-            return {
+            const hit: {
+                npcId: number;
+                damage: number;
+                maxHit: number;
+                style: number;
+                attackDelay: number;
+                hitDelay: number;
+                retaliationDelay: number;
+                expectedHitTick: number;
+                landed: boolean;
+                attackType: AttackType;
+                attackStyleMode: string;
+                spellId: number | undefined;
+                spellBaseXpAtCast: boolean;
+                ammoEffect: typeof plan.ammoEffect;
+                type2?: number;
+                damage2?: number;
+            } = {
                 npcId: npc.id,
                 damage: plan.damage,
                 maxHit: plan.maxHit,
@@ -1331,6 +1544,11 @@ export class PlayerCombatManager {
                 spellBaseXpAtCast,
                 ammoEffect: plan.ammoEffect,
             };
+            if (plan === basePlan && basePlan.secondaryHit && basePlan.secondaryHit.damage > 0) {
+                hit.type2 = basePlan.secondaryHit.hitsplatStyle;
+                hit.damage2 = basePlan.secondaryHit.damage;
+            }
+            return hit;
         });
 
         // OSRS: Dark bow fires 2 arrows - add additionalHits from basePlan

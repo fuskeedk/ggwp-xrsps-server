@@ -53,6 +53,7 @@
     "server:build": "tsc -p server/tsconfig.json",
     "server:build-collision": "tsx server/scripts/build-collision-cache.ts --include-models --force",
     "data:download": "tsx scripts/data-import/download.ts",
+    "data:build-npc-combat-stats": "tsx scripts/data-import/build-npc-combat-stats.ts",
     "data:import": "tsx scripts/data-import/import-all.ts",
     "data:import:quests": "tsx scripts/data-import/import-quest-reference.ts",
     "data:build-quest-varps": "tsx scripts/data-import/build-quest-varp-map.ts",
@@ -60,6 +61,9 @@
     "data:generate-quests": "tsx scripts/data-import/generate-auto-quests.ts",
     "data:quests": "npm run data:import:quests && npm run data:build-quest-varps && npm run data:build-quest-varbits && npm run data:generate-quests",
     "data:validate": "tsx scripts/data-import/validate.ts",
+    "data:validate-quests": "tsx scripts/validate-quest-registration.ts",
+    "test:quests": "npm run data:validate-quests && tsx tests/quest-registration-parity.test.ts && tsx tests/quest-shared-npc-chains.test.ts && tsx tests/quest-chain-smoke.test.ts",
+    "test:combat": "tsx tests/jade-bolt-knockdown.test.ts",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"

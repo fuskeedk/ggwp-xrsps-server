@@ -123,6 +123,10 @@ const trollStrongholdQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 4119, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 4119, npcName: "Godric" };
             if (getQuestStage(player, trollStrongholdQuest) < 1) return;
+            if (getQuestStage(player, trollStrongholdQuest) >= trollStrongholdQuest.completionValue) {
+                startConversation(ctx, [{ npc: ["I'll never forget what you did for me."] }]);
+                return;
+            }
             startConversation(ctx, [
                 { npc: ["You found me! Let's escape!"] },
                 { exec: (d) => setQuestFlag(d.player, trollStrongholdQuest.key, "freed_godric", true) },
@@ -217,9 +221,10 @@ const bigChompyBirdQuest = simpleQuest({
 const elementalWorkshopIIQuest = simpleQuest({
     key: "elemental_workshop_ii",
     name: "Elemental Workshop II",
-    varpId: 273,
+    varpId: -1,
+    progressVarbitId: 2639,
     startedValue: 1,
-    completionValue: 2,
+    completionValue: 100,
     rewards: {
         questPoints: 1,
         xp: [
@@ -271,7 +276,9 @@ const inSearchOfTheMyrequeQuest: QuestDefinition = {
             const ctx: DialogueContext = { player, services, npcId: 2985, npcName: "Velorina" };
             const q = inSearchOfTheMyrequeQuest;
             const stage = getQuestStage(player, q);
-            if (stage >= q.completionValue) return;
+            if (stage >= q.completionValue) {
+                return;
+            }
             if (getQuestFlag(player, q.key, "found_hideout")) {
                 startConversation(ctx, [
                     { npc: ["You found them!"] },
@@ -407,7 +414,13 @@ const ghostsAhoyQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 2985, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 2985, npcName: "Velorina" };
             const q = ghostsAhoyQuest;
-            if (getQuestStage(player, q) >= q.completionValue) return;
+            if (getQuestStage(player, q) >= q.completionValue) {
+                startConversation(ctx, [{ npc: ["Port Phasmatys is free at last."] }]);
+                return;
+            }
+            if (getQuestStage(player, q) < q.startedValue) {
+                return;
+            }
             if (getQuestFlag(player, q.key, "got_bone_mead")) {
                 startConversation(ctx, [
                     { npc: ["Phasmatys is free!"] },
@@ -529,7 +542,10 @@ const horrorFromTheDeepQuest: QuestDefinition = {
             const ctx: DialogueContext = { player, services, npcId: 3479, npcName: "Morgan" };
             const q = horrorFromTheDeepQuest;
             const stage = getQuestStage(player, q);
-            if (stage >= q.completionValue) return;
+            if (stage >= q.completionValue) {
+                startConversation(ctx, [{ npc: ["The lighthouse is safe again."] }]);
+                return;
+            }
             if (getQuestFlag(player, q.key, "defeated_horror")) {
                 startConversation(ctx, [
                     { npc: ["You saved the lighthouse!"] },
@@ -698,7 +714,10 @@ const regicideQuest: QuestDefinition = {
             const ctx: DialogueContext = { player, services, npcId: 4963, npcName: "King Bolren" };
             const q = regicideQuest;
             const stage = getQuestStage(player, q);
-            if (stage >= q.completionValue) return;
+            if (stage >= q.completionValue) {
+                startConversation(ctx, [{ npc: ["Tirannwn holds many secrets yet."] }]);
+                return;
+            }
             if (stage >= q.startedValue) {
                 startConversation(ctx, [{ npc: ["Speak with Lord Iorwerth in Tirannwn."] }]);
                 return;
@@ -775,69 +794,6 @@ const rovingElvesQuest = simpleQuest({
     journalDone: ["Glarial's tomb was violated.", "I helped restore it."],
 });
 
-const mageArenaQuest: QuestDefinition = {
-    key: "mage_arena",
-    name: "Mage Arena",
-    varpId: 267,
-    startedValue: 1,
-    completionValue: 8,
-    rewards: {
-        questPoints: 2,
-        other: ["God spells (Claws of Guthix, Flames of Zamorak, Saradomin Strike)"],
-    },
-    rewardItemId: 2416,
-    overviewStartText: "proving yourself in the <col=800000>Mage Arena</col>.",
-    buildJournal(player, _services) {
-        const q = mageArenaQuest;
-        const stage = getQuestStage(player, q);
-        if (stage < q.startedValue) return buildNotStartedJournal(q, "I can start with Kolodion in the Mage Arena.");
-        if (stage >= q.completionValue) {
-            return buildCompleteJournal(["Kolodion tested me.", "I earned the god spells."]);
-        }
-        return ["The Mage Arena demands a champion.", "", strikeIf(getQuestFlag(player, q.key, "won"), "Kolodion will test me.")];
-    },
-    register(registry: IScriptRegistry) {
-        registerQuestNpcTalk(registry, 1603, ({ player, services }) => {
-            const ctx: DialogueContext = { player, services, npcId: 1603, npcName: "Kolodion" };
-            const q = mageArenaQuest;
-            const stage = getQuestStage(player, q);
-            if (stage >= q.completionValue) {
-                startConversation(ctx, [{ npc: ["You are a champion."] }]);
-                return;
-            }
-            if (getQuestFlag(player, q.key, "won")) {
-                startConversation(ctx, [
-                    { npc: ["You earned the god spells!"] },
-                    { exec: (d) => completeQuest(d.player, d.services, q) },
-                ]);
-                return;
-            }
-            if (stage >= q.startedValue) {
-                startConversation(ctx, [
-                    { npc: ["Defeat the guardians!"] },
-                    { exec: (d) => setQuestFlag(d.player, q.key, "won", true) },
-                ]);
-                return;
-            }
-            startConversation(ctx, [
-                { npc: ["Prove yourself in the Mage Arena!"] },
-                {
-                    options: [
-                        {
-                            text: "I accept.",
-                            next: [
-                                { player: ["I accept."] },
-                                { exec: (d) => setQuestStage(d.player, q, d.services, q.startedValue) },
-                            ],
-                        },
-                        { text: "Not now.", next: [{ player: ["Not now."] }] },
-                    ],
-                },
-            ]);
-        });
-    },
-};
-
 const oneSmallFavourQuest = simpleQuest({
     key: "one_small_favour",
     name: "One Small Favour",
@@ -887,6 +843,5 @@ export const membersQuestPack3: QuestDefinition[] = [
     eaglesPeakQuest,
     regicideQuest,
     rovingElvesQuest,
-    mageArenaQuest,
     oneSmallFavourQuest,
 ];

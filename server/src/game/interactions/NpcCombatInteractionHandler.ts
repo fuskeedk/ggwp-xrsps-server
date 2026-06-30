@@ -303,12 +303,19 @@ export class NpcCombatInteractionHandler {
             }
 
             const spellId = me.combat.spellId;
-            if (!(me.combat.autocastEnabled && spellId > 0)) return;
+            const isMagicAutocast = me.combat.autocastEnabled && spellId > 0;
 
             const attackDelay = Math.max(1, opts?.pickPlayerAttackDelay?.(me, target) ?? 4);
             me.combat.attackDelay = attackDelay;
-            const last = me.combat.lastSpellCastTick;
-            if (tick < last + attackDelay) return;
+
+            if (isMagicAutocast) {
+                const last = me.combat.lastSpellCastTick;
+                if (tick < last + attackDelay) return;
+                schedulePlayerAttack(me, target, attackDelay, tick);
+                return;
+            }
+
+            if (!me.combat.isAttackReady(tick)) return;
 
             schedulePlayerAttack(me, target, attackDelay, tick);
         });

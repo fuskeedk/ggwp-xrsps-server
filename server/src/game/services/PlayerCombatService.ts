@@ -16,6 +16,7 @@ const DEFAULT_MISS_SOUND = 2564;
 const DEFAULT_MAGIC_SPLASH_SOUND = 227;
 const MAGIC_CAST_SEQ = 711; // Standard magic casting animation (human_caststrike)
 const MAGIC_CAST_STAFF_SEQ = 1162; // Magic casting with staff (human_caststrike_staff)
+const TOXIC_BLOWPIPE = 12926;
 /**
  * Melee hits on NPCs land the tick after the swing: the base melee delay is 0,
  * but NPCs act before players each tick, so the hit applies on the NPC's next turn.
@@ -24,10 +25,12 @@ const MELEE_HIT_DELAY_TICKS = 0;
 const UNARMED_PUNCH_SOUND = 2566;
 const UNARMED_KICK_SOUND = 2565;
 const WEAPON_SPEED_PARAM = 771;
+type AttackSpeedTargetType = "npc" | "player";
 
 const MAGIC_WEAPON_CATEGORY_IDS = new Set([18, 24, 29, 31]);
+const SALAMANDER_WEAPON_CATEGORY_ID = 6;
 const RANGED_WEAPON_CATEGORY_IDS = new Set([
-    3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 19, 20, 22, 23, 26, 27, 30, 33,
+    3, 4, 5, 7, 8, 9, 10, 11, 12, 14, 19, 20, 22, 23, 26, 27, 30, 33,
 ]);
 
 const SPELL_CAST_SEQUENCE_OVERRIDES: Record<number, number> = {
@@ -265,16 +268,23 @@ export class PlayerCombatService {
         return DEFAULT_ATTACK_SPEED;
     }
 
-    pickAttackSpeed(player: PlayerState): number {
+    private isRapidRangedStyle(player: PlayerState, weaponId: number): boolean {
+        const weaponCategory = player.combat.weaponCategory ?? 0;
+        if (!RANGED_WEAPON_CATEGORY_IDS.has(weaponCategory)) return false;
+        const styleSlot = player.combat.styleSlot ?? 0;
+        return getAttackStyle(weaponId, styleSlot) === AttackStyle.RAPID;
+    }
+
+    pickAttackSpeed(player: PlayerState, targetType: AttackSpeedTargetType = "npc"): number {
         const equip = this.ensureEquipArray(player);
         const weaponId = equip[EquipmentSlot.WEAPON];
         const baseSpeed = this.resolveBaseAttackSpeed(player);
-        const weaponCategory = player.combat.weaponCategory ?? 0;
-        const styleSlot = player.combat.styleSlot ?? 0;
-        if (RANGED_WEAPON_CATEGORY_IDS.has(weaponCategory)) {
-            const actualStyle = getAttackStyle(weaponId, styleSlot);
-            if (actualStyle === AttackStyle.RAPID) return Math.max(1, baseSpeed - 1);
+        const rapid = this.isRapidRangedStyle(player, weaponId);
+        if (weaponId === TOXIC_BLOWPIPE) {
+            if (targetType === "player") return rapid ? 3 : 4;
+            return rapid ? 2 : 3;
         }
+        if (rapid) return Math.max(1, baseSpeed - 1);
         return baseSpeed;
     }
 
@@ -316,8 +326,14 @@ export class PlayerCombatService {
     deriveAttackTypeFromStyle(style: number | undefined, attacker?: PlayerState): AttackType {
         const stored = attacker?.getCurrentAttackType?.();
         if (stored) return stored;
-        if (style === 3 || (attacker?.combat.spellId ?? -1) > 0) return "magic";
         const category = attacker?.combat.weaponCategory ?? -1;
+        if (category === SALAMANDER_WEAPON_CATEGORY_ID) {
+            const styleSlot = attacker?.combat.styleSlot ?? 0;
+            if (styleSlot === 0) return "melee";
+            if (styleSlot === 1) return "ranged";
+            return "magic";
+        }
+        if (style === 3 || (attacker?.combat.spellId ?? -1) > 0) return "magic";
         if (MAGIC_WEAPON_CATEGORY_IDS.has(category)) return "magic";
         if (RANGED_WEAPON_CATEGORY_IDS.has(category)) return "ranged";
         return "melee";

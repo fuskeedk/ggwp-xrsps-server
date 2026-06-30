@@ -522,7 +522,7 @@ function handleAutocast(
     // Validate staff-spell compatibility ()
     const equip = player.appearance?.equip;
     const weaponObjId = Array.isArray(equip) ? equip[EquipmentSlot.WEAPON] : 0;
-    const compatibility = canWeaponAutocastSpell(weaponObjId, spellId);
+    const compatibility = canWeaponAutocastSpell(weaponObjId, spellId, equip);
     if (!compatibility.compatible) {
         const message = getAutocastCompatibilityMessage(compatibility.reason);
         services.messaging.sendGameMessage(player, message);

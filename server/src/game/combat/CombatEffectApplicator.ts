@@ -36,6 +36,7 @@ import {
     HitEffectType,
     resolveHitEffect,
 } from "./HitEffects";
+import { processBarrowsArmorExposure } from "./BarrowsDegradationSystem";
 import {
     OSRS_HITSPLAT_DAMAGE_MAX_ME,
     OSRS_HITSPLAT_DAMAGE_MAX_ME_CYAN,
@@ -372,6 +373,7 @@ export class CombatEffectApplicator {
                     };
                 }
                 const style = resolveDamageStyle(styleRaw, dealt, maxHitRaw);
+                processBarrowsArmorExposure(player);
                 return {
                     style,
                     amount: dealt,
@@ -513,8 +515,6 @@ export class CombatEffectApplicator {
         // Note: The following effects are tracked but not fully implemented:
         // - siphonRunEnergyPercent: PvP only (target must be player)
         // - prayerDisableTicks: PvP only
-        // - drainMagicByDamage: Requires NPC stat tracking
-        // - drainCombatStatByDamage: Requires NPC stat tracking
     }
 }
 

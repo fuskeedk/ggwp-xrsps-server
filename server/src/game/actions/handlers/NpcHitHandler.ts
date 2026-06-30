@@ -11,8 +11,11 @@
  */
 import { logger } from "../../../utils/logger";
 import { AttackType } from "../../combat/AttackType";
+import { BoltEffectType } from "../../combat/AmmoSystem";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
-import type { NpcState } from "../../npc";
+import { applyPoweredStaffHitEffects } from "../../combat/PoweredStaffEffects";
+import { applyBarrowsSetOnNpcHit } from "../../combat/BarrowsSetEffects";
+import type { NpcCombatStat, NpcState } from "../../npc";
 import type { PlayerState } from "../../player";
 import { getPoweredStaffSpellData } from "../../spells/SpellDataProvider";
 import type { PoweredStaffSpellData } from "../../spells/SpellDataProvider";
@@ -142,6 +145,17 @@ export class NpcHitHandler {
             hitsplatTick,
             maxHit,
         );
+        let totalDamageDealt = npcHitsplat.amount;
+        if (damage2 !== undefined && damage2 > 0) {
+            const secondaryHitsplat = this.services.applyNpcHitsplat(
+                npc,
+                type2 ?? style,
+                damage2,
+                hitsplatTick,
+                maxHit,
+            );
+            totalDamageDealt += secondaryHitsplat.amount;
+        }
         if (npcHitsplat.hpCurrent > 0) {
             const npcCombatSeq = this.services.getNpcCombatSequences(npc.typeId);
             if (npcCombatSeq?.block !== undefined) {
@@ -164,7 +178,7 @@ export class NpcHitHandler {
             player.id,
             tick,
             npc,
-            Math.max(0, npcHitsplat.amount),
+            Math.max(0, totalDamageDealt),
             attackTypeHint,
             player,
         );
@@ -176,11 +190,26 @@ export class NpcHitHandler {
         const xpGrantedOnAttack =
             data.xpGrantedOnAttack === true || data.hit?.xpGrantedOnAttack === true;
         if (damage > 0 && hitLanded && !xpGrantedOnAttack) {
-            this.services.awardCombatXp(player, damage, data.hit ?? data, effects);
+            this.services.awardCombatXp(player, totalDamageDealt, data.hit ?? data, effects);
         }
 
         // Apply special attack effects
         this.handleSpecialAttackEffects(player, npc, data, hitLanded, npcHitsplat, tick);
+
+        if (hitLanded && totalDamageDealt > 0) {
+            const skillsChanged = applyBarrowsSetOnNpcHit(
+                player,
+                npc,
+                attackTypeHint ?? AttackType.Melee,
+                totalDamageDealt,
+            );
+            if (skillsChanged) {
+                const sync = player.skillSystem.takeSkillSync();
+                if (sync) {
+                    this.services.queueSkillSnapshot(player.id, sync);
+                }
+            }
+        }
 
         // Emit hitsplat effect
         if (!(isMagicAttack && !hitLanded)) {
@@ -371,6 +400,7 @@ export class NpcHitHandler {
                   selfDamage?: number;
                   leechPercent?: number;
                   poison?: boolean;
+                  stunTicks?: number;
               }
             | undefined;
 
@@ -397,6 +427,14 @@ export class NpcHitHandler {
         }
         if (ammoEffect.selfDamage && ammoEffect.selfDamage > 0) {
             player.skillSystem.applyHitpointsDamage(Math.max(0, ammoEffect.selfDamage));
+        }
+        if (
+            ammoEffect.effectType === BoltEffectType.Knockdown &&
+            typeof ammoEffect.stunTicks === "number" &&
+            ammoEffect.stunTicks > 0 &&
+            dealt > 0
+        ) {
+            npc.applyFreeze(ammoEffect.stunTicks, hitsplatTick);
         }
     }
 
@@ -448,9 +486,56 @@ export class NpcHitHandler {
             }
         }
 
+        this.handleNpcSpecialStatDrains(npc, se, dealt);
+
         const sync = player.skillSystem.takeSkillSync();
         if (sync) {
             this.services.queueSkillSnapshot(player.id, sync);
+        }
+    }
+
+    private handleNpcSpecialStatDrains(
+        npc: NpcState,
+        effects: NonNullable<SpecialAttackPayload["effects"]>,
+        damageDealt: number,
+    ): void {
+        const dealt = Math.max(0, Math.trunc(damageDealt));
+
+        if (
+            typeof effects.drainDefencePercent === "number" &&
+            Number.isFinite(effects.drainDefencePercent) &&
+            effects.drainDefencePercent > 0
+        ) {
+            npc.drainCombatStatPercent("defence", effects.drainDefencePercent);
+        }
+
+        if (
+            dealt > 0 &&
+            typeof effects.drainDefenceByDamage === "number" &&
+            Number.isFinite(effects.drainDefenceByDamage) &&
+            effects.drainDefenceByDamage > 0
+        ) {
+            npc.drainCombatStat("defence", Math.floor(dealt * effects.drainDefenceByDamage), {
+                onlyIfNotDrained: !!effects.drainDefenceOnlyIfNotDrained,
+            });
+        }
+
+        if (dealt > 0 && effects.drainMagicByDamage) {
+            npc.drainCombatStat("magic", dealt);
+        }
+
+        if (dealt > 0 && effects.drainCombatStatByDamage) {
+            this.drainNpcCombatStatsByDamage(npc, dealt);
+        }
+    }
+
+    private drainNpcCombatStatsByDamage(npc: NpcState, damageDealt: number): void {
+        let remaining = Math.max(0, Math.trunc(damageDealt));
+        const drainOrder: NpcCombatStat[] = ["defence", "strength", "attack", "magic", "ranged"];
+        for (const stat of drainOrder) {
+            if (remaining <= 0) break;
+            const drained = npc.drainCombatStat(stat, remaining);
+            remaining -= drained;
         }
     }
 
@@ -530,6 +615,8 @@ export class NpcHitHandler {
         if (spell?.poisonDamage && landed && npcHitsplat.amount > 0) {
             npc.inflictPoison(spell.poisonDamage, tick);
         }
+
+        applyPoweredStaffHitEffects(player, weaponId, npcHitsplat.amount, landed);
 
         if (spell?.maxTargets && spell.maxTargets > 1 && landed && npcHitsplat.amount > 0) {
             const multiResult = this.services.applyMultiTargetSpellDamage({
