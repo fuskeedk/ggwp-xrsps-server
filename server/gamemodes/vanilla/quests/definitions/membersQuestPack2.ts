@@ -17,6 +17,7 @@ import {
 } from "../helpers";
 import type { QuestDefinition, QuestItemRequirement } from "../types";
 import { simpleQuest } from "./questFactory";
+import { isQuestInProgress } from "../questSharedNpcYield";
 import { addItemIfMissing, hasItem, isVarpAtLeast } from "./questUtils";
 
 const PRIEST_IN_PERIL = 302;
@@ -1329,6 +1330,9 @@ const familyCrestQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 4984, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 4984, npcName: "Dimintheis" };
             const stage = getQuestStage(player, familyCrestQuest);
+            if (stage < familyCrestQuest.startedValue && isQuestInProgress(player, "family_pest")) {
+                return;
+            }
             if (stage >= familyCrestQuest.completionValue) {
                 startConversation(ctx, [{ npc: ["The crest is whole again!"] }]);
                 return;

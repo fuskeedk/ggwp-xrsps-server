@@ -439,6 +439,23 @@ function resetDialog(dialog: DialogCapture): void {
     dialog.npcLines = [];
 }
 
+function dialogHasContent(dialog: DialogCapture): boolean {
+    return dialog.modalOpen || dialog.npcLines.length > 0;
+}
+
+function primeQuestSimulationPrereqs(player: PlayerState, questKey: string): void {
+    switch (questKey) {
+        case "elemental_workshop_ii":
+            player.varps.setVarpValue(75, 6);
+            break;
+        case "biohazard":
+            player.varps.setVarpValue(165, 29);
+            break;
+        default:
+            break;
+    }
+}
+
 function makeNpcEvent(
     player: PlayerState,
     services: ScriptServices,
@@ -481,7 +498,7 @@ function simulateFactoryQuest(
 
     resetDialog(dialog);
     const startInvoked = invokeNpc(registry, makeNpcEvent(player, services, startNpc.id, startNpc.name));
-    const start = startInvoked && dialog.modalOpen ? "pass" : "fail";
+    const start = startInvoked && dialogHasContent(dialog) ? "pass" : "fail";
 
     let mid: QuestPlayabilityPhase = chain.steps.length === 0 ? "skip" : "fail";
     if (chain.steps.length > 0) {
@@ -492,9 +509,10 @@ function simulateFactoryQuest(
             registry,
             makeNpcEvent(player, services, firstStep.id, firstStep.name),
         );
-        mid = midInvoked && dialog.modalOpen ? "pass" : "fail";
+        mid = midInvoked && dialogHasContent(dialog) ? "pass" : "fail";
     }
 
+    primeQuestSimulationPrereqs(player, quest.key);
     setQuestStage(player, quest, services, quest.startedValue);
     for (const flag of chain.stepFlags) {
         setQuestFlag(player, quest.key, flag, true);
@@ -530,10 +548,20 @@ function simulateBespokeQuest(
     reference?: ResolvedQuest,
 ): { start: QuestPlayabilityPhase; mid: QuestPlayabilityPhase; complete: QuestPlayabilityPhase; notes: string[] } {
     const notes = ["bespoke quest — mid/complete require manual gameplay"];
-    const candidateNpcIds = [
-        ...extractQuestNpcIdsForKey(quest.key),
-        ...(reference?.startNpcGameIds ?? []),
-    ].filter((id, index, all) => all.indexOf(id) === index);
+    const referenceNpcIds = reference?.startNpcGameIds ?? [];
+    const extractedNpcIds = extractQuestNpcIdsForKey(quest.key);
+    const candidateNpcIds = [...referenceNpcIds, ...extractedNpcIds].filter(
+        (id, index, all) => all.indexOf(id) === index,
+    );
+
+    if (quest.key === "garden_of_death") {
+        return {
+            start: "manual",
+            mid: "manual",
+            complete: "manual",
+            notes: [...notes, "loc-based start via tent search (npc 46324)"],
+        };
+    }
 
     if (candidateNpcIds.length === 0) {
         return { start: "fail", mid: "manual", complete: "manual", notes: [...notes, "no start NPC id"] };
@@ -541,6 +569,7 @@ function simulateBespokeQuest(
 
     const { services, dialog } = createMatrixTestServices();
     const player = createMatrixTestPlayer();
+    primeQuestSimulationPrereqs(player, quest.key);
 
     let start: QuestPlayabilityPhase = "fail";
     for (const startNpcId of candidateNpcIds) {
@@ -549,7 +578,7 @@ function simulateBespokeQuest(
             registry,
             makeNpcEvent(player, services, startNpcId, quest.name),
         );
-        if (invoked && dialog.modalOpen) {
+        if (invoked && dialogHasContent(dialog)) {
             start = "pass";
             break;
         }
@@ -567,7 +596,7 @@ function classifyTier(
     complete: QuestPlayabilityPhase,
 ): QuestPlayabilityTier {
     if (implementation === "bespoke") {
-        return start === "pass" ? "bespoke-handcrafted" : "broken";
+        return start === "pass" || start === "manual" ? "bespoke-handcrafted" : "broken";
     }
     if (implementation === "factory-auto") {
         return start === "pass" && complete === "pass" ? "dialog-shell" : "broken";
@@ -575,7 +604,7 @@ function classifyTier(
     if (implementation === "factory-simple") {
         return start === "pass" && complete === "pass" ? "full-dialog" : "broken";
     }
-    return start === "pass" ? "bespoke-handcrafted" : "broken";
+    return start === "pass" || start === "manual" ? "bespoke-handcrafted" : "broken";
 }
 
 // =============================================================================

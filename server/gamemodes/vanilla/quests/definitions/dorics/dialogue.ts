@@ -7,6 +7,7 @@ import {
     setQuestStage,
     takeQuestItems,
 } from "../../QuestService";
+import { isQuestInProgress } from "../../questSharedNpcYield";
 import { type DialogueContext, type DialogueStep, startConversation } from "../../dialogue";
 import type { QuestDefinition } from "../../types";
 import { DORIC_NPC_ID, REQUIRED_ITEMS, STAGE_COMPLETE, STAGE_STARTED } from "./constants";
@@ -176,6 +177,9 @@ export function createDoricTalkHandler(quest: QuestDefinition): (event: NpcInter
         const ctx: DialogueContext = { player, services, npcId: DORIC_NPC_ID, npcName: "Doric" };
 
         const stage = getQuestStage(player, quest);
+        if (stage < STAGE_STARTED && isQuestInProgress(player, "devious_minds")) {
+            return;
+        }
         if (stage >= STAGE_COMPLETE) {
             startConversation(ctx, completedSteps);
         } else if (stage >= STAGE_STARTED) {

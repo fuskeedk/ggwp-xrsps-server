@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-30T03:54:44.263Z",
+  "generatedAt": "2026-06-30T04:04:36.802Z",
   "totalQuests": 209,
   "summary": {
-    "fullDialog": 14,
-    "bespokeHandcrafted": 49,
-    "dialogShell": 124,
-    "broken": 22,
+    "fullDialog": 21,
+    "bespokeHandcrafted": 51,
+    "dialogShell": 137,
+    "broken": 0,
     "f2pCatalog": 18,
     "members": 166,
-    "osrsCustom": 44,
-    "osrsDialogChain": 14,
-    "osrsDialogShell": 124,
-    "osrsWiringBroken": 27
+    "osrsCustom": 45,
+    "osrsDialogChain": 21,
+    "osrsDialogShell": 137,
+    "osrsWiringBroken": 6
   },
   "entries": [
     {
@@ -415,16 +415,13 @@
       "stepNpcIds": [],
       "finishNpcId": null,
       "itemRequirementCount": 0,
-      "start": "fail",
+      "start": "pass",
       "mid": "manual",
       "complete": "manual",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "tier": "bespoke-handcrafted",
+      "osrsMechanics": "custom",
       "notes": [
-        "bespoke quest — mid/complete require manual gameplay",
-        "npc 2011 handler ran without dialog",
-        "npc 1145 handler ran without dialog",
-        "npc 1110 handler ran without dialog"
+        "bespoke quest — mid/complete require manual gameplay"
       ]
     },
     {
@@ -647,11 +644,11 @@
       ],
       "finishNpcId": 2014,
       "itemRequirementCount": 0,
-      "start": "fail",
+      "start": "pass",
       "mid": "pass",
       "complete": "pass",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "tier": "full-dialog",
+      "osrsMechanics": "dialog-chain",
       "notes": []
     },
     {
@@ -810,9 +807,9 @@
       "itemRequirementCount": 0,
       "start": "pass",
       "mid": "pass",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "dialog-shell",
+      "osrsMechanics": "dialog-shell",
       "notes": []
     },
     {
@@ -932,9 +929,9 @@
       "itemRequirementCount": 0,
       "start": "pass",
       "mid": "pass",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "dialog-shell",
+      "osrsMechanics": "dialog-shell",
       "notes": []
     },
     {
@@ -1091,11 +1088,11 @@
       ],
       "finishNpcId": 4118,
       "itemRequirementCount": 0,
-      "start": "fail",
+      "start": "pass",
       "mid": "pass",
       "complete": "pass",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "tier": "full-dialog",
+      "osrsMechanics": "dialog-chain",
       "notes": []
     },
     {
@@ -1159,9 +1156,9 @@
       "itemRequirementCount": 0,
       "start": "pass",
       "mid": "pass",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "full-dialog",
+      "osrsMechanics": "dialog-chain",
       "notes": []
     },
     {
@@ -1364,9 +1361,9 @@
       "itemRequirementCount": 0,
       "start": "pass",
       "mid": "skip",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "dialog-shell",
+      "osrsMechanics": "dialog-shell",
       "notes": []
     },
     {
@@ -1528,9 +1525,7 @@
       "tier": "bespoke-handcrafted",
       "osrsMechanics": "custom",
       "notes": [
-        "bespoke quest — mid/complete require manual gameplay",
-        "npc 2985 handler ran without dialog",
-        "npc 2986 handler ran without dialog"
+        "bespoke quest — mid/complete require manual gameplay"
       ]
     },
     {
@@ -1795,11 +1790,11 @@
       ],
       "finishNpcId": 2985,
       "itemRequirementCount": 0,
-      "start": "fail",
+      "start": "pass",
       "mid": "pass",
       "complete": "pass",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "tier": "full-dialog",
+      "osrsMechanics": "dialog-chain",
       "notes": []
     },
     {
@@ -1841,10 +1836,7 @@
       "tier": "bespoke-handcrafted",
       "osrsMechanics": "custom",
       "notes": [
-        "bespoke quest — mid/complete require manual gameplay",
-        "npc 2985 handler ran without dialog",
-        "npc 4014 handler ran without dialog",
-        "npc 2986 handler ran without dialog"
+        "bespoke quest — mid/complete require manual gameplay"
       ]
     },
     {
@@ -2031,8 +2023,7 @@
       "tier": "bespoke-handcrafted",
       "osrsMechanics": "custom",
       "notes": [
-        "bespoke quest — mid/complete require manual gameplay",
-        "npc 1160 handler ran without dialog"
+        "bespoke quest — mid/complete require manual gameplay"
       ]
     },
     {
@@ -2378,7 +2369,8 @@
       "tier": "bespoke-handcrafted",
       "osrsMechanics": "custom",
       "notes": [
-        "bespoke quest — mid/complete require manual gameplay"
+        "bespoke quest — mid/complete require manual gameplay",
+        "npc 6195 handler ran without dialog"
       ]
     },
     {
@@ -2427,7 +2419,7 @@
       "osrsMechanics": "custom",
       "notes": [
         "bespoke quest — mid/complete require manual gameplay",
-        "npc 9804 handler ran without dialog"
+        "npc 9805 handler ran without dialog"
       ]
     },
     {
@@ -2691,9 +2683,9 @@
       "itemRequirementCount": 6,
       "start": "pass",
       "mid": "skip",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "dialog-shell",
+      "osrsMechanics": "dialog-shell",
       "notes": [
         "requires 6 item type(s) at finish"
       ]
@@ -2717,9 +2709,9 @@
       "itemRequirementCount": 6,
       "start": "pass",
       "mid": "pass",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "dialog-shell",
+      "osrsMechanics": "dialog-shell",
       "notes": [
         "requires 6 item type(s) at finish"
       ]
@@ -2761,9 +2753,9 @@
       "itemRequirementCount": 4,
       "start": "pass",
       "mid": "skip",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "dialog-shell",
+      "osrsMechanics": "dialog-shell",
       "notes": [
         "requires 4 item type(s) at finish"
       ]
@@ -2879,9 +2871,9 @@
       "itemRequirementCount": 6,
       "start": "pass",
       "mid": "pass",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "dialog-shell",
+      "osrsMechanics": "dialog-shell",
       "notes": [
         "requires 6 item type(s) at finish"
       ]
@@ -2925,9 +2917,9 @@
       "itemRequirementCount": 6,
       "start": "pass",
       "mid": "skip",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "dialog-shell",
+      "osrsMechanics": "dialog-shell",
       "notes": [
         "requires 6 item type(s) at finish"
       ]
@@ -2993,9 +2985,9 @@
       "itemRequirementCount": 0,
       "start": "pass",
       "mid": "pass",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "dialog-shell",
+      "osrsMechanics": "dialog-shell",
       "notes": []
     },
     {
@@ -3058,11 +3050,11 @@
       ],
       "finishNpcId": 9146,
       "itemRequirementCount": 0,
-      "start": "fail",
+      "start": "pass",
       "mid": "pass",
       "complete": "pass",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "tier": "full-dialog",
+      "osrsMechanics": "dialog-chain",
       "notes": []
     },
     {
@@ -3136,7 +3128,8 @@
       "tier": "bespoke-handcrafted",
       "osrsMechanics": "custom",
       "notes": [
-        "bespoke quest — mid/complete require manual gameplay"
+        "bespoke quest — mid/complete require manual gameplay",
+        "npc 815 handler ran without dialog"
       ]
     },
     {
@@ -3388,8 +3381,7 @@
       "tier": "bespoke-handcrafted",
       "osrsMechanics": "custom",
       "notes": [
-        "bespoke quest — mid/complete require manual gameplay",
-        "npc 8695 handler ran without dialog"
+        "bespoke quest — mid/complete require manual gameplay"
       ]
     },
     {
@@ -3481,9 +3473,9 @@
       "itemRequirementCount": 6,
       "start": "pass",
       "mid": "pass",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "dialog-shell",
+      "osrsMechanics": "dialog-shell",
       "notes": [
         "requires 6 item type(s) at finish"
       ]
@@ -3555,11 +3547,11 @@
       ],
       "finishNpcId": 4705,
       "itemRequirementCount": 0,
-      "start": "fail",
+      "start": "pass",
       "mid": "pass",
       "complete": "pass",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "tier": "full-dialog",
+      "osrsMechanics": "dialog-chain",
       "notes": []
     },
     {
@@ -3998,14 +3990,14 @@
       "stepNpcIds": [],
       "finishNpcId": null,
       "itemRequirementCount": 0,
-      "start": "fail",
+      "start": "manual",
       "mid": "manual",
       "complete": "manual",
-      "tier": "broken",
+      "tier": "bespoke-handcrafted",
       "osrsMechanics": "wiring-broken",
       "notes": [
         "bespoke quest — mid/complete require manual gameplay",
-        "no start NPC id"
+        "loc-based start via tent search (npc 46324)"
       ]
     },
     {
@@ -4051,9 +4043,9 @@
       "itemRequirementCount": 6,
       "start": "pass",
       "mid": "pass",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "dialog-shell",
+      "osrsMechanics": "dialog-shell",
       "notes": [
         "requires 6 item type(s) at finish"
       ]
@@ -4378,9 +4370,9 @@
       "itemRequirementCount": 6,
       "start": "pass",
       "mid": "pass",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "dialog-shell",
+      "osrsMechanics": "dialog-shell",
       "notes": [
         "requires 6 item type(s) at finish"
       ]
@@ -4546,12 +4538,7 @@
       "tier": "bespoke-handcrafted",
       "osrsMechanics": "custom",
       "notes": [
-        "bespoke quest — mid/complete require manual gameplay",
-        "npc 4118 handler ran without dialog",
-        "npc 4119 handler ran without dialog",
-        "npc 2985 handler ran without dialog",
-        "npc 4014 handler ran without dialog",
-        "npc 2986 handler ran without dialog"
+        "bespoke quest — mid/complete require manual gameplay"
       ]
     },
     {
@@ -4681,9 +4668,9 @@
       "itemRequirementCount": 4,
       "start": "pass",
       "mid": "pass",
-      "complete": "fail",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "complete": "pass",
+      "tier": "dialog-shell",
+      "osrsMechanics": "dialog-shell",
       "notes": [
         "requires 4 item type(s) at finish"
       ]
@@ -4863,11 +4850,11 @@
       ],
       "finishNpcId": 881,
       "itemRequirementCount": 0,
-      "start": "fail",
+      "start": "pass",
       "mid": "pass",
       "complete": "pass",
-      "tier": "broken",
-      "osrsMechanics": "wiring-broken",
+      "tier": "full-dialog",
+      "osrsMechanics": "dialog-chain",
       "notes": []
     }
   ]

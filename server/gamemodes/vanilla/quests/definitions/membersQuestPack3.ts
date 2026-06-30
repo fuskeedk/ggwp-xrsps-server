@@ -81,7 +81,6 @@ const trollStrongholdQuest: QuestDefinition = {
             const ctx: DialogueContext = { player, services, npcId: 4118, npcName: "Eadgar" };
             const stage = getQuestStage(player, trollStrongholdQuest);
             if (stage >= trollStrongholdQuest.completionValue) {
-                startConversation(ctx, [{ npc: ["Trollheim is open to you."] }]);
                 return;
             }
             if (getQuestFlag(player, trollStrongholdQuest.key, "freed_godric")) {

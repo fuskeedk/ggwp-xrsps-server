@@ -17,6 +17,7 @@ import {
     strikeIf,
 } from "../helpers";
 import { openSkillMasterDialogForPlayer, skillMasterQuestOptions } from "../../skillCapes/skillMasters";
+import { isQuestInProgress } from "../questSharedNpcYield";
 import type { QuestDefinition, QuestItemRequirement } from "../types";
 
 function hasItem(
@@ -110,6 +111,9 @@ const gertrudesCatQuest: QuestDefinition = {
                 startConversation(ctx, [
                     { npc: ["Please find Fluffs. Her sons may know where she went."] },
                 ]);
+                return;
+            }
+            if (isQuestInProgress(player, "ratcatchers")) {
                 return;
             }
             startConversation(ctx, [

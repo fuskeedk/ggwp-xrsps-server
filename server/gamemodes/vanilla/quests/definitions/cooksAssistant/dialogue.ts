@@ -8,6 +8,7 @@ import {
     setQuestStage,
     takeQuestItems,
 } from "../../QuestService";
+import { isQuestInProgress } from "../../questSharedNpcYield";
 import { type DialogueContext, type DialogueStep, startConversation } from "../../dialogue";
 import type { QuestDefinition } from "../../types";
 import {
@@ -217,6 +218,9 @@ export function createCookTalkHandler(quest: QuestDefinition): (event: NpcIntera
         const ctx: DialogueContext = { player, services, npcId: COOK_NPC_ID, npcName: "Cook" };
         const stage = getQuestStage(player, quest);
 
+        if (stage < STAGE_STARTED && isQuestInProgress(player, "recipe_for_disaster_another_cook_s_quest")) {
+            return;
+        }
         if (stage >= STAGE_COMPLETE) {
             startConversation(ctx, [
                 { npc: ["How is the adventuring going, my friend?"] },

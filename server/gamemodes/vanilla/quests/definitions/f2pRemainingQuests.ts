@@ -4,6 +4,7 @@ import { getQuestFlag, getQuestStringFlag, setQuestFlag, setQuestStringFlag } fr
 import { completeQuest, countCarriedItem, getQuestStage, setQuestStage, takeQuestItems } from "../QuestService";
 import { type DialogueContext, type DialogueStep, startConversation } from "../dialogue";
 import { buildCompleteJournal, buildNotStartedJournal, registerQuestNpcTalk, strikeIf } from "../helpers";
+import { isQuestInProgress } from "../questSharedNpcYield";
 import type { QuestDefinition } from "../types";
 
 const COINS_ITEM_ID = 995;
@@ -298,6 +299,9 @@ const runeMysteriesQuest: QuestDefinition = {
             const { player, services } = event;
             const ctx: DialogueContext = { player, services, npcId: 815, npcName: "Duke Horacio" };
             const stage = getQuestStage(player, runeMysteriesQuest);
+            if (stage < runeMysteriesQuest.startedValue) {
+                return;
+            }
             if (stage >= runeMysteriesQuest.completionValue) {
                 startConversation(ctx, [
                     { npc: ["Thank you again for your help with the rune mysteries."] },
@@ -773,6 +777,12 @@ const goblinDiplomacyQuest: QuestDefinition = {
                         { npc: ["Goblins happy now! You take gold bar."] },
                         { exec: (dctx) => completeQuest(dctx.player, dctx.services, goblinDiplomacyQuest) },
                     ]);
+                    return;
+                }
+                if (
+                    npcId === 3392 &&
+                    isQuestInProgress(player, "recipe_for_disaster_freeing_the_goblin_generals")
+                ) {
                     return;
                 }
                 startConversation(ctx, [
@@ -1675,6 +1685,9 @@ const blackKnightsFortressQuest: QuestDefinition = {
             const { player, services } = event;
             const ctx: DialogueContext = { player, services, npcId: 3395, npcName: "Sir Amik Varze" };
             const stage = getQuestStage(player, blackKnightsFortressQuest);
+            if (stage < blackKnightsFortressQuest.startedValue) {
+                return;
+            }
             if (stage >= blackKnightsFortressQuest.completionValue) {
                 startConversation(ctx, [
                     { npc: ["The Black Knights' plot has been foiled. Well done."] },
