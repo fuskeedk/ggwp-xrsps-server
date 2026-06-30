@@ -72,6 +72,7 @@ export interface CombatAmmoEffectData {
     selfDamage?: number;
     leechPercent?: number;
     poison?: boolean;
+    stunTicks?: number;
 }
 
 export interface CombatSpecialEffectsData {

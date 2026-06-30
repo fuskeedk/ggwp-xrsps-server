@@ -10,7 +10,7 @@
 import { logger } from "../../../utils/logger";
 import { RUN_ENERGY_MAX } from "../../actor";
 import { AttackType } from "../../combat/AttackType";
-import { BoltEffectType } from "../../combat/AmmoSystem";
+import { BoltEffectType, doesJadeBoltKnockdownLand } from "../../combat/AmmoSystem";
 import { processBarrowsWeaponExposure } from "../../combat/BarrowsDegradationSystem";
 import { rollDharokDamnedRecoilDamage } from "../../combat/BarrowsDamnedEffects";
 import { hasBarrowsSet } from "../../combat/BarrowsEquipment";
@@ -18,6 +18,7 @@ import { applyBarrowsSetOnPlayerHit } from "../../combat/BarrowsSetEffects";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
 import { applyPoweredStaffHitEffects } from "../../combat/PoweredStaffEffects";
 import type { PlayerState } from "../../player";
+import { STUN_TIMER } from "../../model/timer/Timers";
 import { getPoweredStaffSpellData } from "../../spells/SpellDataProvider";
 import type { PoweredStaffSpellData } from "../../spells/SpellDataProvider";
 import type { CombatAutocastActionData, CombatPlayerHitActionData } from "../actionPayloads";
@@ -612,6 +613,21 @@ export class PvpCombatHandler {
                 SkillId.Prayer,
                 Math.min(attackerBase, attackerCurrent + drain),
             );
+        }
+        if (
+            ammoEffect.effectType === BoltEffectType.Knockdown &&
+            typeof ammoEffect.stunTicks === "number" &&
+            ammoEffect.stunTicks > 0 &&
+            dealt > 0
+        ) {
+            const blockedByPrayer = target.prayer.getActivePrayers().has("protect_from_magic");
+            if (!blockedByPrayer) {
+                const agility = target.skillSystem.getSkill(SkillId.Agility);
+                const agilityLevel = Math.max(1, agility.baseLevel + agility.boost);
+                if (doesJadeBoltKnockdownLand(agilityLevel, () => Math.random())) {
+                    target.timers.set(STUN_TIMER, ammoEffect.stunTicks);
+                }
+            }
         }
     }
 

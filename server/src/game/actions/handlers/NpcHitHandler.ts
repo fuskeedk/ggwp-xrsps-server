@@ -11,6 +11,7 @@
  */
 import { logger } from "../../../utils/logger";
 import { AttackType } from "../../combat/AttackType";
+import { BoltEffectType } from "../../combat/AmmoSystem";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
 import { applyPoweredStaffHitEffects } from "../../combat/PoweredStaffEffects";
 import { applyBarrowsSetOnNpcHit } from "../../combat/BarrowsSetEffects";
@@ -399,6 +400,7 @@ export class NpcHitHandler {
                   selfDamage?: number;
                   leechPercent?: number;
                   poison?: boolean;
+                  stunTicks?: number;
               }
             | undefined;
 
@@ -425,6 +427,14 @@ export class NpcHitHandler {
         }
         if (ammoEffect.selfDamage && ammoEffect.selfDamage > 0) {
             player.skillSystem.applyHitpointsDamage(Math.max(0, ammoEffect.selfDamage));
+        }
+        if (
+            ammoEffect.effectType === BoltEffectType.Knockdown &&
+            typeof ammoEffect.stunTicks === "number" &&
+            ammoEffect.stunTicks > 0 &&
+            dealt > 0
+        ) {
+            npc.applyFreeze(ammoEffect.stunTicks, hitsplatTick);
         }
     }
 

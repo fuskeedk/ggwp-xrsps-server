@@ -141,6 +141,8 @@ const BOLT_RACK = 4740;
 // Enchanted bolts
 const OPAL_BOLTS_E = 9236;
 const JADE_BOLTS_E = 9237;
+const JADE_DRAGON_BOLTS_E = 21934;
+const JADE_DRAGON_BOLTS_E_ALT = 21935;
 const PEARL_BOLTS_E = 9238;
 const TOPAZ_BOLTS_E = 9239;
 const SAPPHIRE_BOLTS_E = 9240;
@@ -188,6 +190,7 @@ export const BoltEffectType = {
     Heal: "heal",
     LifeLeech: "life_leech",
     MagicDrain: "magic_drain",
+    Knockdown: "knockdown",
 } as const;
 export type BoltEffectType = (typeof BoltEffectType)[keyof typeof BoltEffectType];
 
@@ -231,6 +234,8 @@ export interface EnchantedBoltEffect {
     selfDamagePercent?: number;
     /** Graphic ID on hit */
     graphicId?: number;
+    /** PvP knockdown stun duration in ticks (Earth's Fury) */
+    stunTicks?: number;
 }
 
 // =============================================================================
@@ -456,6 +461,8 @@ const ALL_BOLTS = [
     DIAMOND_DRAGON_BOLTS_E,
     DRAGONSTONE_DRAGON_BOLTS_E,
     ONYX_DRAGON_BOLTS_E,
+    JADE_DRAGON_BOLTS_E,
+    JADE_DRAGON_BOLTS_E_ALT,
 ];
 
 const CROSSBOW_BOLT_REQUIREMENTS: Map<number, number[]> = new Map([
@@ -514,7 +521,30 @@ const ENCHANTED_BOLT_EFFECTS: Map<number, EnchantedBoltEffect> = new Map([
             name: "Earth's Fury",
             activationChance: 0.06,
             kandarinBoost: true,
-            effectType: "damage_boost",
+            effectType: "knockdown",
+            stunTicks: 8,
+            graphicId: 755,
+        },
+    ],
+    [
+        JADE_DRAGON_BOLTS_E,
+        {
+            name: "Earth's Fury",
+            activationChance: 0.06,
+            kandarinBoost: true,
+            effectType: "knockdown",
+            stunTicks: 8,
+            graphicId: 755,
+        },
+    ],
+    [
+        JADE_DRAGON_BOLTS_E_ALT,
+        {
+            name: "Earth's Fury",
+            activationChance: 0.06,
+            kandarinBoost: true,
+            effectType: "knockdown",
+            stunTicks: 8,
             graphicId: 755,
         },
     ],
@@ -938,12 +968,25 @@ export function getEnchantedBoltEffect(boltId: number): EnchantedBoltEffect | un
 /**
  * Check if bolt effect activates.
  */
+/** OSRS Earth's Fury agility evasion (Mod Ash): -16% at level 1, 110% at level 99. */
+export function getJadeBoltKnockdownEvasionChance(agilityLevel: number): number {
+    const level = Math.max(1, Math.min(99, Math.trunc(agilityLevel)));
+    const raw = -0.16 + ((level - 1) * 1.26) / 98;
+    if (raw <= 0) return 0;
+    if (raw >= 1) return 1;
+    return raw;
+}
+
+export function doesJadeBoltKnockdownLand(agilityLevel: number, random: () => number): boolean {
+    return random() >= getJadeBoltKnockdownEvasionChance(agilityLevel);
+}
+
 export function doesBoltEffectActivate(
     boltId: number,
     hasKandarinDiary: boolean,
     random: () => number,
 ): boolean {
-    const effect = ENCHANTED_BOLT_EFFECTS.get(boltId);
+    const effect = getEnchantedBoltEffect(boltId);
     if (!effect) return false;
 
     let chance = effect.activationChance;
