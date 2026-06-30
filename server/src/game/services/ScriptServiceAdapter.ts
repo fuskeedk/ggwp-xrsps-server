@@ -730,7 +730,11 @@ export function buildScriptServices(deps: ScriptServiceAdapterDeps): ScriptServi
                 );
             },
             applyPrayers: (player, prayers) => {
-                const result = deps.prayerSystem.applySelection(player, prayers);
+                const result = deps.prayerSystem.applySelection(
+                    player,
+                    prayers,
+                    deps.getCurrentTick(),
+                );
                 if (result.activated.length > 0) {
                     for (const prayer of result.activated) {
                         const soundId = getPrayerDefinition(prayer).soundId;

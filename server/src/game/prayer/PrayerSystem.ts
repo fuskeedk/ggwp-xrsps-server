@@ -9,6 +9,12 @@ import { getItemDefinition } from "../../data/items";
 import { PlayerState } from "../player";
 import type { PrayerSystemProvider, PrayerTickResult } from "./PrayerSystemProvider";
 
+const PROTECTION_PRAYERS = new Set<PrayerName>([
+    "protect_from_melee",
+    "protect_from_missiles",
+    "protect_from_magic",
+]);
+
 export type PrayerSelectionError = { prayer: PrayerName; message: string };
 
 export type PrayerSelectionResult = {
@@ -22,11 +28,17 @@ export type PrayerSelectionResult = {
 export { PrayerTickResult };
 
 export class PrayerSystem implements PrayerSystemProvider {
-    applySelection(player: PlayerState, requested: Iterable<string>): PrayerSelectionResult {
+    applySelection(
+        player: PlayerState,
+        requested: Iterable<string>,
+        currentTick?: number,
+    ): PrayerSelectionResult {
         const normalized = this.normalizeRequest(requested);
         const errors: PrayerSelectionError[] = [];
         const skill = player.skillSystem.getSkill(SkillId.Prayer);
         const currentLevel = Math.max(0, skill.baseLevel + skill.boost);
+        const prayerDisabled =
+            currentTick !== undefined && player.combat.isPrayerDisabled(currentTick);
         if (currentLevel <= 0 && normalized.length > 0) {
             errors.push({
                 prayer: normalized[0],
@@ -42,6 +54,13 @@ export class PrayerSystem implements PrayerSystemProvider {
         }
         const next: PrayerName[] = [];
         for (const prayer of normalized) {
+            if (prayerDisabled && PROTECTION_PRAYERS.has(prayer)) {
+                errors.push({
+                    prayer,
+                    message: "You are unable to use that prayer at the moment.",
+                });
+                continue;
+            }
             const def = getPrayerDefinition(prayer);
             if (!this.meetsLevel(skill.baseLevel, def)) {
                 errors.push({

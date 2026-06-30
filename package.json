@@ -53,6 +53,7 @@
     "server:build": "tsc -p server/tsconfig.json",
     "server:build-collision": "tsx server/scripts/build-collision-cache.ts --include-models --force",
     "data:download": "tsx scripts/data-import/download.ts",
+    "data:build-npc-combat-stats": "tsx scripts/data-import/build-npc-combat-stats.ts",
     "data:import": "tsx scripts/data-import/import-all.ts",
     "data:import:quests": "tsx scripts/data-import/import-quest-reference.ts",
     "data:build-quest-varps": "tsx scripts/data-import/build-quest-varp-map.ts",
