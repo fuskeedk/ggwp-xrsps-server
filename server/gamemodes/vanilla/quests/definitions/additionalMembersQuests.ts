@@ -514,6 +514,10 @@ const shiloVillageQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 4625, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 4625, npcName: "Trufitus" };
             if (getQuestStage(player, shiloVillageQuest) < shiloVillageQuest.startedValue) return;
+            if (getQuestStage(player, shiloVillageQuest) >= shiloVillageQuest.completionValue) {
+                startConversation(ctx, [{ npc: ["Shilo Village is at peace again."] }]);
+                return;
+            }
             if (getQuestFlag(player, shiloVillageQuest.key, "has_beads")) {
                 startConversation(ctx, [{ npc: ["Take the beads to Mosol Rei."] }]);
                 return;

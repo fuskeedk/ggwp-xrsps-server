@@ -123,6 +123,10 @@ const trollStrongholdQuest: QuestDefinition = {
         registerQuestNpcTalk(registry, 4119, ({ player, services }) => {
             const ctx: DialogueContext = { player, services, npcId: 4119, npcName: "Godric" };
             if (getQuestStage(player, trollStrongholdQuest) < 1) return;
+            if (getQuestStage(player, trollStrongholdQuest) >= trollStrongholdQuest.completionValue) {
+                startConversation(ctx, [{ npc: ["I'll never forget what you did for me."] }]);
+                return;
+            }
             startConversation(ctx, [
                 { npc: ["You found me! Let's escape!"] },
                 { exec: (d) => setQuestFlag(d.player, trollStrongholdQuest.key, "freed_godric", true) },
