@@ -73,6 +73,9 @@ export class PlayerCombatState {
     freezeExpiryTick: number = 0;
     freezeImmunityUntilTick: number = 0;
 
+    /** Protection prayers disabled until this tick (PvP special attacks). */
+    prayerDisabledUntilTick: number = 0;
+
     // Special attack energy
     specialEnergy: number = 1000; // SPECIAL_ENERGY_MAX
     nextSpecialRegenTick: number = 0;
@@ -98,6 +101,14 @@ export class PlayerCombatState {
 
     isFreezeImmune(currentTick: number): boolean {
         return currentTick < this.freezeImmunityUntilTick;
+    }
+
+    isPrayerDisabled(currentTick: number): boolean {
+        return currentTick < this.prayerDisabledUntilTick;
+    }
+
+    disableProtectionPrayersUntil(untilTick: number): void {
+        this.prayerDisabledUntilTick = Math.max(this.prayerDisabledUntilTick, untilTick);
     }
 
     getFreezeRemaining(currentTick: number): number {

@@ -396,6 +396,7 @@ export interface CombatActionServices {
         damage: number,
         attackType: AttackType,
         sourceType: "player" | "npc",
+        tick?: number,
     ): number;
     /** Apply smite effect. */
     applySmite(attacker: PlayerState, target: PlayerState, damage: number): void;
@@ -748,12 +749,13 @@ export class CombatActionHandler {
                 svc.npcManager?.scheduleDeathProcessing(npcId, killerPlayerId, deathTick);
             },
 
-            applyProtectionPrayers: (target, damage, attackType, sourceType) =>
+            applyProtectionPrayers: (target, damage, attackType, sourceType, tick) =>
                 svc.combatEffectService.applyProtectionPrayers(
                     target,
                     damage,
                     attackType,
                     sourceType,
+                    tick,
                 ),
             applySmite: (attacker, target, damage) =>
                 svc.combatEffectService.applySmite(attacker, target, damage),

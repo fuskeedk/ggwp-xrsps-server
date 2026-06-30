@@ -688,6 +688,7 @@ export class TickPhaseService {
                     hitCount,
                     tick,
                 ).ok,
+            queueCombatState: (player) => this.svc.queueCombatState(player),
             onMagicAttack: ({ player, npc, plan, tick }) =>
                 this.svc.spellActionHandler!.handleAutocastMagicAttack({
                     player,

@@ -64,6 +64,7 @@ export class NpcRetaliationHandler {
             Math.max(0, rawDamage),
             attackType,
             "npc",
+            tick,
         );
         const type2 = Number.isFinite(rawType2) ? rawType2 : undefined;
         const damage2 = Number.isFinite(rawDamage2) ? rawDamage2 : undefined;

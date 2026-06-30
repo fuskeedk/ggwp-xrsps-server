@@ -8,6 +8,7 @@
  * - handleMagicPvpEffects (magic spell effects in PvP)
  */
 import { logger } from "../../../utils/logger";
+import { RUN_ENERGY_MAX } from "../../actor";
 import { AttackType } from "../../combat/AttackType";
 import { HITMARK_DAMAGE } from "../../combat/HitEffects";
 import type { PlayerState } from "../../player";
@@ -15,13 +16,29 @@ import { getPoweredStaffSpellData } from "../../spells/SpellDataProvider";
 import type { PoweredStaffSpellData } from "../../spells/SpellDataProvider";
 import type { CombatAutocastActionData, CombatPlayerHitActionData } from "../actionPayloads";
 import type { ActionEffect, ActionExecutionResult } from "../types";
-import type { CombatActionServices } from "./CombatActionHandler";
+import type { CombatActionServices, SpecialAttackPayload } from "./CombatActionHandler";
+import { SkillId } from "../../../../../src/rs/skill/skills";
+import type { PrayerName } from "../../../../../src/rs/prayer/prayers";
 
 // ============================================================================
 // Constants
 // ============================================================================
 
 const COMBAT_SOUND_DELAY_CYCLES = 8;
+
+const PROTECTION_PRAYERS: PrayerName[] = [
+    "protect_from_melee",
+    "protect_from_missiles",
+    "protect_from_magic",
+];
+
+const PVP_COMBAT_SKILL_DRAIN_ORDER: SkillId[] = [
+    SkillId.Defence,
+    SkillId.Strength,
+    SkillId.Attack,
+    SkillId.Magic,
+    SkillId.Ranged,
+];
 
 // ============================================================================
 // Handler Class
@@ -155,7 +172,7 @@ export class PvpCombatHandler {
         const actualDamage = Math.min(damage, currentHp);
         const mitigatedDamage = special?.effects?.ignoreProtectionPrayer
             ? actualDamage
-            : this.services.applyProtectionPrayers(target, actualDamage, attackType, "player");
+            : this.services.applyProtectionPrayers(target, actualDamage, attackType, "player", tick);
         const landedFlag = landed === true ? true : landed === false ? false : undefined;
 
         // Apply damage
@@ -237,6 +254,16 @@ export class PvpCombatHandler {
                 resolvedSpellId,
                 targetHitsplat.amount,
             );
+        } else if (special?.effects) {
+            this.handleSpecialPvpEffects(
+                player,
+                target,
+                targetId,
+                didLand,
+                targetHitsplat.amount,
+                hitsplatTick,
+                special,
+            );
         }
 
         if (!this.services.isActiveFrame() && effects.length > 0) {
@@ -272,6 +299,182 @@ export class PvpCombatHandler {
             }
         } catch (err) {
             logger.warn("[combat] failed to handle pvp auto-retaliate", err);
+        }
+    }
+
+    /**
+     * Handle melee/ranged special attack effects on a player target.
+     */
+    handleSpecialPvpEffects(
+        attacker: PlayerState,
+        target: PlayerState,
+        targetId: number,
+        landed: boolean,
+        damageDealt: number,
+        tick: number,
+        special: SpecialAttackPayload,
+    ): void {
+        const effects = special.effects;
+        if (!effects || !landed) return;
+
+        const dealt = Math.max(0, damageDealt);
+
+        const freezeTicks = effects.freezeTicks;
+        if (typeof freezeTicks === "number" && Number.isFinite(freezeTicks) && freezeTicks > 0) {
+            target.applyFreeze(freezeTicks, tick);
+        }
+
+        if (
+            dealt > 0 &&
+            typeof effects.healFraction === "number" &&
+            Number.isFinite(effects.healFraction) &&
+            effects.healFraction > 0
+        ) {
+            attacker.skillSystem.applyHitpointsHeal(Math.floor(dealt * effects.healFraction));
+        }
+
+        if (
+            dealt > 0 &&
+            typeof effects.prayerFraction === "number" &&
+            Number.isFinite(effects.prayerFraction) &&
+            effects.prayerFraction > 0
+        ) {
+            const restore = Math.floor(dealt * effects.prayerFraction);
+            if (restore > 0) {
+                const current = attacker.prayer.getPrayerLevel();
+                const base = attacker.skillSystem.getSkill(SkillId.Prayer).baseLevel;
+                attacker.skillSystem.setSkillBoost(SkillId.Prayer, Math.min(base, current + restore));
+            }
+        }
+
+        if (
+            typeof effects.siphonRunEnergyPercent === "number" &&
+            Number.isFinite(effects.siphonRunEnergyPercent) &&
+            effects.siphonRunEnergyPercent > 0
+        ) {
+            const drainUnits = Math.floor(
+                (effects.siphonRunEnergyPercent / 100) * RUN_ENERGY_MAX,
+            );
+            if (drainUnits > 0) {
+                const targetUnits = target.energy.getRunEnergyUnits();
+                const transferred = Math.min(targetUnits, drainUnits);
+                if (transferred > 0) {
+                    target.energy.adjustRunEnergyUnits(-transferred);
+                    attacker.energy.adjustRunEnergyUnits(transferred);
+                }
+            }
+        }
+
+        if (
+            typeof effects.prayerDisableTicks === "number" &&
+            Number.isFinite(effects.prayerDisableTicks) &&
+            effects.prayerDisableTicks > 0
+        ) {
+            target.combat.disableProtectionPrayersUntil(tick + effects.prayerDisableTicks);
+            const active = target.prayer.getActivePrayers();
+            const next = Array.from(active).filter((prayer) => !PROTECTION_PRAYERS.includes(prayer));
+            if (next.length !== active.size) {
+                target.prayer.setActivePrayers(next);
+                this.services.queueCombatState(target);
+            }
+        }
+
+        this.handlePlayerSpecialStatDrains(target, effects, dealt, tick);
+
+        this.queueSkillSync(attacker);
+        this.queueSkillSync(target);
+        const targetSock = this.services.getPlayerSocket(targetId);
+        if (targetSock) {
+            this.services.sendSkillsMessage(targetSock, target);
+        }
+    }
+
+    private handlePlayerSpecialStatDrains(
+        target: PlayerState,
+        effects: NonNullable<SpecialAttackPayload["effects"]>,
+        damageDealt: number,
+        tick: number,
+    ): void {
+        const dealt = Math.max(0, Math.trunc(damageDealt));
+
+        if (
+            typeof effects.drainDefencePercent === "number" &&
+            Number.isFinite(effects.drainDefencePercent) &&
+            effects.drainDefencePercent > 0
+        ) {
+            this.drainPlayerSkillPercent(target, SkillId.Defence, effects.drainDefencePercent);
+        }
+
+        if (
+            dealt > 0 &&
+            typeof effects.drainDefenceByDamage === "number" &&
+            Number.isFinite(effects.drainDefenceByDamage) &&
+            effects.drainDefenceByDamage > 0
+        ) {
+            this.drainPlayerSkillByAmount(
+                target,
+                SkillId.Defence,
+                Math.floor(dealt * effects.drainDefenceByDamage),
+                !!effects.drainDefenceOnlyIfNotDrained,
+            );
+        }
+
+        if (dealt > 0 && effects.drainMagicByDamage) {
+            this.drainPlayerSkillByAmount(target, SkillId.Magic, dealt);
+        }
+
+        if (dealt > 0 && effects.drainCombatStatByDamage) {
+            this.drainPlayerCombatStatsByDamage(target, dealt);
+        }
+
+        if (tick > 0 && target.combat.isPrayerDisabled(tick)) {
+            // Ensure protection prayers stay off for the disable window.
+            const active = target.prayer.getActivePrayers();
+            const next = Array.from(active).filter((prayer) => !PROTECTION_PRAYERS.includes(prayer));
+            if (next.length !== active.size) {
+                target.prayer.setActivePrayers(next);
+            }
+        }
+    }
+
+    private drainPlayerSkillPercent(target: PlayerState, skillId: SkillId, percent: number): void {
+        const skill = target.skillSystem.getSkill(skillId);
+        const current = Math.max(1, skill.baseLevel + skill.boost);
+        const drain = Math.max(1, Math.floor(current * percent));
+        target.skillSystem.setSkillBoost(skillId, Math.max(1, current - drain));
+    }
+
+    private drainPlayerSkillByAmount(
+        target: PlayerState,
+        skillId: SkillId,
+        amount: number,
+        onlyIfNotDrained?: boolean,
+    ): void {
+        if (amount <= 0) return;
+        const skill = target.skillSystem.getSkill(skillId);
+        const current = Math.max(1, skill.baseLevel + skill.boost);
+        if (onlyIfNotDrained && current < skill.baseLevel) return;
+        target.skillSystem.setSkillBoost(skillId, Math.max(1, current - amount));
+    }
+
+    private drainPlayerCombatStatsByDamage(target: PlayerState, damageDealt: number): void {
+        let remaining = Math.max(0, Math.trunc(damageDealt));
+        for (const skillId of PVP_COMBAT_SKILL_DRAIN_ORDER) {
+            if (remaining <= 0) break;
+            const skill = target.skillSystem.getSkill(skillId);
+            const current = Math.max(1, skill.baseLevel + skill.boost);
+            const drained = Math.min(remaining, Math.max(0, current - 1));
+            if (drained > 0) {
+                target.skillSystem.setSkillBoost(skillId, current - drained);
+                remaining -= drained;
+            }
+        }
+    }
+
+    private queueSkillSync(player: PlayerState): void {
+        const sync = player.skillSystem.takeSkillSync();
+        if (sync) {
+            this.services.queueSkillSnapshot(player.id, sync);
         }
     }
 
