@@ -27,3 +27,5 @@ npm run preview
 - Kontaktformular (demo – gemmer ikke til backend)
 
 Priserne er illustrative og erstatter ikke besigtigelse eller forsikringsopgørelse.
+
+Hero-foto: Unsplash (byggeplads), bundlet lokalt i `public/hero.jpg`.
